@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda Universe: Casino Edition</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--panel); border-bottom: 2px solid #333; }
+        .balance { font-size: 20px; color: var(--gold); font-weight: bold; position: relative; }
+        
+        .top-btns { display: flex; gap: 8px; }
+        .icon-btn { background: #222; border: 1px solid #444; border-radius: 10px; width: 40px; height: 40px; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+        .tab-content { display: none; padding: 20px; height: calc(100vh - 160px); overflow-y: auto; padding-bottom: 100px; }
+        .active-tab { display: block; }
+
+        /* КЛИКЕР И АНИМАЦИИ */
+        .click-area { height: 45%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        .click-btn { 
+            width: 180px; height: 180px; border-radius: 50%; border: 8px solid #222; 
+            background: radial-gradient(circle, var(--gold) 0%, #d4ac0d 100%); color: black; font-size: 22px; font-weight: 900;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.15); transition: 0.05s; z-index: 5;
+        }
+        .click-btn:active { transform: scale(0.92); }
+
+        .plus-one { position: absolute; color: var(--gold); font-weight: bold; pointer-events: none; animation: floatUp 0.6s ease-out forwards; z-index: 10; }
+        @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100px); } }
+
+        .flying-coin { position: fixed; color: var(--gold); font-size: 20px; pointer-events: none; z-index: 1000; animation: flyToBalance 0.8s ease-in forwards; }
+        @keyframes flyToBalance { to { top: 20px; left: 20px; opacity: 0; transform: scale(0.5); } }
+
+        /* СЛОТЫ */
+        .game-card { background: var(--panel); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #333; position: relative; }
+        .slot-container { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+        .slot-box { width: 60px; height: 70px; background: #000; border: 2px solid var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        
+        .chance-info { font-size: 10px; color: #666; text-align: left; margin-top: 10px; line-height: 1.4; }
+
+        /* НАВИГАЦИЯ */
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 70px; border-top: 2px solid #333; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn span { font-size: 20px; }
+
+        .list-item { background: var(--panel); padding: 15px; margin: 10px 0; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--blue); }
+        .buy-btn { background: var(--green); border: none; color: white; padding: 10px 14px; border-radius: 8px; font-weight: bold; }
+        input[type="number"] { background: #222; color: white; border: 1px solid #444; padding: 8px; border-radius: 8px; width: 100px; text-align: center; }
+    </style>
+</head>
+<body onload="initGame()">
+
+<div class="top-bar">
+    <div style="text-align:left">
+        <div class="balance" id="balance-container"><span id="coins">0</span> 🪙</div>
+        <div style="font-size:12px; color:var(--green)">⚡ <span id="energy">1000</span></div>
+    </div>
+    <div class="top-btns">
+        <button class="icon-btn" onclick="takeSnapshot()">📸</button>
+        <button class="icon-btn" onclick="openTab('profile')">👤</button>
+        <button class="icon-btn" onclick="openTab('settings')">⚙️</button>
+    </div>
+</div>
+
+<div id="tab-clicker" class="tab-content active-tab">
+    <div class="click-area" id="click-area">
+        <button class="click-btn" onclick="makeClick(event)">БУРМАЛДА</button>
+        <p style="color:#666; font-size:13px; margin-top:15px;">Доход: <span id="income-val">0</span>/с | Клик: <span id="click-val">1</span></p>
+    </div>
+</div>
+
+<div id="tab-games" class="tab-content">
+    <div class="game-card" id="slot-card">
+        <h3>🎰 КАЗИНО</h3>
+        <div class="slot-container">
+            <div class="slot-box" id="s1">🍒</div>
+            <div class="slot-box" id="s2">🍋</div>
+            <div class="slot-box" id="s3">💎</div>
+        </div>
+        <input type="number" id="slot-bet" value="100">
+        <button id="btn-slot" onclick="playSlots()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:white; font-weight:bold; margin-top:10px;">КРУТИТЬ</button>
+        
+        <div class="chance-info">
+            <b>Шансы:</b><br>
+            💎💎💎 = x20 | 7️⃣7️⃣7️⃣ = x50 | Любые 3 в ряд = x10<br>
+            Любые 2 совпадения = x1.5 (Возврат + профит)
+        </div>
+    </div>
+
+    <div class="game-card">
+        <h3>🚀 CRASH (LIMIT 4x)</h3>
+        <div id="crash-display" style="font-size:40px; color:var(--gold); font-family:monospace; margin:10px;">1.00x</div>
+        <input type="number" id="crash-bet" value="100">
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button id="btn-crash-start" onclick="startCrash()" style="flex:1; padding:12px; background:var(--green); border:none; border-radius:8px; color:white;">СТАВКА</button>
+            <button id="btn-crash-cashout" onclick="cashoutCrash()" disabled style="flex:1; padding:12px; background:var(--gold); border:none; border-radius:8px; color:black;">ЗАБРАТЬ</button>
+        </div>
+    </div>
+</div>
+
+<div id="tab-realty" class="tab-content">
+    <h3>🏎️ ГАРАЖ</h3><div id="list-cars"></div>
+    <hr style="border:1px solid #333; margin:20px 0;">
+    <h3>🏰 ИМПЕРИЯ</h3><div id="list-realty"></div>
+</div>
+
+<div id="tab-profile" class="tab-content">
+    <h3>👤 ПРОФИЛЬ</h3>
+    <div class="game-card">
+        <p>Статус: <b id="prof-status" style="color:var(--gold)">Бомж</b></p>
+        <p>Всего заработано: <span id="prof-total">0</span> 🪙</p>
+    </div>
+</div>
+
+<div id="tab-settings" class="tab-content">
+    <h3>⚙️ НАСТРОЙКИ</h3>
+    <div style="background:#222; padding:15px; border-radius:10px; display:flex; justify-content:space-between; margin-bottom:10px;">
+        <span>Звук</span><input type="checkbox" id="set-sound" checked>
+    </div>
+    <button onclick="resetGame()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:white; font-weight:bold;">СБРОС ПРОГРЕССА</button>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" id="n-clicker" onclick="openTab('clicker')"><span>🖱️</span>Клик</button>
+    <button class="nav-btn" id="n-games" onclick="openTab('games')"><span>🎲</span>Игры</button>
+    <button class="nav-btn" id="n-realty" onclick="openTab('realty')"><span>🏰</span>Активы</button>
+</div>
+
+<script>
+    let coins = 0, energy = 1000, income = 0, clickPower = 1, totalEarned = 0, lastSnapshot = 0;
+    const tg = window.Telegram.WebApp;
+    
+    // ЗВУКИ И МУЗЫКА
+    const snd = { click: new Audio('click.mp3'), win: new Audio('win.mp3'), lose: new Audio('loss.mp3'), music: new Audio('music.mp3') };
+    snd.music.loop = true;
+    let musicStarted = false;
+
+    function play(s) { if(document.getElementById('set-sound').checked) { snd[s].currentTime = 0; snd[s].play().catch(()=>{}); } }
+
+    function initGame() {
+        loadData(); renderLists(); updateUI();
+        setInterval(() => {
+            coins += income; totalEarned += income; updateUI();
+        }, 1000);
+    }
+
+    function updateUI() {
+        document.getElementById('coins').innerText = Math.floor(coins);
+        document.getElementById('energy').innerText = energy;
+        document.getElementById('income-val').innerText = income;
+        document.getElementById('click-val').innerText = clickPower;
+        document.getElementById('prof-total').innerText = Math.floor(totalEarned);
+        saveData();
+    }
+
+    // АНИМАЦИЯ КЛИКА (+1)
+    function makeClick(e) {
+        if(!musicStarted) { snd.music.play(); musicStarted = true; }
+        if(energy <= 0) return;
+        coins += clickPower; totalEarned += clickPower; energy--;
+        play('click');
+        
+        const p = document.createElement('div');
+        p.className = 'plus-one';
+        p.innerText = `+${clickPower}`;
+        p.style.left = `${e.clientX - 10}px`;
+        p.style.top = `${e.clientY - 20}px`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 600);
+
+        updateUI();
+    }
+
+    // ЛЕТЯЩИЕ МОНЕТКИ
+    function spawnCoins(count) {
+        for(let i=0; i<count; i++) {
+            setTimeout(() => {
+                const c = document.createElement('div');
+                c.className = 'flying-coin';
+                c.innerText = '🪙';
+                c.style.left = '50%';
+                c.style.top = '50%';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 800);
+            }, i * 50);
+        }
+    }
+
+    // КАЗИНО (ПО ОЧЕРЕДИ)
+    function playSlots() {
+        let b = parseInt(document.getElementById('slot-bet').value);
+        if(b > coins || b < 1) return;
+        coins -= b; updateUI();
+        
+        const s = ["🍒","🍋","💎","7️⃣","🔥"];
+        const btn = document.getElementById('btn-slot'); btn.disabled = true;
+        
+        let results = [0,0,0];
+        let stopFlags = [false, false, false];
+
+        // Запуск крутилки
+        let si = setInterval(() => {
+            if(!stopFlags[0]) document.getElementById('s1').innerText = s[Math.floor(Math.random()*5)];
+            if(!stopFlags[1]) document.getElementById('s2').innerText = s[Math.floor(Math.random()*5)];
+            if(!stopFlags[2]) document.getElementById('s3').innerText = s[Math.floor(Math.random()*5)];
+        }, 80);
+
+        // Поэтапная остановка
+        setTimeout(() => { stopFlags[0] = true; results[0] = document.getElementById('s1').innerText; }, 800);
+        setTimeout(() => { stopFlags[1] = true; results[1] = document.getElementById('s2').innerText; }, 1400);
+        setTimeout(() => { 
+            stopFlags[2] = true; 
+            results[2] = document.getElementById('s3').innerText;
+            clearInterval(si);
+            checkSlotWin(b, results);
+            btn.disabled = false;
+        }, 2000);
+    }
+
+    function checkSlotWin(b, res) {
+        let r1=res[0], r2=res[1], r3=res[2];
+        if(r1===r2 && r2===r3) {
+            let m = (r1==="💎")?20:(r1==="7️⃣")?50:10;
+            coins += b * m; totalEarned += b * m; play('win'); spawnCoins(10);
+        } else if(r1===r2 || r2===r3 || r1===r3) {
+            coins += Math.floor(b * 1.5); totalEarned += Math.floor(b * 0.5); play('win'); spawnCoins(5);
+        } else { play('lose'); }
+        updateUI();
+    }
+
+    // --- ОСТАЛЬНАЯ ЛОГИКА ---
+    function openTab(name) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active-tab');
+        let nb = document.getElementById('n-' + name); if(nb) nb.classList.add('active');
+    }
+
+    let cars = [{ name: "Жигули", price: 8000, click: 5, inc: 3, count: 0 },{ name: "BMW M5", price: 100000, click: 30, inc: 25, count: 0 }];
+    let realty = [{ name: "Будка", price: 5000, inc: 15, count: 0 },{ name: "Вилла", price: 1200000, inc: 1000, count: 0 }];
+
+    function renderLists() {
+        document.getElementById('list-cars').innerHTML = cars.map((c, i) => `<div class="list-item"><div><b>${c.name}</b></div><button class="buy-btn" onclick="buyCar(${i})">${c.price}</button></div>`).join('');
+        document.getElementById('list-realty').innerHTML = realty.map((r, i) => `<div class="list-item"><div><b>${r.name}</b></div><button class="buy-btn" onclick="buyRealty(${i})">${r.price}</button></div>`).join('');
+    }
+
+    function buyCar(i) { if(coins >= cars[i].price) { coins -= cars[i].price; clickPower += cars[i].click; income += cars[i].inc; cars[i].count++; cars[i].price = Math.floor(cars[i].price * 2.2); play('win'); renderLists(); updateUI(); } }
+    function buyRealty(i) { if(coins >= realty[i].price) { coins -= realty[i].price; income += realty[i].inc; realty[i].count++; realty[i].price = Math.floor(realty[i].price * 2.5); play('win'); renderLists(); updateUI(); } }
+
+    function resetGame() { if(confirm("Сбросить?")) { localStorage.clear(); location.reload(); } }
+    function saveData() { localStorage.setItem('burm_casino_v1', JSON.stringify({coins, energy, income, clickPower, totalEarned, cars, realty})); }
+    function loadData() { let d = JSON.parse(localStorage.getItem('burm_casino_v1')); if(d){ Object.assign(window, d); } }
+    
+    // CRASH (упрощенный для краткости)
+    let cInt, cM=1.0, isC=false, cB;
+    function startCrash() {
+        let b = parseInt(document.getElementById('crash-bet').value);
+        if(b > coins || isC) return;
+        coins -= b; cB = b; isC = true; cM = 1.0;
+        document.getElementById('btn-crash-start').disabled = true;
+        document.getElementById('btn-crash-cashout').disabled = false;
+        let boom = Math.random() < 0.5 ? 1.2 : 3.5;
+        cInt = setInterval(() => {
+            cM += 0.05; if(cM >= 4) { cM=4; finishC(true); }
+            document.getElementById('crash-display').innerText = cM.toFixed(2)+"x";
+            if(cM >= boom && isC) finishC(false);
+        }, 100);
+    }
+    function cashoutCrash() { if(!isC) return; finishC(true); coins += Math.floor(cB * cM); }
+    function finishC(w) { clearInterval(cInt); isC=false; document.getElementById('btn-crash-start').disabled = false; document.getElementById('btn-crash-cashout').disabled = true; if(w) play('win'); else play('lose'); updateUI(); }
+</script>
+</body>
+</html>
