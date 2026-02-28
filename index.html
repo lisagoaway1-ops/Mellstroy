@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mellstroy Burmalda Clicker</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: radial-gradient(circle, #1a1a1a, #000);
+            color: white;
+            text-align: center;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #score-container {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #f39c12;
+            text-shadow: 0 0 10px #f39c12;
+        }
+
+        #click-area {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        #click-area:active {
+            transform: scale(0.95);
+        }
+
+        .main-img {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            border: 5px solid #f39c12;
+            box-shadow: 0 0 30px rgba(243, 156, 18, 0.5);
+        }
+
+        .burmalda-text {
+            position: absolute;
+            color: #00ff00;
+            font-weight: bold;
+            pointer-events: none;
+            animation: moveUp 0.8s ease-out forwards;
+        }
+
+        @keyframes moveUp {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-100px); }
+        }
+
+        button {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background: #f39c12;
+            border: none;
+            border-radius: 10px;
+            color: black;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="score-container">
+        Бурмалда: <span id="balance">0</span>
+    </div>
+
+    <div id="click-area" onclick="handleTap(event)">
+        <div class="main-img" style="background: url('https://via.placeholder.com/250/f39c12/000000?text=MELL') center/cover;"></div>
+    </div>
+
+    <button onclick="tgAction()">Крутануть казик</button>
+
+    <script>
+        let balance = 0;
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Расширяем на весь экран
+
+        function handleTap(event) {
+            balance++;
+            document.getElementById('balance').innerText = balance;
+
+            // Создаем вылетающий текст "+1"
+            const text = document.createElement('div');
+            text.className = 'burmalda-text';
+            text.innerText = '+1 БУРМАЛДА';
+            text.style.left = event.clientX + 'px';
+            text.style.top = event.clientY + 'px';
+            document.body.appendChild(text);
+
+            setTimeout(() => text.remove(), 800);
+
+            // Легкая вибрация телефона (Haptic Feedback)
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+        }
+
+        function tgAction() {
+            tg.showAlert("Казино пока в разработке! Копи бурмалду!");
+        }
+    </script>
+</body>
+</html>
