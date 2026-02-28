@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda Old School</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Твой стиль без изменений */
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; }
+        .top-bar { display: flex; justify-content: space-between; padding: 15px; background: var(--panel); border-bottom: 2px solid #333; }
+        .balance { font-size: 22px; color: var(--gold); font-weight: bold; }
+        .card { background: var(--panel); padding: 15px; border-radius: 15px; margin: 10px; border: 1px solid #333; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+        .btn-blue { background: var(--blue); }
+        .btn-green { background: var(--green); }
+        #crash-display { font-size: 30px; margin: 10px; color: var(--gold); font-family: monospace; }
+    </style>
+</head>
+<body onload="loadData()">
+
+<div class="top-bar">
+    <div class="balance"><span id="coins">0</span> 🪙</div>
+    <button onclick="toggleMusic()" style="background:none; border:1px solid #444; color:white; border-radius:5px;">🎵 Музыка</button>
+</div>
+
+<div class="card">
+    <h3>✊ КНБ</h3>
+    <div id="rpc-result">Сделай ход</div>
+    <div style="display:flex; gap:5px; justify-content:center; margin-top:10px;">
+        <button class="btn btn-blue" onclick="playRPC('🪨')">🪨</button>
+        <button class="btn btn-blue" onclick="playRPC('✂️')">✂️</button>
+        <button class="btn btn-blue" onclick="playRPC('📄')">📄</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🚀 CRASH</h3>
+    <div id="crash-display">1.00x</div>
+    <input type="number" id="crash-bet" value="100" style="background:#222; color:white; border:1px solid #444; padding:5px; width:100px;">
+    <div style="margin-top:10px;">
+        <button id="btn-crash-start" class="btn btn-green" onclick="startCrash()">СТАВКА</button>
+        <button id="btn-crash-cashout" class="btn btn-blue" onclick="cashoutCrash()" disabled>ЗАБРАТЬ</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🏎️ АВТОСАЛОН</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span>Жигули (+10/с)</span>
+        <button class="btn btn-green" onclick="buyCar(0, 2000, 10)">2000</button>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span>BMW M5 (+50/с)</span>
+        <button class="btn btn-green" onclick="buyCar(1, 15000, 50)">15000</button>
+    </div>
+</div>
+
+<script>
+    let coins = 0, income = 0, energy = 1000;
+    const tg = window.Telegram.WebApp;
+    let audioCtx = null, musicNode = null;
+
+    // ТВОЙ КНБ С ФИКСОМ АБУЗА
+    function playRPC(user) {
+        if (coins < 50) { tg.showAlert("Нужно 50 монет!"); return; }
+        coins -= 50;
+        
+        // Бот выбирает строго ПОСЛЕ нажатия кнопки
+        const items = ['🪨', '✂️', '📄'];
+        const comp = items[Math.floor(Math.random()*3)];
+        let resTxt = "";
+        
+        if (user === comp) { 
+            resTxt = "Ничья! 🤝"; coins += 50; 
+        } else if ((user === '🪨' && comp === '✂️') || (user === '✂️' && comp === '📄') || (user === '📄' && comp === '🪨')) {
+            resTxt = "Победа! +150 🪙"; coins += 150;
+        } else { 
+            resTxt = "Проигрыш... 🤡"; 
+        }
+        
+        document.getElementById('rpc-result').innerText = `Ты: ${user} | Бот: ${comp} \n ${resTxt}`;
+        updateUI();
+        saveData();
+    }
+
+    // РЕЖИМ CRASH
+    let cMult = 1.0, cInt = null, isPlaying = false, currentBet = 0;
+    function startCrash() {
+        let bet = parseInt(document.getElementById('crash-bet').value);
+        if (bet > coins || isPlaying) { tg.showAlert("Мало денег!"); return; }
+        coins -= bet; currentBet = bet; isPlaying = true; cMult = 1.0;
+        document.getElementById('btn-crash-start').disabled = true;
+        document.getElementById('btn-crash-cashout').disabled = false;
+        
+        let boom = Math.random() < 0.2 ? 1.1 : (1.1 + Math.random() * 4); // 20% шанс слива на старте
+        
+        cInt = setInterval(() => {
+            cMult += 0.05;
+            document.getElementById('crash-display').innerText = cMult.toFixed(2) + "x";
+            if (cMult >= boom) {
+                clearInterval(cInt); isPlaying = false;
+                document.getElementById('crash-display').innerText = "BOOM!";
+                document.getElementById('btn-crash-start').disabled = false;
+                document.getElementById('btn-crash-cashout').disabled = true;
+            }
+        }, 100);
+    }
+
+    function cashoutCrash() {
+        if (!isPlaying) return;
+        clearInterval(cInt);
+        coins += Math.floor(currentBet * cMult);
+        isPlaying = false;
+        document.getElementById('btn-crash-start').disabled = false;
+        document.getElementById('btn-crash-cashout').disabled = true;
+        tg.showAlert("Забрал: " + Math.floor(currentBet * cMult));
+        updateUI();
+    }
+
+    // МАШИНЫ
+    function buyCar(id, price, inc) {
+        if (coins < price) { tg.showAlert("Денег нет!"); return; }
+        coins -= price;
+        income += inc;
+        updateUI();
+        saveData();
+    }
+
+    // МУЗЫКА
+    function toggleMusic() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (musicNode) {
+            musicNode.stop(); musicNode = null;
+        } else {
+            musicNode = audioCtx.createOscillator();
+            let g = audioCtx.createGain();
+            musicNode.type = 'triangle';
+            musicNode.frequency.value = 110; // Lo-Fi bass
+            g.gain.value = 0.03;
+            musicNode.connect(g); g.connect(audioCtx.destination);
+            musicNode.start();
+        }
+    }
+
+    // СИСТЕМА ДОХОДА
+    setInterval(() => {
+        if (income > 0) {
+            coins += income;
+            updateUI();
+        }
+    }, 1000);
+
+    function updateUI() { document.getElementById('coins').innerText = Math.floor(coins); }
+    function saveData() { localStorage.setItem('burm_v3_old', JSON.stringify({coins, income})); }
+    function loadData() {
+        let d = JSON.parse(localStorage.getItem('burm_v3_old'));
+        if (d) { coins = d.coins; income = d.income; updateUI(); }
+    }
+</script>
+</body>
+</html>
