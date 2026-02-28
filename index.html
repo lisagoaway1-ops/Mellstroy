@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda: Ultimate Empire</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; touch-action: manipulation; }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--panel); border-bottom: 2px solid #333; sticky; top:0; z-index:100;}
+        .balance { font-size: 24px; color: var(--gold); font-weight: 900; }
+        
+        .tab-content { display: none; padding: 20px; height: calc(100vh - 160px); overflow-y: auto; padding-bottom: 100px; }
+        .active-tab { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* КЛИКЕР */
+        .click-area { height: 35vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .click-btn { 
+            width: 170px; height: 170px; border-radius: 50%; border: 8px solid #222; 
+            background: radial-gradient(circle, var(--gold) 0%, #d4ac0d 100%); color: black; font-size: 20px; font-weight: 900;
+            box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); transition: transform 0.05s;
+        }
+        .click-btn:active { transform: scale(0.92); }
+
+        /* ЛЕТАЮЩИЕ ТЕКСТЫ */
+        .floating-text { position: fixed; color: var(--gold); font-weight: bold; pointer-events: none; animation: floatUp 0.7s forwards; z-index: 1000; }
+        @keyframes floatUp { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100px); opacity: 0; } }
+
+        /* КАРТОЧКИ */
+        .card { background: var(--panel); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #333; }
+        .list-item { background: #222; padding: 12px; margin: 8px 0; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .buy-btn { background: var(--green); border: none; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; }
+
+        /* КРИПТА */
+        .crypto-price { font-size: 30px; font-weight: bold; font-family: monospace; margin: 10px 0; }
+
+        /* НАВИГАЦИЯ */
+        .nav { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; height: 75px; border-top: 2px solid #333; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn span { font-size: 20px; margin-bottom: 3px; }
+
+        input { background: #222; color: white; border: 1px solid #444; padding: 10px; border-radius: 8px; width: 60%; text-align: center; }
+    </style>
+</head>
+<body onclick="initAudio()">
+
+<div class="top-bar">
+    <div style="text-align:left">
+        <div class="balance"><span id="coins">0</span> 🪙</div>
+        <div style="font-size:12px; color:var(--green)">⚡ <span id="energy">1000</span></div>
+    </div>
+    <div style="text-align:right; font-size:11px; color:#777;">
+        Доход: <span id="income-val">0</span>/с<br>Клик: <span id="click-val">1</span>
+    </div>
+</div>
+
+<div id="tab-main" class="tab-content active-tab">
+    <div class="click-area">
+        <button class="click-btn" onclick="makeClick(event)">БУРМАЛДА</button>
+    </div>
+    <div class="card" style="border-color:var(--blue)">
+        <h4>⚒️ РАБОТА (Ур. <span id="job-lvl">0</span>)</h4>
+        <button onclick="doWork(event)" style="width:100%; padding:12px; background:var(--blue); border:none; border-radius:10px; color:white; font-weight:bold;">ЗАВОД (-100⚡)</button>
+    </div>
+</div>
+
+<div id="tab-crypto" class="tab-content">
+    <div class="card">
+        <h3>₿ BITCOIN MARKET</h3>
+        <div class="crypto-price" id="btc-price">$50000</div>
+        <div id="btc-change" style="margin-bottom:15px;">0%</div>
+        <div style="font-size:14px; margin-bottom:10px;">В портфеле: <span id="my-btc">0</span> BTC</div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="buyBTC()" style="flex:1; padding:15px; background:var(--green); border:none; border-radius:10px; color:white; font-weight:bold;">КУПИТЬ</button>
+            <button onclick="sellBTC()" style="flex:1; padding:15px; background:var(--red); border:none; border-radius:10px; color:white; font-weight:bold;">ПРОДАТЬ</button>
+        </div>
+    </div>
+</div>
+
+<div id="tab-shop" class="tab-content">
+    <h3>🛒 МАГАЗИН</h3>
+    <div id="list-shop"></div>
+    <h3>🏎️ ГАРАЖ</h3>
+    <div id="list-cars"></div>
+    <h3>🏢 НЕДВИЖКА</h3>
+    <div id="list-realty"></div>
+</div>
+
+<div id="tab-games" class="tab-content">
+    <div class="card" style="border-color:var(--red)">
+        <h3>🚀 CRASH (DEATH)</h3>
+        <div id="crash-val" style="font-size:40px; font-weight:bold; margin:10px;">1.00x</div>
+        <input type="number" id="crash-bet" value="100"><br><br>
+        <button id="crash-start" onclick="startCrash()" style="width:45%; padding:12px; background:var(--green); border:none; border-radius:8px; color:white;">СТАВКА</button>
+        <button id="crash-cashout" onclick="cashoutCrash()" disabled style="width:45%; padding:12px; background:var(--gold); border:none; border-radius:8px; color:black;">ЗАБРАТЬ</button>
+    </div>
+    <div class="card">
+        <h3>🎰 КАЗИНО</h3>
+        <div id="slot-res" style="font-size:30px; margin:10px;">🍒 🍋 💎</div>
+        <button onclick="playSlots(event)" style="width:100%; padding:12px; background:var(--red); border:none; border-radius:10px; color:white;">КРУТИТЬ</button>
+    </div>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" onclick="openTab('main', this)"><span>🖱️</span>Клик</button>
+    <button class="nav-btn" onclick="openTab('crypto', this)"><span>📈</span>Биржа</button>
+    <button class="nav-btn" onclick="openTab('shop', this)"><span>🛒</span>Магаз</button>
+    <button class="nav-btn" onclick="openTab('games', this)"><span>🎲</span>Игры</button>
+</div>
+
+<script>
+    let coins = 0, energy = 1000, income = 0, clickPower = 1, btc = 0, btcPrice = 50000, jobExp = 0;
+    let audioCtx = null;
+    const tg = window.Telegram.WebApp;
+
+    function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
+    function playSfx(f, t='sine', d=0.1) { if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type=t; o.frequency.setValueAtTime(f, audioCtx.currentTime); g.gain.setValueAtTime(0.1, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+d); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d); }
+
+    function spawnFloat(x, y, text, color=null) {
+        const el = document.createElement('div'); el.className='floating-text'; el.innerText=text; 
+        if(color) el.style.color = color; el.style.left=x+'px'; el.style.top=y+'px';
+        document.body.appendChild(el); setTimeout(()=>el.remove(), 700);
+    }
+
+    let shopItems = [
+        { name: "Сильное нажатие", price: 500, click: 2, inc: 0, count: 0 },
+        { name: "Авто-кликер", price: 1000, click: 0, inc: 5, count: 0 }
+    ];
+    let cars = [
+        { name: "Жигули", price: 5000, click: 5, inc: 10, count: 0 },
+        { name: "BMW M5", price: 150000, click: 50, inc: 100, count: 0 }
+    ];
+    let realty = [
+        { name: "Ларёк", price: 20000, inc: 50, count: 0 },
+        { name: "Завод", price: 5000000, inc: 10000, count: 0 },
+        { name: "Планета", price: 1000000000, inc: 500000, count: 0 }
+    ];
+
+    function initGame() {
+        loadData(); renderLists(); updateUI();
+        setInterval(() => {
+            coins += income; if(energy < 1000) energy++;
+            updateBTC(); updateUI();
+        }, 1000);
+    }
+
+    function updateUI() {
+        document.getElementById('coins').innerText = Math.floor(coins);
+        document.getElementById('energy').innerText = energy;
+        document.getElementById('income-val').innerText = income;
+        document.getElementById('click-val').innerText = clickPower;
+        document.getElementById('job-lvl').innerText = jobExp;
+        document.getElementById('my-btc').innerText = btc.toFixed(4);
+        saveData();
+    }
+
+    function makeClick(e) {
+        if(energy <= 0) return; coins += clickPower; energy--;
+        playSfx(400); spawnFloat(e.clientX, e.clientY, "+"+clickPower); updateUI();
+    }
+
+    function updateBTC() {
+        let change = (Math.random() * 4 - 2); 
+        btcPrice += (btcPrice * (change / 100));
+        document.getElementById('btc-price').innerText = "$" + Math.floor(btcPrice);
+        const chEl = document.getElementById('btc-change');
+        chEl.innerText = (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
+        chEl.style.color = change >= 0 ? "var(--green)" : "var(--red)";
+    }
+
+    function buyBTC() {
+        let cost = btcPrice / 10; // Покупаем по 0.1 BTC
+        if(coins >= cost) { coins -= cost; btc += 0.1; playSfx(600); updateUI(); }
+    }
+
+    function sellBTC() {
+        if(btc >= 0.1) { btc -= 0.1; coins += btcPrice / 10; playSfx(800); updateUI(); }
+    }
+
+    function doWork(e) {
+        if(energy < 100) return; energy -= 100;
+        let pay = 300 + (jobExp * 50); coins += pay; jobExp++;
+        playSfx(500, 'square'); spawnFloat(e.clientX, e.clientY, "+"+pay, "var(--blue)"); updateUI();
+    }
+
+    // CRASH
+    let cM = 1.0, cInt = null, isC = false, cB = 0;
+    function startCrash() {
+        let b = parseInt(document.getElementById('crash-bet').value);
+        if(b > coins || isC) return; coins -= b; cB = b; isC = true; cM = 1.0;
+        document.getElementById('crash-start').disabled = true;
+        document.getElementById('crash-cashout').disabled = false;
+        let boom = (Math.random() < 0.2) ? 1.1 : (1.1 + Math.random() * 4);
+        cInt = setInterval(() => {
+            cM += 0.05; document.getElementById('crash-val').innerText = cM.toFixed(2)+"x";
+            if(cM >= boom) { clearInterval(cInt); isC = false; playSfx(100, 'sawtooth'); document.getElementById('crash-val').innerText = "BOOM!"; resetCrash(); }
+        }, 100);
+    }
+    function cashoutCrash() {
+        if(!isC) return; clearInterval(cInt); coins += cB * cM; isC = false; playSfx(900); resetCrash(); updateUI();
+    }
+    function resetCrash() { document.getElementById('crash-start').disabled = false; document.getElementById('crash-cashout').disabled = true; }
+
+    function playSlots(e) {
+        if(coins < 100) return; coins -= 100;
+        const s = ["💎", "7️⃣", "🍒", "🍋"];
+        let r1=s[Math.floor(Math.random()*4)], r2=s[Math.floor(Math.random()*4)], r3=s[Math.floor(Math.random()*4)];
+        document.getElementById('slot-res').innerText = `${r1} ${r2} ${r3}`;
+        if(r1===r2 && r2===r3) { coins += 2000; playSfx(1000, 'square'); }
+        updateUI();
+    }
+
+    function renderLists() {
+        const s = document.getElementById('list-shop'); s.innerHTML = "";
+        shopItems.forEach((item, i) => {
+            s.innerHTML += `<div class="list-item"><div>${item.name} (x${item.count})</div><button class="buy-btn" onclick="buyShop(${i})">${item.price}</button></div>`;
+        });
+        const c = document.getElementById('list-cars'); c.innerHTML = "";
+        cars.forEach((item, i) => {
+            c.innerHTML += `<div class="list-item"><div>${item.name}</div><button class="buy-btn" onclick="buyCar(${i})">${item.price}</button></div>`;
+        });
+        const r = document.getElementById('list-realty'); r.innerHTML = "";
+        realty.forEach((item, i) => {
+            r.innerHTML += `<div class="list-item"><div>${item.name}</div><button class="buy-btn" onclick="buyRealty(${i})">${item.price}</button></div>`;
+        });
+    }
+
+    function buyShop(i) {
+        if(coins >= shopItems[i].price) {
+            coins -= shopItems[i].price; clickPower += shopItems[i].click; income += shopItems[i].inc;
+            shopItems[i].count++; shopItems[i].price = Math.floor(shopItems[i].price * 1.5);
+            renderLists(); updateUI();
+        }
+    }
+    function buyCar(i) {
+        if(coins >= cars[i].price) { coins -= cars[i].price; clickPower += cars[i].click; income += cars[i].inc; cars[i].count++; cars[i].price *= 1.6; renderLists(); updateUI(); }
+    }
+    function buyRealty(i) {
+        if(coins >= realty[i].price) { coins -= realty[i].price; income += realty[i].inc; realty[i].count++; realty[i].price *= 1.8; renderLists(); updateUI(); }
+    }
+
+    function openTab(name, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active-tab');
+        btn.classList.add('active');
+        initAudio();
+    }
+
+    function saveData() { localStorage.setItem('burm_ult_save', JSON.stringify({coins, energy, income, clickPower, btc, btcPrice, jobExp, shopItems, cars, realty})); }
+    function loadData() {
+        let d = JSON.parse(localStorage.getItem('burm_ult_save'));
+        if(d) { Object.assign(window, d); }
+    }
+</script>
+</body>
+</html>
