@@ -1,0 +1,67 @@
+showAlert("Нужно 50 монет!"); return; }
+        coins -= 50;
+        const items = ['🪨', '✂️', '📄'];
+        const comp = items[Math.floor(Math.random()*3)];
+        let resTxt = "";
+        
+        if (user === comp) { resTxt = "Ничья! 🤝"; coins += 50; playSnd('rpc_draw'); }
+        else if ((user === '🪨' && comp === '✂️')  (user === '✂️' && comp === '📄')  (user === '📄' && comp === '🪨')) {
+            resTxt = "Победа! +150 🪙"; coins += 150; totalEarned += 100; playSnd('rpc_win');
+        } else { resTxt = "Проигрыш... 🤡"; playSnd('loss'); }
+        
+        document.getElementById('rpc-result').innerText = Ты: ${user} | Бот: ${comp} \n ${resTxt};
+        updateUI();
+        saveData();
+    }
+
+    // НЕДВИЖИМОСТЬ
+    const realtyData = [ {id:0, price:2000, inc:5}, {id:1, price:10000, inc:20}, {id:2, price:50000, inc:100} ];
+    function buyRealty(idx, price) {
+        if (coins < price) { tg.showAlert("Денег нет!"); return; }
+        coins -= price;
+        realtyOwned[idx]++;
+        income += realtyData[idx].inc;
+        playSnd('build');
+        updateUI();
+        saveData();
+    }
+
+    function buyItem(id, p) {
+        if (coins < p) { tg.showAlert("Нищеброд!"); return; }
+        coins -= p;
+        if (id === 'energy-drink') {
+            clickMult = 2; playSnd('click');
+            setTimeout(() => { clickMult = 1; }, 2400000);
+        } else {
+            playSnd(id);
+            if (id === 'salad') energy = Math.min(1000, energy + 500);
+            if (id === 'soup') energy = Math.min(1000, energy + 700);
+        }
+        updateUI();
+        saveData();
+    }
+
+    // СИСТЕМА ДОХОДА
+    setInterval(() => {
+        if (income > 0) {
+            coins += income;
+            totalEarned += income;
+            updateUI();
+        }
+    }, 1000);
+
+    function showMsg(t) { document.getElementById('status-msg').innerText = t; setTimeout(() => document.getElementById('status-msg').innerText="", 3000); }
+    
+    function saveData() { localStorage.setItem('burm_v3', JSON.stringify({coins, energy, income, totalEarned, realtyOwned})); }
+    function loadData() {
+        let d = JSON.parse(localStorage.getItem('burm_v3'));
+        if (d) {
+            coins = d.coins; energy = d.energy; income = d.income;
+            totalEarned = d.totalEarned; realtyOwned = d.realtyOwned || [0,0,0];
+            updateUI();
+        }
+    }
+    function resetGame() { if(confirm("Удалить всё?")) { localStorage.clear(); location.reload(); } }
+</script>
+</body>
+</html>
