@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda Tycoon</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; margin: 0; text-align: center; user-select: none; }
+        .header { padding: 15px; background: #1f1f1f; border-bottom: 2px solid #333; }
+        .balance { font-size: 24px; color: #f1c40f; font-weight: bold; }
+        .energy { color: #2ecc71; font-size: 14px; }
+        
+        .tab-content { display: none; padding: 20px; height: 70vh; overflow-y: auto; }
+        .active-tab { display: block; }
+
+        /* КЛИКЕР */
+        .click-btn { 
+            width: 200px; height: 200px; border-radius: 50%; border: none; 
+            background: #f1c40f; color: black; font-size: 22px; cursor: pointer;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.4); margin-top: 50px;
+        }
+        .click-btn:active { transform: scale(0.95); }
+
+        /* КАЗИНО */
+        .casino-box { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
+        .slots { font-size: 40px; margin: 20px 0; letter-spacing: 10px; }
+        input { padding: 10px; width: 60%; border-radius: 5px; border: none; margin: 10px; }
+
+        /* МАГАЗИН */
+        .item { background: #1f1f1f; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 4px solid #f1c40f; text-align: left; }
+        .item button { float: right; padding: 8px; background: #2ecc71; border: none; border-radius: 5px; color: white; }
+
+        /* НАВИГАЦИЯ */
+        .nav { position: fixed; bottom: 0; width: 100%; background: #1f1f1f; display: flex; border-top: 2px solid #333; }
+        .nav-btn { flex: 1; padding: 15px; background: none; border: none; color: #888; cursor: pointer; }
+        .nav-btn.active { color: #f1c40f; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="balance"><span id="coins">0</span> Burmald Coin</div>
+    <div class="energy">Энергия: <span id="energy">1000</span> / 1000</div>
+    <div id="status-msg" style="font-size: 12px; color: #e74c3c; height: 15px;"></div>
+</div>
+
+<div id="tab-clicker" class="tab-content active-tab">
+    <button class="click-btn" onclick="makeClick()">БУРМАЛДА</button>
+    <p id="multiplier-info" style="color: #aaa; margin-top: 15px;"></p>
+</div>
+
+<div id="tab-casino" class="tab-content">
+    <div class="casino-box">
+        <div class="slots" id="slot-result">🎰 🎰 🎰</div>
+        <input type="number" id="bet-amount" placeholder="Сколько депаем?">
+        <button onclick="playCasino()" style="width: 100%; padding: 15px; background: #e74c3c; color: white; border: none; border-radius: 10px; font-weight: bold;">КРУТИТЬ</button>
+    </div>
+    <div style="font-size: 12px; color: #888; text-align: left;">
+        💎💎💎 = x50 (Шанс 2.5%) <br>
+        🍋🍋🍋 = x5 (Шанс 10%) <br>
+        🍒🍒🍒 = x2 (Шанс 20%)
+    </div>
+</div>
+
+<div id="tab-shop" class="tab-content">
+    <div class="item">
+        <b>Энергетик</b> (x2 клик на 40 мин)
+        <button onclick="buyItem('energy-drink', 500)">500</button>
+    </div>
+    <div class="item">
+        <b>Салатик Бурмалдатик</b> (+500 энергии)
+        <button onclick="buyItem('salad', 400)">400</button>
+    </div>
+    <div class="item">
+        <b>Чечевичный суп</b> (+700 энергии)
+        <button onclick="buyItem('soup', 600)">600</button>
+    </div>
+    <div class="item">
+        <b>Сладкая конфетка</b> (-100 энергии)
+        <button onclick="buyItem('candy', 1000)">1000</button>
+    </div>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" onclick="openTab('clicker', this)">Кликер</button>
+    <button class="nav-btn" onclick="openTab('casino', this)">Казик</button>
+    <button class="nav-btn" onclick="openTab('shop', this)">Магаз</button>
+</div>
+
+<script>
+    let coins = 0;
+    let energy = 1000;
+    let clickMult = 1;
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    function updateUI() {
+        document.getElementById('coins').innerText = Math.floor(coins);
+        document.getElementById('energy').innerText = energy;
+    }
+
+    function openTab(name, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active-tab');
+        btn.classList.add('active');
+    }
+
+    function makeClick() {
+        if (energy <= 0) {
+            showMsg("Нет энергии! Поешь в магазе.");
+            return;
+        }
+        
+        // Шанс появления MELLFAN (0.5%)
+        if (Math.random() < 0.005) {
+            coins = Math.max(0, coins - 100);
+            showMsg("ПРИШЕЛ MELLFAN И УКРАЛ 100 МОНЕТ!");
+        } else {
+            coins += 1 * clickMult;
+            energy -= 1;
+        }
+        updateUI();
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    }
+
+    function playCasino() {
+        let bet = parseInt(document.getElementById('bet-amount').value);
+        if (isNaN(bet) || bet <= 0 || bet > coins) {
+            tg.showAlert("Ставка не лезет!");
+            return;
+        }
+
+        coins -= bet;
+        let res = Math.random() * 100;
+        let slots = document.getElementById('slot-result');
+        
+        if (res < 2.5) { // x50
+            slots.innerText = "💎 💎 💎";
+            coins += bet * 50;
+            tg.showAlert("ЕБАТЬ! ЗАНОС X50!");
+        } else if (res < 12.5) { // x5
+            slots.innerText = "🍋 🍋 🍋";
+            coins += bet * 5;
+        } else if (res < 32.5) { // x2
+            slots.innerText = "🍒 🍒 🍒";
+            coins += bet * 2;
+        } else {
+            slots.innerText = "💩 🤡 💩";
+            showMsg("Слил в казике...");
+        }
+        updateUI();
+    }
+
+    function buyItem(id, price) {
+        if (coins < price) {
+            tg.showAlert("Нищий что ли? Денег нет.");
+            return;
+        }
+        coins -= price;
+
+        if (id === 'energy-drink') {
+            clickMult = 2;
+            document.getElementById('multiplier-info').innerText = "Активен X2 Энергетик";
+            setTimeout(() => { clickMult = 1; document.getElementById('multiplier-info').innerText = ""; }, 2400000);
+        } else if (id === 'salad') {
+            energy = Math.min(1000, energy + 500);
+        } else if (id === 'soup') {
+            energy = Math.min(1000, energy + 700);
+        } else if (id === 'candy') {
+            energy = Math.max(0, energy - 100);
+            showMsg("Конфетка оказалась невкусной (-100 энергии)");
+        }
+        updateUI();
+    }
+
+    function showMsg(txt) {
+        let m = document.getElementById('status-msg');
+        m.innerText = txt;
+        setTimeout(() => m.innerText = "", 3000);
+    }
+</script>
+
+</body>
+</html>
