@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda Universe: Hardcore Expansion</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--panel); border-bottom: 2px solid #333; z-index: 1000; position: relative; }
+        .balance { font-size: 22px; color: var(--gold); font-weight: bold; }
+        
+        .tab-content { display: none; padding: 20px; height: calc(100vh - 160px); overflow-y: auto; padding-bottom: 120px; }
+        .active-tab { display: block; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .click-area { height: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .click-btn { 
+            width: 190px; height: 190px; border-radius: 50%; border: 8px solid #222; 
+            background: radial-gradient(circle, var(--gold) 0%, #d4ac0d 100%); color: black; font-size: 22px; font-weight: 900;
+            box-shadow: 0 0 30px rgba(241, 196, 15, 0.2); transition: transform 0.05s;
+        }
+        .click-btn:active { transform: scale(0.92); }
+
+        .list-item { background: var(--panel); padding: 15px; margin: 10px 0; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--blue); }
+        .buy-btn { background: var(--green); border: none; color: white; padding: 10px 14px; border-radius: 8px; font-weight: bold; }
+
+        .game-card { background: var(--panel); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #333; }
+        .crash-num { font-size: 45px; font-weight: bold; color: var(--gold); margin: 15px 0; font-family: monospace; }
+        .slot-machine { font-size: 35px; letter-spacing: 10px; margin: 15px 0; background: #000; padding: 10px; border-radius: 10px; border: 1px solid var(--gold); }
+
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 75px; border-top: 2px solid #333; z-index: 2000; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn span { font-size: 20px; }
+
+        input { background: #222; color: white; border: 1px solid #444; padding: 10px; border-radius: 8px; width: 60%; text-align: center; margin: 5px; }
+    </style>
+</head>
+<body onload="initGame()">
+
+<div class="top-bar">
+    <div style="text-align:left">
+        <div class="balance"><span id="coins">0</span> 🪙</div>
+        <div style="font-size:12px; color:var(--green)">⚡ <span id="energy">1000</span></div>
+    </div>
+    <button onclick="takeSnapshot()" style="background:#222; border:1px solid var(--blue); border-radius:50%; width:42px; height:42px; color:var(--blue); font-size:18px;">📸</button>
+</div>
+
+<div id="tab-clicker" class="tab-content active-tab">
+    <div class="click-area">
+        <div id="status-msg" style="height:30px; font-weight:bold;"></div>
+        <button class="click-btn" onclick="makeClick()">БУРМАЛДА</button>
+        <p style="color:#666; font-size:13px; margin-top:15px;">Доход: <span id="income-val">0</span>/с | Клик: <span id="click-val">1</span></p>
+    </div>
+    <div class="game-card">
+        <h4>🛠️ БЫСТРАЯ РАБОТА</h4>
+        <div style="display:flex; gap:10px;">
+            <button onclick="doWork(50, 20)" style="flex:1; padding:10px; background:#333; border:none; border-radius:8px; color:white; font-size:12px;">Курьер (+50 🪙, -20⚡)</button>
+            <button onclick="doWork(200, 100)" style="flex:1; padding:10px; background:#333; border:none; border-radius:8px; color:white; font-size:12px;">Завод (+200 🪙, -100⚡)</button>
+        </div>
+    </div>
+</div>
+
+<div id="tab-games" class="tab-content">
+    <div class="game-card">
+        <h3>🎰 КАЗИНО</h3>
+        <div class="slot-machine" id="slot-display">🍒 🍋 💎</div>
+        <input type="number" id="slot-bet" value="100">
+        <button onclick="playSlots()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:white; font-weight:bold;">КРУТИТЬ</button>
+    </div>
+
+    <div class="game-card">
+        <h3>🚀 CRASH (HARD)</h3>
+        <div class="crash-num" id="crash-display">1.00x</div>
+        <input type="number" id="crash-bet" value="100">
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button id="btn-crash-start" onclick="startCrash()" style="flex:1; padding:12px; background:var(--green); border:none; border-radius:8px; color:white;">СТАВКА</button>
+            <button id="btn-crash-cashout" onclick="cashoutCrash()" disabled style="flex:1; padding:12px; background:var(--gold); border:none; border-radius:8px; color:black;">ЗАБРАТЬ</button>
+        </div>
+    </div>
+
+    <div class="game-card">
+        <h3>✊ КНБ x1.8</h3>
+        <div id="rpc-result" style="margin-bottom:10px;">Ходи!</div>
+        <div style="display:flex; gap:5px;">
+            <button onclick="playRPC('🪨')" style="flex:1; padding:12px; background:#333; border:none; border-radius:8px; font-size:22px;">🪨</button>
+            <button onclick="playRPC('✂️')" style="flex:1; padding:12px; background:#333; border:none; border-radius:8px; font-size:22px;">✂️</button>
+            <button onclick="playRPC('📄')" style="flex:1; padding:12px; background:#333; border:none; border-radius:8px; font-size:22px;">📄</button>
+        </div>
+    </div>
+</div>
+
+<div id="tab-cars" class="tab-content"><h3>🏎️ ГАРАЖ</h3><div id="list-cars"></div></div>
+
+<div id="tab-realty" class="tab-content"><h3>🏰 ИМПЕРИЯ</h3><div id="list-realty"></div></div>
+
+<div class="nav">
+    <button class="nav-btn active" onclick="openTab('clicker', this)"><span>🖱️</span>Клик</button>
+    <button class="nav-btn" onclick="openTab('games', this)"><span>🎲</span>Игры</button>
+    <button class="nav-btn" onclick="openTab('cars', this)"><span>🏎️</span>Тачки</button>
+    <button class="nav-btn" onclick="openTab('realty', this)"><span>🏰</span>Дома</button>
+</div>
+
+<script>
+    let coins = 0, energy = 1000, income = 0, clickPower = 1, lastSnapshot = 0;
+    
+    const snd = {
+        click: new Audio('click.mp3'), win: new Audio('win.mp3'),
+        lose: new Audio('loss.mp3'), buy: new Audio('build.mp3')
+    };
+    function play(s) { if(snd[s]) { snd[s].currentTime = 0; snd[s].play().catch(()=>{}); } }
+
+    let cars = [
+        { name: "Самокат", price: 1000, click: 2, inc: 1, count: 0 },
+        { name: "Жигули", price: 7000, click: 7, inc: 5, count: 0 },
+        { name: "BMW M5", price: 75000, click: 40, inc: 35, count: 0 },
+        { name: "Tesla S", price: 250000, click: 120, inc: 100, count: 0 },
+        { name: "Bugatti", price: 1500000, click: 600, inc: 400, count: 0 }
+    ];
+
+    let realty = [
+        { name: "Будка", price: 5000, inc: 20, count: 0 },
+        { name: "Квартира", price: 60000, inc: 100, count: 0 },
+        { name: "Вилла", price: 800000, inc: 1200, count: 0 },
+        { name: "Нефтевышка", price: 15000000, inc: 25000, count: 0 },
+        { name: "Остров", price: 150000000, inc: 200000, count: 0 },
+        { name: "Планета", price: 2000000000, inc: 5000000, count: 0 }
+    ];
+
+    const tg = window.Telegram.WebApp;
+
+    function initGame() {
+        loadData(); renderLists(); updateUI();
+        setInterval(() => {
+            coins += income; if(energy < 1000) energy++;
+            updateUI();
+        }, 1000);
+    }
+
+    function updateUI() {
+        document.getElementById('coins').innerText = Math.floor(coins);
+        document.getElementById('energy').innerText = energy;
+        document.getElementById('income-val').innerText = income;
+        document.getElementById('click-val').innerText = clickPower;
+        saveData();
+    }
+
+    function makeClick() {
+        if(energy <= 0) return;
+        coins += clickPower; energy--;
+        play('click');
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        updateUI();
+    }
+
+    function doWork(reward, cost) {
+        if(energy >= cost) {
+            coins += reward; energy -= cost;
+            play('win'); updateUI();
+        } else { tg.showAlert("Слишком устал!"); }
+    }
+
+    function renderLists() {
+        const cB = document.getElementById('list-cars'); cB.innerHTML = "";
+        cars.forEach((c, i) => {
+            cB.innerHTML += `<div class="list-item"><div><b>${c.name}</b> (x${c.count})</div><button class="buy-btn" onclick="buyCar(${i})">${Math.floor(c.price)}</button></div>`;
+        });
+        const rB = document.getElementById('list-realty'); rB.innerHTML = "";
+        realty.forEach((r, i) => {
+            rB.innerHTML += `<div class="list-item" style="border-left-color:var(--gold)"><div><b>${r.name}</b> (x${r.count})</div><button class="buy-btn" onclick="buyRealty(${i})">${Math.floor(r.price)}</button></div>`;
+        });
+    }
+
+    function buyCar(i) {
+        if(coins >= cars[i].price) {
+            coins -= cars[i].price; clickPower += cars[i].click; income += cars[i].inc;
+            cars[i].count++; cars[i].price *= 1.7;
+            play('buy'); renderLists(); updateUI();
+        }
+    }
+
+    function buyRealty(i) {
+        if(coins >= realty[i].price) {
+            coins -= realty[i].price; income += realty[i].inc;
+            realty[i].count++; realty[i].price *= 1.9;
+            play('buy'); renderLists(); updateUI();
+        }
+    }
+
+    // --- СЛОТЫ (КАЗИНО) ---
+    function playSlots() {
+        let b = parseInt(document.getElementById('slot-bet').value);
+        if(b > coins || b < 1) return;
+        coins -= b;
+        const s = ["🍒","🍋","💎","7️⃣","🔥"];
+        let r1=s[Math.floor(Math.random()*s.length)], r2=s[Math.floor(Math.random()*s.length)], r3=s[Math.floor(Math.random()*s.length)];
+        document.getElementById('slot-display').innerText = `${r1} ${r2} ${r3}`;
+        
+        if(r1===r2 && r2===r3) {
+            let mult = (r1==="💎") ? 20 : (r1==="7️⃣") ? 50 : 10;
+            coins += b * mult; play('win'); tg.showAlert("JACKPOT x" + mult);
+        } else if(r1===r2 || r2===r3 || r1===r3) {
+            coins += Math.floor(b * 1.5); play('win');
+        } else { play('lose'); }
+        updateUI();
+    }
+
+    // --- CRASH ---
+    let cInt = null, cM = 1.0, isC = false, cB = 0;
+    function startCrash() {
+        let b = parseInt(document.getElementById('crash-bet').value);
+        if(b > coins || isC) return;
+        coins -= b; cB = b; isC = true; cM = 1.0;
+        document.getElementById('btn-crash-start').disabled = true;
+        document.getElementById('btn-crash-cashout').disabled = false;
+        let boom = (Math.random() < 0.25) ? (1.0 + Math.random()*0.15) : (1.2 + Math.random()*4.0);
+        cInt = setInterval(() => {
+            cM += 0.04;
+            document.getElementById('crash-display').innerText = cM.toFixed(2)+"x";
+            if(cM >= boom) {
+                clearInterval(cInt); play('lose');
+                document.getElementById('crash-display').innerText = "BOOM!";
+                isC = false; resetCrash();
+            }
+        }, 100);
+    }
+    function cashoutCrash() {
+        if(!isC) return;
+        clearInterval(cInt); play('win');
+        coins += Math.floor(cB * cM); isC = false;
+        resetCrash(); updateUI();
+    }
+    function resetCrash() { 
+        document.getElementById('btn-crash-start').disabled = false;
+        document.getElementById('btn-crash-cashout').disabled = true;
+    }
+
+    function playRPC(u) {
+        let bet = Math.max(100, Math.floor(income * 5));
+        if(coins < bet) return;
+        coins -= bet;
+        const i = ['🪨','✂️','📄'], c = i[Math.floor(Math.random()*3)];
+        if(u===c) { coins+=bet; }
+        else if((u==='🪨'&&c==='✂️')||(u==='✂️'&&c==='📄')||(u==='📄'&&c==='🪨')) {
+            coins += Math.floor(bet*1.8); play('win');
+        } else { play('lose'); }
+        document.getElementById('rpc-result').innerText = `Бот: ${c}`;
+        updateUI();
+    }
+
+    function takeSnapshot() {
+        let now = Date.now();
+        if(now - lastSnapshot < 86400000) return tg.showAlert("Жди 24ч!");
+        let bonus = Math.max(2000, income * 1000);
+        coins += bonus; lastSnapshot = now;
+        tg.showAlert("📸 Сделано! Бонус: " + bonus); updateUI();
+    }
+
+    function openTab(name, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active-tab');
+        btn.classList.add('active');
+        play('click');
+    }
+
+    function saveData() { localStorage.setItem('burm_hard_v2', JSON.stringify({coins, energy, income, clickPower, cars, realty, lastSnapshot})); }
+    function loadData() {
+        let d = JSON.parse(localStorage.getItem('burm_hard_v2'));
+        if(d) { coins=d.coins; energy=d.energy; income=d.income; clickPower=d.clickPower; cars=d.cars; realty=d.realty; lastSnapshot=d.lastSnapshot||0; }
+    }
+</script>
+</body>
+</html>
