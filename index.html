@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda: Hardcore Edition</title>
+    <style>
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--panel); border-bottom: 2px solid #333; height: 50px; }
+        .balance { font-size: 18px; color: var(--gold); font-weight: bold; }
+        .tab-content { display: none; padding: 15px; height: calc(100vh - 140px); overflow-y: auto; padding-bottom: 80px; }
+        .active-tab { display: block; }
+        .city-card { background: #222; border: 2px solid var(--blue); border-radius: 15px; padding: 15px; margin-bottom: 12px; cursor: pointer; }
+        .city-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .menu-btn { background: var(--panel); border: 1px solid #444; padding: 15px 5px; border-radius: 10px; color: white; font-weight: bold; font-size: 12px; }
+        .game-card { background: var(--panel); padding: 15px; border-radius: 18px; border: 1px solid #333; margin-top: 10px; }
+        .slot-container { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
+        .slot-box { width: 55px; height: 70px; background: #000; border: 2px solid var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        .click-btn { width: 150px; height: 150px; border-radius: 50%; border: 8px solid #222; background: radial-gradient(circle, var(--gold) 0%, #d4ac0d 100%); color: black; font-weight: 900; margin-top: 30px; box-shadow: 0 0 20px rgba(241, 196, 15, 0.2); }
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 70px; border-top: 2px solid #333; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn span { font-size: 20px; }
+        .list-item { background: #1a1a1a; padding: 10px; margin: 5px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; border-left: 3px solid var(--blue); }
+        .buy-btn { background: var(--green); border: none; color: white; padding: 6px 10px; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body onload="initGame()">
+
+<div class="top-bar">
+    <div class="balance"><span id="coins">0</span> 🪙</div>
+    <div style="display:flex; gap:12px;">
+        <div style="color:var(--green); font-size:14px;">⚡<span id="energy">1000</span></div>
+        <button onclick="openTab('profile')" style="background:none; border:none; font-size:18px;">👤</button>
+        <button onclick="openTab('settings')" style="background:none; border:none; font-size:18px;">⚙️</button>
+    </div>
+</div>
+
+<div id="tab-clicker" class="tab-content active-tab">
+    <button class="click-btn" onclick="makeClick(event)">БУРМАЛДА</button>
+    <p style="color:#666; margin-top:15px;">Доход: <span id="inc-val">0</span>/с | Клик: <span id="clk-val">1</span></p>
+</div>
+
+<div id="tab-map" class="tab-content">
+    <h3>ВЫБЕРИ ГОРОД</h3>
+    <div class="city-card" onclick="travelTo('Murino')"><h2>🏗️ Мурино</h2><p>Автосалон и Недвижимость</p></div>
+    <div class="city-card" onclick="travelTo('Otso')"><h2>🎰 Отсо-Сити</h2><p>Казино и Рисковый Краш</p></div>
+    <div class="city-card" onclick="travelTo('Medno')"><h2>🎡 Меднобыченск</h2><p>Чиловый кликер</p></div>
+</div>
+
+<div id="tab-city" class="tab-content">
+    <h3 id="city-title">ВЫБЕРИ ГОРОД НА КАРТЕ</h3>
+    <div id="city-ui"></div>
+</div>
+
+<div id="tab-profile" class="tab-content">
+    <h3>ПРОФИЛЬ</h3>
+    <div class="game-card">
+        <p>Всего добыто: <span id="prof-total">0</span> 🪙</p>
+        <button class="buy-btn" style="background:var(--blue); width:100%;" onclick="takeSnapshot()">📸 СНАПШОТ (Бонус раз в 24ч)</button>
+    </div>
+</div>
+
+<div id="tab-settings" class="tab-content">
+    <h3>НАСТРОЙКИ</h3>
+    <button class="buy-btn" style="background:var(--red); width:100%;" onclick="resetGame()">СБРОСИТЬ ВСЁ</button>
+    <p><input type="checkbox" id="set-sound" checked> Звуки и Музыка</p>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" id="n-clicker" onclick="openTab('clicker')"><span>🖱️</span>Клик</button>
+    <button class="nav-btn" id="n-map" onclick="openTab('map')"><span>🗺️</span>Карта</button>
+    <button class="nav-btn" id="n-city" onclick="openTab('city')"><span>🏙️</span>Город</button>
+</div>
+
+<script>
+    let coins = 0, energy = 1000, income = 0, clickPower = 1, totalEarned = 0, lastSnapshot = 0;
+    const snd = { 
+        click: new Audio('click.mp3'), win: new Audio('win.mp3'), lose: new Audio('loss.mp3'), 
+        jackpot: new Audio('jackpot.mp3'), music: new Audio('music.mp3') 
+    };
+    snd.music.loop = true;
+    let musicStarted = false;
+
+    let cars = [
+        { name: "Ока", price: 500, click: 2, inc: 1, count: 0 },
+        { name: "Жигули", price: 5000, click: 10, inc: 5, count: 0 },
+        { name: "BMW M5", price: 80000, click: 40, inc: 35, count: 0 },
+        { name: "Lambo", price: 1000000, click: 200, inc: 150, count: 0 }
+    ];
+
+    let houses = [
+        { name: "Будка", price: 2000, inc: 10, count: 0 },
+        { name: "Квартира", price: 40000, inc: 80, count: 0 },
+        { name: "Вилла", price: 500000, inc: 600, count: 0 },
+        { name: "Нефтевышка", price: 50000000, inc: 25000, count: 0 }
+    ];
+
+    function initGame() {
+        loadData(); updateUI();
+        setInterval(() => { coins += income; totalEarned += income; if(energy < 1000) energy++; updateUI(); }, 1000);
+    }
+
+    function travelTo(city) {
+        const ui = document.getElementById('city-ui');
+        document.getElementById('city-title').innerText = (city === 'Murino' ? "🏗️ МУРИНО" : city === 'Otso' ? "🎰 ОТСО-СИТИ" : "🎡 МЕДНОБЫЧЕНСК");
+        
+        if(city === 'Murino') {
+            ui.innerHTML = `
+                <div class="city-menu">
+                    <button class="menu-btn" onclick="renderShop('cars')">🏎️ АВТОСАЛОН</button>
+                    <button class="menu-btn" onclick="renderShop('houses')">🏠 НЕДВИЖКА</button>
+                </div><div id="shop-list"></div>`;
+        } else if(city === 'Otso') {
+            ui.innerHTML = `
+                <div class="game-card">
+                    <h3>🎰 КАЗИНО (HARD)</h3>
+                    <div class="slot-container"><div class="slot-box" id="s1">❓</div><div class="slot-box" id="s2">❓</div><div class="slot-box" id="s3">❓</div></div>
+                    <input type="number" id="slot-bet" value="100" style="margin-bottom:10px;">
+                    <button class="buy-btn" style="width:100%; background:var(--red);" id="slot-btn" onclick="playSlots()">КРУТИТЬ</button>
+                </div>
+                <div class="game-card">
+                    <h3>🚀 CRASH (RISKY)</h3>
+                    <div id="crash-val" style="font-size:30px; color:var(--gold);">1.00x</div>
+                    <input type="number" id="crash-bet" value="100" style="margin-bottom:10px;">
+                    <button class="buy-btn" id="c-start" onclick="startCrash()">СТАВКА</button>
+                    <button class="buy-btn" id="c-out" disabled onclick="cashoutCrash()">ЗАБРАТЬ</button>
+                </div>`;
+        } else {
+            ui.innerHTML = `<p>Тут просто спокойно. Кликай и отдыхай.</p><button class="click-btn" onclick="makeClick(event)">БУРМАЛДА</button>`;
+        }
+        openTab('city');
+    }
+
+    function renderShop(type) {
+        const list = document.getElementById('shop-list');
+        let items = type === 'cars' ? cars : houses;
+        list.innerHTML = items.map((item, i) => `
+            <div class="list-item">
+                <span><b>${item.name}</b> (x${item.count})<br><small>Доход: +${item.inc}/с</small></span>
+                <button class="buy-btn" onclick="buyItem('${type}', ${i})">${Math.floor(item.price)}</button>
+            </div>`).join('');
+    }
+
+    function buyItem(type, i) {
+        let item = (type === 'cars' ? cars[i] : houses[i]);
+        if(coins >= item.price) {
+            coins -= item.price; 
+            if(item.click) clickPower += item.click;
+            income += item.inc; item.count++; item.price *= 2.3;
+            if(document.getElementById('set-sound').checked) snd.win.play();
+            renderShop(type); updateUI();
+        }
+    }
+
+    // КАЗИНО С НИЗКИМ ШАНСОМ
+    function playSlots() {
+        let bet = parseInt(document.getElementById('slot-bet').value);
+        if(bet > coins || bet < 1) return;
+        coins -= bet; document.getElementById('slot-btn').disabled = true;
+        let symbols = ["🍒", "🍋", "💎", "7️⃣", "💩"];
+        let i = 0;
+        let interval = setInterval(() => {
+            document.getElementById('s1').innerText = symbols[Math.floor(Math.random()*5)];
+            document.getElementById('s2').innerText = symbols[Math.floor(Math.random()*5)];
+            document.getElementById('s3').innerText = symbols[Math.floor(Math.random()*5)];
+            if(i++ > 15) {
+                clearInterval(interval);
+                let r = [symbols[Math.floor(Math.random()*5)], symbols[Math.floor(Math.random()*5)], symbols[Math.floor(Math.random()*5)]];
+                // Искусственно занижаем шанс (80% шанс на полный мусор)
+                if(Math.random() > 0.2) r = [symbols[0], symbols[1], symbols[4]]; 
+                
+                document.getElementById('s1').innerText = r[0]; document.getElementById('s2').innerText = r[1]; document.getElementById('s3').innerText = r[2];
+                
+                if(r[0]===r[1] && r[1]===r[2]) { coins += bet*15; snd.jackpot.play(); }
+                else if(r[0]===r[1] || r[1]===r[2] || r[0]===r[2]) { coins += Math.floor(bet*1.2); snd.win.play(); }
+                else snd.lose.play();
+                
+                document.getElementById('slot-btn').disabled = false; updateUI();
+            }
+        }, 50);
+    }
+
+    // КРАШ С ВЫСОКИМ РИСКОМ
+    let cM = 1.0, cInt, isC = false, cB;
+    function startCrash() {
+        let b = parseInt(document.getElementById('crash-bet').value);
+        if(b > coins || isC || b < 1) return;
+        coins -= b; cB = b; isC = true; cM = 1.0;
+        document.getElementById('c-start').disabled = true; document.getElementById('c-out').disabled = false;
+        // 30% шанс краша сразу на 1.01x
+        let boom = Math.random() < 0.3 ? 1.01 : 1.1 + Math.random()*2.5;
+        cInt = setInterval(() => {
+            cM += 0.03; document.getElementById('crash-val').innerText = cM.toFixed(2)+"x";
+            if(cM >= boom) {
+                clearInterval(cInt); isC = false; snd.lose.play();
+                document.getElementById('crash-val').innerText = "BOOM! " + cM.toFixed(2);
+                document.getElementById('c-start').disabled = false; document.getElementById('c-out').disabled = true;
+            }
+        }, 100);
+    }
+    function cashoutCrash() {
+        if(!isC) return;
+        coins += Math.floor(cB * cM); clearInterval(cInt); isC = false;
+        snd.win.play(); document.getElementById('c-start').disabled = false; document.getElementById('c-out').disabled = true;
+        updateUI();
+    }
+
+    function makeClick(e) {
+        if(energy <= 0) return;
+        coins += clickPower; energy--; totalEarned += clickPower;
+        if(!musicStarted && document.getElementById('set-sound').checked) { snd.music.play(); musicStarted = true; }
+        if(document.getElementById('set-sound').checked) { snd.click.currentTime=0; snd.click.play(); }
+        updateUI();
+    }
+
+    function takeSnapshot() {
+        let now = Date.now();
+        if(now - lastSnapshot < 86400000) return alert("Жди 24 часа!");
+        let bonus = Math.max(5000, income * 200);
+        coins += bonus; lastSnapshot = now; updateUI();
+        alert("📸 Снапшот сделан! Бонус: " + bonus);
+    }
+
+    function openTab(name) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active-tab');
+        document.getElementById('n-' + name).classList.add('active');
+    }
+
+    function updateUI() {
+        document.getElementById('coins').innerText = Math.floor(coins);
+        document.getElementById('energy').innerText = energy;
+        document.getElementById('inc-val').innerText = income;
+        document.getElementById('clk-val').innerText = clickPower;
+        document.getElementById('prof-total').innerText = Math.floor(totalEarned);
+        saveData();
+    }
+
+    function saveData() { localStorage.setItem('burmalda_hard_save', JSON.stringify({coins, income, clickPower, totalEarned, lastSnapshot, cars, houses})); }
+    function loadData() {
+        let d = JSON.parse(localStorage.getItem('burmalda_hard_save'));
+        if(d) { 
+            coins=d.coins; income=d.income; clickPower=d.clickPower; totalEarned=d.totalEarned; 
+            lastSnapshot=d.lastSnapshot; cars=d.cars; houses=d.houses; 
+        }
+    }
+    function resetGame() { if(confirm("Удалить всё?")) { localStorage.clear(); location.reload(); } }
+</script>
+</body>
+</html>
