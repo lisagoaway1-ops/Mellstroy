@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda: Ultimate Cloud</title>
+    <style>
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--panel); border-bottom: 2px solid #333; height: 70px; }
+        .balance { font-size: 18px; color: var(--gold); font-weight: bold; }
+        .lvl-badge { font-size: 10px; background: var(--blue); padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
+        
+        .tab-content { display: none; padding: 15px; height: calc(100vh - 160px); overflow-y: auto; padding-bottom: 80px; }
+        .active-tab { display: block; }
+
+        .click-btn { width: 140px; height: 140px; border-radius: 50%; border: 8px solid #222; background: radial-gradient(circle, var(--gold) 0%, #b8860b 100%); color: black; font-weight: 900; margin-top: 20px; cursor: pointer; }
+        
+        /* Стили списков */
+        .list-item { background: #1a1a1a; padding: 12px; margin: 8px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--blue); }
+        .buy-btn { background: var(--green); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        /* Чат и Топ */
+        #chat-box { height: 200px; background: #111; border-radius: 10px; overflow-y: auto; padding: 10px; text-align: left; border: 1px solid #333; }
+        .msg { margin-bottom: 5px; font-size: 12px; }
+        .msg b { color: var(--blue); cursor: pointer; }
+        .leader-item { display: flex; justify-content: space-between; padding: 10px; background: #222; margin-bottom: 5px; border-radius: 8px; cursor: pointer; }
+        .leader-item:active { background: #333; }
+
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 75px; border-top: 2px solid #333; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn span { font-size: 22px; }
+
+        .crash-val { font-size: 40px; color: var(--gold); font-family: monospace; margin: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div style="text-align:left">
+        <div class="balance"><span id="coins">0</span> 🪙</div>
+        <div style="font-size:12px; color:var(--blue)">Ур. <span id="user-lvl">1</span> (<span id="user-exp">0</span>)</div>
+    </div>
+    <div id="user-tag" style="font-size: 11px; color: #888;">Загрузка...</div>
+    <button onclick="openTab('settings')" style="background:none; border:none; font-size:20px; cursor:pointer;">⚙️</button>
+</div>
+
+<div id="tab-clicker" class="tab-content active-tab">
+    <button class="click-btn" onclick="makeClick()">БУРМАЛДА</button>
+    <p>Клик: +<span id="clk-val">1</span> | Доход: +<span id="inc-val">0</span>/с</p>
+</div>
+
+<div id="tab-map" class="tab-content">
+    <h3>ЛОКАЦИИ</h3>
+    <button class="list-item" style="width:100%" onclick="travelTo('Shop')">🏗️ МУРИНО (Магазин)</button>
+    <button class="list-item" style="width:100%; border-left-color: var(--red);" onclick="travelTo('Casino')">🎰 ОТСО-СИТИ (Казино)</button>
+</div>
+
+<div id="tab-city" class="tab-content">
+    <h3 id="city-title">ГОРОД</h3>
+    <div id="city-ui"></div>
+</div>
+
+<div id="tab-chat" class="tab-content">
+    <h3>ГЛОБАЛЬНЫЙ ЧАТ</h3>
+    <p style="font-size: 10px; color: #666;">Нажми на имя, чтобы подарить 1000 🪙</p>
+    <div id="chat-box"></div>
+    <div style="display:flex; gap:5px; margin-top:10px;">
+        <input type="text" id="chat-input" placeholder="Сообщение..." style="flex:1; background:#222; border:1px solid #444; color:white; padding:10px; border-radius:8px;">
+        <button class="buy-btn" onclick="sendMessage()">📡</button>
+    </div>
+</div>
+
+<div id="tab-leaderboard" class="tab-content">
+    <h3>🏆 ТОП МИЛЛИАРДЕРОВ</h3>
+    <div id="leader-list"></div>
+</div>
+
+<div id="tab-settings" class="tab-content">
+    <h3>НАСТРОЙКИ</h3>
+    <p>Твой ID: <b id="my-id-display"></b></p>
+    <input type="text" id="name-input" placeholder="Новый ник..." style="background:#222; border:1px solid #444; color:white; padding:10px; border-radius:8px;">
+    <button class="buy-btn" onclick="changeNickname()">ИЗМЕНИТЬ</button>
+    <br><br>
+    <button style="background:var(--red); border:none; color:white; padding:10px; border-radius:8px; cursor:pointer;" onclick="resetGame()">СБРОС ПРОГРЕССА</button>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" id="n-clicker" onclick="openTab('clicker')"><span>🖱️</span>Клик</button>
+    <button class="nav-btn" id="n-map" onclick="openTab('map')"><span>🗺️</span>Карта</button>
+    <button class="nav-btn" id="n-chat" onclick="openTab('chat')"><span>💬</span>Чат</button>
+    <button class="nav-btn" id="n-leaderboard" onclick="openTab('leaderboard')"><span>🏆</span>Топ</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, query, orderByChild, limitToLast, push, serverTimestamp, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDI5JrmS9DTC6ZPf2IpeQi4Z8fe-eZeSi0",
+        authDomain: "burmalda-cc9e2.firebaseapp.com",
+        databaseURL: "https://burmalda-cc9e2-default-rtdb.firebaseio.com",
+        projectId: "burmalda-cc9e2",
+        storageBucket: "burmalda-cc9e2.firebasestorage.app",
+        messagingSenderId: "16974087709",
+        appId: "1:16974087709:web:98efe6ee803de73360e8f4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // СОСТОЯНИЕ
+    let State = {
+        coins: Number(localStorage.getItem('coins')) || 0,
+        income: Number(localStorage.getItem('income')) || 0,
+        clickPower: Number(localStorage.getItem('clickPower')) || 1,
+        userId: localStorage.getItem('burmalda_uid') || "User_" + Math.floor(Math.random()*9999),
+        totalEarned: Number(localStorage.getItem('totalEarned')) || 0
+    };
+    localStorage.setItem('burmalda_uid', State.userId);
+
+    const ITEMS = {
+        cars: [ {n: "Ока", p: 500, i: 2, c: 1}, {n: "Приора", p: 5000, i: 15, c: 5}, {n: "Гелик", p: 50000, i: 100, c: 20} ],
+        houses: [ {n: "Шалаш", p: 2000, i: 10}, {n: "Квартира", p: 25000, i: 80}, {n: "Вилла", p: 500000, i: 1000} ]
+    };
+
+    // ИНИЦИАЛИЗАЦИЯ
+    window.initGame = async () => {
+        document.getElementById('user-tag').innerText = State.userId;
+        document.getElementById('my-id-display').innerText = State.userId;
+        
+        const snap = await get(ref(db, 'users/' + State.userId));
+        if(snap.exists()) {
+            const data = snap.val();
+            State.coins = Math.max(State.coins, data.balance || 0);
+            State.totalEarned = Math.max(State.totalEarned, data.totalEarned || 0);
+        }
+
+        setInterval(() => {
+            State.coins += State.income;
+            State.totalEarned += State.income;
+            updateUI();
+        }, 1000);
+
+        setInterval(syncStats, 15000);
+        listenChat();
+        listenLeaderboard();
+    };
+
+    function updateUI() {
+        document.getElementById('coins').innerText = Math.floor(State.coins).toLocaleString();
+        document.getElementById('inc-val').innerText = State.income;
+        document.getElementById('clk-val').innerText = State.clickPower;
+        
+        // Уровень: корень из заработанного / 10
+        let lvl = Math.floor(Math.sqrt(State.totalEarned) / 10) + 1;
+        document.getElementById('user-lvl').innerText = lvl;
+        document.getElementById('user-exp').innerText = Math.floor(State.totalEarned);
+
+        localStorage.setItem('coins', State.coins);
+        localStorage.setItem('income', State.income);
+        localStorage.setItem('clickPower', State.clickPower);
+        localStorage.setItem('totalEarned', State.totalEarned);
+    }
+
+    function syncStats() {
+        set(ref(db, 'users/' + State.userId), { 
+            username: State.userId, 
+            balance: Math.floor(State.coins),
+            totalEarned: Math.floor(State.totalEarned),
+            lastActive: serverTimestamp()
+        });
+    }
+
+    // ГЛОБАЛЬНЫЕ ФУНКЦИИ
+    window.makeClick = () => {
+        State.coins += State.clickPower;
+        State.totalEarned += State.clickPower;
+        updateUI();
+    };
+
+    window.openTab = (name) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active-tab');
+        document.getElementById('n-' + name).classList.add('active');
+    };
+
+    // МАГАЗИН
+    window.travelTo = (loc) => {
+        const ui = document.getElementById('city-ui');
+        document.getElementById('city-title').innerText = loc === 'Shop' ? "МУРИНО" : "ОТСО-СИТИ";
+        
+        if(loc === 'Shop') {
+            let html = "<h4>МАШИНЫ</h4>";
+            ITEMS.cars.forEach((item, i) => {
+                html += `<div class="list-item"><span>${item.n}<br><small>+${item.i}/с +${item.c} кл</small></span> 
+                <button class="buy-btn" onclick="buyItem('cars', ${i})">${item.p} 🪙</button></div>`;
+            });
+            html += "<h4>ДОМА</h4>";
+            ITEMS.houses.forEach((item, i) => {
+                html += `<div class="list-item"><span>${item.n}<br><small>+${item.i}/с</small></span> 
+                <button class="buy-btn" onclick="buyItem('houses', ${i})">${item.p} 🪙</button></div>`;
+            });
+            ui.innerHTML = html;
+        } else {
+            ui.innerHTML = `
+                <div style="background:#222; padding:15px; border-radius:15px;">
+                    <h4>🚀 CRASH</h4>
+                    <div class="crash-val" id="crash-mult">1.00x</div>
+                    <input type="number" id="crash-bet" value="100" style="width:80%; padding:10px; margin-bottom:10px; background:#000; color:white; border:1px solid #444;">
+                    <div id="crash-ctrl">
+                        <button class="buy-btn" onclick="startCrash()">СТАВКА</button>
+                    </div>
+                </div>
+            `;
+        }
+        window.openTab('city');
+    };
+
+    window.buyItem = (type, idx) => {
+        const item = ITEMS[type][idx];
+        if(State.coins >= item.p) {
+            State.coins -= item.p;
+            State.income += item.i;
+            if(item.c) State.clickPower += item.c;
+            updateUI();
+            syncStats();
+            alert("Поздравляем с покупкой!");
+        } else alert("Не хватает монет!");
+    };
+
+    // CRASH
+    let crashInterval;
+    window.startCrash = () => {
+        let bet = Number(document.getElementById('crash-bet').value);
+        if(bet > State.coins || bet <= 0) return alert("Недостаточно монет!");
+        
+        State.coins -= bet;
+        updateUI();
+        let mult = 1.0;
+        let boom = 1 + Math.random() * 3; 
+        
+        document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" style="background:var(--gold); color:black;" onclick="cashoutCrash(${bet})">ЗАБРАТЬ</button>`;
+        
+        crashInterval = setInterval(() => {
+            mult += 0.05;
+            document.getElementById('crash-mult').innerText = mult.toFixed(2) + "x";
+            if(mult >= boom) {
+                clearInterval(crashInterval);
+                document.getElementById('crash-mult').innerText = "BOOM!";
+                document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" onclick="startCrash()">СТАВКА</button>`;
+                syncStats();
+            }
+        }, 100);
+    };
+
+    window.cashoutCrash = (bet) => {
+        clearInterval(crashInterval);
+        let currentMult = parseFloat(document.getElementById('crash-mult').innerText);
+        let win = Math.floor(bet * currentMult);
+        State.coins += win;
+        State.totalEarned += (win - bet);
+        alert("Выигрыш: " + win);
+        document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" onclick="startCrash()">СТАВКА</button>`;
+        updateUI();
+        syncStats();
+    };
+
+    // ЧАТ И ПЕРЕВОДЫ
+    window.sendMessage = () => {
+        const input = document.getElementById('chat-input');
+        if(!input.value.trim()) return;
+        push(ref(db, 'chat'), { user: State.userId, text: input.value, time: serverTimestamp() });
+        input.value = "";
+    };
+
+    window.sendGift = (targetId) => {
+        if(targetId === State.userId) return;
+        if(State.coins < 1000) return alert("Нужно минимум 1000 🪙");
+
+        runTransaction(ref(db, 'users/' + targetId), (user) => {
+            if (user) {
+                user.balance = (user.balance || 0) + 1000;
+            }
+            return user;
+        }).then(() => {
+            State.coins -= 1000;
+            updateUI();
+            push(ref(db, 'chat'), { user: "СИСТЕМА", text: `🎁 ${State.userId} подарил 1000 🪙 игроку ${targetId}`, time: serverTimestamp() });
+        });
+    };
+
+    function listenChat() {
+        onValue(query(ref(db, 'chat'), limitToLast(15)), (snap) => {
+            let h = "";
+            snap.forEach(c => {
+                const m = c.val();
+                h += `<div class="msg"><b onclick="sendGift('${m.user}')">${m.user}</b>: ${m.text}</div>`;
+            });
+            document.getElementById('chat-box').innerHTML = h;
+            document.getElementById('chat-box').scrollTop = 9999;
+        });
+    }
+
+    function listenLeaderboard() {
+        onValue(query(ref(db, 'users'), orderByChild('balance'), limitToLast(20)), (snap) => {
+            let players = [];
+            snap.forEach(s => players.push(s.val()));
+            players.sort((a,b) => b.balance - a.balance);
+            document.getElementById('leader-list').innerHTML = players.map((p, i) => `
+                <div class="leader-item ${p.username === State.userId ? 'me' : ''}" onclick="sendGift('${p.username}')">
+                    <span>#${i+1} ${p.username}</span>
+                    <b>${(p.balance || 0).toLocaleString()} 🪙</b>
+                </div>
+            `).join('');
+        });
+    }
+
+    window.changeNickname = () => {
+        const n = document.getElementById('name-input').value.trim();
+        if(n) { State.userId = n; localStorage.setItem('burmalda_uid', n); location.reload(); }
+    };
+
+    window.resetGame = () => { if(confirm("Сброс?")) { localStorage.clear(); location.reload(); } };
+
+    window.initGame();
+</script>
+
+</body>
+</html>
