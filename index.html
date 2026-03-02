@@ -578,15 +578,16 @@ window.showGame=(g)=>{
 };
 
 // ════════════════════════════════════════
-// CRASH
+// // ════════════════════════════════════════
+// CRASH (PROTECTED EDITION)
 // ════════════════════════════════════════
-let crashInterval,crashMult,crashBoom,crashBet=0,crashActive=false;
-function renderCrash(){
-  document.getElementById('game-area').innerHTML=`
+let crashInterval, crashMult, crashBoom, crashBet = 0, crashActive = false;
+
+function renderCrash() {
+  document.getElementById('game-area').innerHTML = `
   <div style="background:#111;padding:14px;border-radius:14px">
     <h4 style="margin:0 0 6px">🚀 CRASH</h4>
     <div class="crash-val" id="crash-mult">1.00x</div>
-    <div style="height:5px;background:#222;border-radius:3px;margin-bottom:10px;overflow:hidden"><div id="crash-bar" style="height:100%;width:0%;background:var(--green);transition:width 0.08s;border-radius:3px"></div></div>
     <input type="number" id="crash-bet" value="100" min="1" style="width:75%;margin-bottom:8px">
     <div id="crash-ctrl"><button class="buy-btn" onclick="startCrash()" style="font-size:15px;padding:10px 22px">💰 СТАВКА</button></div>
     <p id="crash-msg" style="font-size:12px;color:#888;min-height:16px;margin:6px 0"></p>
@@ -595,49 +596,88 @@ function renderCrash(){
   </div>`;
   listenCrashBets();
 }
-function listenCrashBets(){
-  onValue(ref(db,'crash_round/bets'),snap=>{
-    if(!snap.exists()){const el=document.getElementById('crash-players-list');if(el)el.innerHTML='';return;}
-    let h='';
-    snap.forEach(c=>{const b=c.val();const cls=b.cashedOut?'won':(b.crashed?'lost':'');const status=b.cashedOut?`+${fmt(Math.floor(b.bet*(b.mult||1)-b.bet))} (${b.mult}x)`:b.crashed?'BOOM':'...';h+=`<div class="cp-row ${cls}"><span>${esc(b.name)}</span><span>${fmt(b.bet)} → ${status}</span></div>`;});
-    const el=document.getElementById('crash-players-list');if(el)el.innerHTML=h;
+
+function listenCrashBets() {
+  onValue(ref(db, 'crash_round/bets'), snap => {
+    if (!snap.exists()) { const el = document.getElementById('crash-players-list'); if (el) el.innerHTML = ''; return; }
+    let h = '';
+    snap.forEach(c => {
+      const b = c.val();
+      const cls = b.cashedOut ? 'won' : (b.crashed ? 'lost' : '');
+      const status = b.cashedOut ? `+${fmt(Math.floor(b.bet * (b.mult || 1) - b.bet))} (${b.mult}x)` : b.crashed ? 'BOOM' : '...';
+      h += `<div class="cp-row ${cls}"><span>${esc(b.name)}</span><span>${fmt(b.bet)} → ${status}</span></div>`;
+    });
+    const el = document.getElementById('crash-players-list'); if (el) el.innerHTML = h;
   });
 }
-window.startCrash=()=>{
-  if(crashActive)return;
-  let bet=Number(document.getElementById('crash-bet').value);
-  if(!bet||bet<=0||bet>S.coins)return alert("Недостаточно монет!");
-  S.coins-=bet;crashBet=bet;crashMult=1.0;crashActive=true;
-  crashBoom=1+Math.expm1(Math.random()*2.2);
-  set(ref(db,'crash_round/bets/'+S.userId),{name:S.displayName,bet,cashedOut:false,crashed:false,mult:1});
-  document.getElementById('crash-ctrl').innerHTML=`<button class="buy-btn" style="background:var(--gold);color:black;font-size:16px;padding:12px 24px" onclick="cashoutCrash()">💰 ЗАБРАТЬ</button>`;
-  document.getElementById('crash-msg').innerText='';
-  crashInterval=setInterval(()=>{
-    crashMult+=0.02+crashMult*0.006;
-    const el=document.getElementById('crash-mult');
-    if(el){el.innerText=crashMult.toFixed(2)+'x';el.className='crash-val';}
-    update(ref(db,'crash_round/bets/'+S.userId),{mult:+crashMult.toFixed(2)});
-    if(crashMult>=crashBoom){
-      clearInterval(crashInterval);crashActive=false;
-      if(el){el.innerText="💥 BOOM!";el.className='crash-val crashed';}
-      if(bar)bar.style.background='var(--red)';
-      update(ref(db,'crash_round/bets/'+S.userId),{crashed:true});
-      document.getElementById('crash-ctrl').innerHTML=`<button class="buy-btn" onclick="startCrash()">💰 СТАВКА</button>`;
-      const msg=document.getElementById('crash-msg');if(msg)msg.innerText="💥 Краш на "+crashMult.toFixed(2)+"x. Потерял "+fmt(crashBet);
-      updateUI();syncStats();
+
+window.startCrash = async () => {
+  if (crashActive) return;
+  let bet = Number(document.getElementById('crash-bet').value);
+  if (!bet || bet <= 0 || bet > S.coins) return alert("Недостаточно монет!");
+
+  // 1. ПРЕДОПРЕДЕЛЕНИЕ РЕЗУЛЬТАТА (Provably Fair)
+  const realBoom = (1 + Math.expm1(Math.random() * 2.2)).toFixed(2);
+  const salt = Math.random().toString(36).substring(2, 10);
+  const hash = CryptoJS.SHA256(realBoom + salt).toString();
+
+  // 2. ЗАПИСЬ В БАЗУ (Сначала публичный хеш, потом секрет)
+  await set(ref(db, 'crash_round/public'), { hash: hash, status: "playing" });
+  await set(ref(db, 'crash_round/secret'), { boom: realBoom, salt: salt });
+  
+  // Очистка старых ставок
+  await remove(ref(db, 'crash_round/bets'));
+
+  S.coins -= bet; crashBet = bet; crashMult = 1.0; crashActive = true;
+  crashBoom = parseFloat(realBoom);
+
+  set(ref(db, 'crash_round/bets/' + S.userId), { name: S.displayName || S.userId, bet, cashedOut: false, crashed: false, mult: 1 });
+
+  document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" style="background:var(--gold);color:black;font-size:16px;padding:12px 24px" onclick="cashoutCrash()">💰 ЗАБРАТЬ</button>`;
+  document.getElementById('crash-msg').innerHTML = `<small style="color:#555">Hash: ${hash.substring(0, 16)}...</small>`;
+
+  crashInterval = setInterval(async () => {
+    crashMult += 0.02 + crashMult * 0.006;
+    const el = document.getElementById('crash-mult');
+    if (el) { el.innerText = crashMult.toFixed(2) + 'x'; el.className = 'crash-val'; }
+
+    update(ref(db, 'crash_round/bets/' + S.userId), { mult: +crashMult.toFixed(2) });
+
+    if (crashMult >= crashBoom) {
+      clearInterval(crashInterval); crashActive = false;
+      
+      // РАСКРЫТИЕ СЕКРЕТА (Меняем статус, чтобы Rules разрешили чтение)
+      await update(ref(db, 'crash_round/public'), { status: "ended" });
+      const snap = await get(ref(db, 'crash_round/secret'));
+      const secret = snap.val();
+
+      if (el) { el.innerText = "💥 BOOM!"; el.className = 'crash-val crashed'; }
+      update(ref(db, 'crash_round/bets/' + S.userId), { crashed: true });
+      document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" onclick="startCrash()">💰 СТАВКА</button>`;
+      
+      const msg = document.getElementById('crash-msg');
+      if (msg) msg.innerHTML = `💥 Краш на ${secret.boom}x. Соль: ${secret.salt}`;
+      
+      updateUI(); syncStats();
     }
-  },80);
+  }, 100);
 };
-window.cashoutCrash=()=>{
-  if(!crashActive)return;
-  clearInterval(crashInterval);crashActive=false;
-  const win=Math.floor(crashBet*crashMult);
-  S.coins+=win;S.totalEarned+=Math.max(0,win-crashBet);
-  update(ref(db,'crash_round/bets/'+S.userId),{cashedOut:true,mult:+crashMult.toFixed(2)});
-  document.getElementById('crash-ctrl').innerHTML=`<button class="buy-btn" onclick="startCrash()">💰 СТАВКА</button>`;
-  const msg=document.getElementById('crash-msg');if(msg)msg.innerText="✅ Забрал на "+crashMult.toFixed(2)+"x! +"+fmt(win-crashBet);
-  updateUI();syncStats();
+
+window.cashoutCrash = async () => {
+  if (!crashActive) return;
+  clearInterval(crashInterval); crashActive = false;
+  const win = Math.floor(crashBet * crashMult);
+  S.coins += win; S.totalEarned += Math.max(0, win - crashBet);
+  
+  update(ref(db, 'crash_round/bets/' + S.userId), { cashedOut: true, mult: +crashMult.toFixed(2) });
+  document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" onclick="startCrash()">💰 СТАВКА</button>`;
+  
+  const msg = document.getElementById('crash-msg');
+  if (msg) msg.innerText = "✅ Забрал на " + crashMult.toFixed(2) + "x!";
+  
+  updateUI(); syncStats();
 };
+
 
 // ════════════════════════════════════════
 // SLOTS
