@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda: Ultimate Online</title>
+    <style>
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--panel); border-bottom: 2px solid #333; height: 60px; }
+        .balance { font-size: 20px; color: var(--gold); font-weight: bold; }
+
+        .tab-content { display: none; padding: 15px; height: calc(100vh - 145px); overflow-y: auto; padding-bottom: 80px; }
+        .active-tab { display: block; }
+
+        /* ЛИДЕРБОРД СТИЛИ */
+        .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; margin-bottom: 8px; border-radius: 10px; border-left: 4px solid var(--blue); }
+        .leader-item.me { border-left-color: var(--green); background: #222; }
+        .leader-rank { font-weight: bold; color: var(--gold); margin-right: 10px; }
+
+        .slot-box { width: 60px; height: 80px; background: #000; border: 2px solid var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 35px; }
+        .slot-spinning { animation: slotBlur 0.1s infinite; }
+        @keyframes slotBlur { 0% { filter: blur(1px); transform: translateY(-2px); } 50% { filter: blur(3px); transform: translateY(2px); } 100% { filter: blur(1px); } }
+
+        .crash-display { font-size: 40px; font-weight: bold; color: var(--gold); margin: 15px 0; font-family: monospace; }
+        .city-card { background: #1a1a1a; border: 1px solid var(--blue); border-radius: 15px; padding: 15px; margin-bottom: 10px; cursor: pointer; }
+        .menu-btn { background: #222; border: 1px solid #444; padding: 15px; border-radius: 10px; color: white; font-weight: bold; width: 100%; margin-bottom: 8px; cursor: pointer; }
+
+        .click-btn { width: 160px; height: 160px; border-radius: 50%; border: 10px solid #222; background: radial-gradient(circle, var(--gold) 0%, #b8860b 100%); color: black; font-weight: 900; margin-top: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.5); cursor: pointer; font-size: 16px; }
+        .click-btn:active { transform: scale(0.96); }
+
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 75px; border-top: 2px solid #333; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn span { font-size: 24px; margin-bottom: 2px; }
+        .btn-icon { background: none; border: none; font-size: 24px; cursor: pointer; color: white; }
+
+        .list-item { background: #121212; padding: 12px; margin: 6px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--blue); }
+        .buy-btn { background: var(--green); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; }
+
+        .daily-btn { background: var(--gold); border: none; border-radius: 10px; color: black; padding: 8px 12px; font-weight: bold; font-size: 11px; animation: pulse 2s infinite; cursor: pointer; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #222; border-radius: 8px; padding: 10px 20px; font-size: 14px; z-index: 999; pointer-events: none; animation: fadeInOut 2.5s forwards; white-space: nowrap; }
+        .toast-error { border-left: 3px solid var(--red); }
+        .toast-success { border-left: 3px solid var(--green); }
+        @keyframes fadeInOut { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div style="text-align:left">
+        <div class="balance"><span id="coins">0</span> 🪙</div>
+        <div style="color:var(--green); font-size:12px;">⚡ <span id="energy">1000</span></div>
+    </div>
+    <div id="online-tag" style="font-size: 10px; color: #555;">ID: ...</div>
+    <button id="daily-btn" class="daily-btn">БОНУС 🎁</button>
+    <button id="settings-btn" class="btn-icon">⚙️</button>
+</div>
+
+<div id="tab-clicker" class="tab-content active-tab">
+    <h3 id="click-title">ГЛАВНЫЙ КЛИКЕР</h3>
+    <button class="click-btn" id="main-click-btn">БУРМАЛДА</button>
+    <p style="color:#666; margin-top:20px;">Клик: +<span id="clk-val">1</span> | Пассив: +<span id="inc-val">0</span>/с</p>
+</div>
+
+<div id="tab-map" class="tab-content">
+    <h3>КАРТА ОБЛАСТИ</h3>
+    <div class="city-card" id="city-murino"><h2>🏗️ Мурино</h2><p>Магазины и Недвижка</p></div>
+    <div class="city-card" id="city-otso"><h2>🎰 Отсо-Сити</h2><p>Казино и Краш (ОПАСНО)</p></div>
+    <div class="city-card" id="city-medno"><h2>🌳 Меднобыченск</h2><p>Курортный кликер (X1.5)</p></div>
+</div>
+
+<div id="tab-city" class="tab-content">
+    <h3 id="city-title">ГОРОД НЕ ВЫБРАН</h3>
+    <div id="city-ui"></div>
+</div>
+
+<div id="tab-top" class="tab-content">
+    <h3>🏆 ТОП БУРМАЛДЕРОВ</h3>
+    <div id="leaderboard-list">Загрузка...</div>
+</div>
+
+<div id="tab-settings" class="tab-content">
+    <h3>НАСТРОЙКИ</h3>
+    <div style="background:#222; padding:15px; border-radius:15px; margin-bottom: 15px;">
+        <p>ВАШ НИК:</p>
+        <input type="text" id="username-input" maxlength="12" style="padding:10px; width:80%; border-radius:5px; border:none; text-align:center;"><br><br>
+        <button class="buy-btn" id="save-username-btn">СОХРАНИТЬ НИК</button>
+    </div>
+    <div style="background:#222; padding:15px; border-radius:15px;">
+        <p>ПРОМОКОД:</p>
+        <input type="text" id="promo-input" style="padding:10px; width:80%; border-radius:5px; border:none; text-align:center;"><br><br>
+        <button class="buy-btn" id="promo-btn">АКТИВИРОВАТЬ</button>
+    </div>
+    <br>
+    <button class="menu-btn" id="reset-btn" style="color:var(--red);">СБРОСИТЬ ПРОГРЕСС</button>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" id="n-clicker"><span>🖱️</span>Клик</button>
+    <button class="nav-btn" id="n-map"><span>🗺️</span>Карта</button>
+    <button class="nav-btn" id="n-top"><span>🏆</span>Топ</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDI5JrmS9DTC6ZPf2IpeQi4Z8fe-eZeSi0",
+        authDomain: "burmalda-cc9e2.firebaseapp.com",
+        databaseURL: "https://burmalda-cc9e2-default-rtdb.firebaseio.com",
+        projectId: "burmalda-cc9e2",
+        storageBucket: "burmalda-cc9e2.firebasestorage.app",
+        messagingSenderId: "16974087709",
+        appId: "1:16974087709:web:98efe6ee803de73360e8f4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ============================================================
+    // СОСТОЯНИЕ ИГРЫ
+    // ============================================================
+    const CONFIG = {
+        ENERGY_MAX: 1000,
+        DAILY_BONUS_COOLDOWN_MS: 86400000,
+        DAILY_BONUS_MIN: 5000,
+        SAVE_KEY: 'burm_hard_v3_online',
+    };
+
+    const CASINO = {
+        SLOTS_JACKPOT_CHANCE: 0.02,
+        SLOTS_PAIR_CHANCE: 0.12,
+        SLOTS_JACKPOT_MULTIPLIER: 25,
+        SLOTS_PAIR_MULTIPLIER: 1.5,
+        CRASH_INSTANT_BOOM_CHANCE: 0.40,
+        CRASH_MAX_EXTRA: 2.5,
+        CRASH_TICK_MS: 100,
+        CRASH_TICK_INC: 0.05,
+    };
+
+    const State = {
+        uid: localStorage.getItem('burm_uid') || 'u' + Math.random().toString(36).substr(2, 9),
+        username: localStorage.getItem('burm_user') || "Аноним",
+        coins: 0,
+        energy: CONFIG.ENERGY_MAX,
+        income: 0,
+        clickPower: 1,
+        lastBonus: 0,
+        usedPromos: [],
+        cars: [
+            { name: "Ока", price: 1000, inc: 2, clk: 1, count: 0 },
+            { name: "Лада Гранта", price: 15000, inc: 15, clk: 5, count: 0 },
+            { name: "Гелик", price: 250000, inc: 150, clk: 40, count: 0 },
+            { name: "Rolls-Royce", price: 2000000, inc: 1200, clk: 200, count: 0 },
+            { name: "Bugatti Chiron", price: 15000000, inc: 10000, clk: 1000, count: 0 },
+        ],
+        houses: [
+            { name: "Шалаш", price: 5000, inc: 10, count: 0 },
+            { name: "Квартира в Мурино", price: 100000, inc: 150, count: 0 },
+            { name: "Пентхаус", price: 1500000, inc: 2000, count: 0 },
+            { name: "Москва-Сити", price: 25000000, inc: 25000, count: 0 },
+            { name: "Нефтевышка", price: 150000000, inc: 150000, count: 0 },
+        ],
+    };
+
+    localStorage.setItem('burm_uid', State.uid);
+
+    // ============================================================
+    // ФУНКЦИИ СИНХРОНИЗАЦИИ
+    // ============================================================
+    function syncOnline() {
+        set(ref(db, 'users/' + State.uid), {
+            username: State.username,
+            balance: Math.floor(State.coins),
+            income: State.income,
+            lastActive: Date.now()
+        });
+    }
+
+    window.loadLeaderboard = () => {
+        const list = document.getElementById('leaderboard-list');
+        list.innerHTML = "Загрузка...";
+        const topQuery = query(ref(db, 'users'), orderByChild('balance'), limitToLast(10));
+        
+        onValue(topQuery, (snap) => {
+            let data = [];
+            snap.forEach(s => data.push(s.val()));
+            data.sort((a,b) => b.balance - a.balance);
+            
+            list.innerHTML = data.map((user, i) => `
+                <div class="leader-item ${user.username === State.username ? 'me' : ''}">
+                    <span><span class="leader-rank">#${i+1}</span> ${user.username}</span>
+                    <b>${fmt(user.balance)} 🪙</b>
+                </div>
+            `).join('');
+        });
+    };
+
+    // ============================================================
+    // СИСТЕМА (ТВОЙ ОРИГИНАЛЬНЫЙ КОД С ПРАВКАМИ)
+    // ============================================================
+    function simpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return hash.toString(16);
+    }
+
+    const PROMO_HASH = "f2c4a25d9e1b7034fcb834567a0f9d8e2c1a4b7e3d6f9a0c2e5b8d1f4a7c0e3";
+
+    function showToast(msg, type = 'info') {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+    }
+
+    const sounds = {
+        click: new Audio('https://www.myinstants.com/media/sounds/click_1.mp3'),
+        win: new Audio('https://www.myinstants.com/media/sounds/win_nfx.mp3'),
+        lose: new Audio('https://www.myinstants.com/media/sounds/wrong-answer-126515.mp3'),
+        money: new Audio('https://www.myinstants.com/media/sounds/money-sound-effect.mp3'),
+    };
+
+    function playSound(name) {
+        try { sounds[name].currentTime = 0; sounds[name].play().catch(()=>{}); } catch(e){}
+    }
+
+    function fmt(n) {
+        if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+        return Math.floor(n).toString();
+    }
+
+    function saveData() {
+        const data = { ...State };
+        data._check = simpleHash(JSON.stringify(data));
+        localStorage.setItem(CONFIG.SAVE_KEY, btoa(JSON.stringify(data)));
+        syncOnline(); // Пушим в Firebase
+    }
+
+    function loadData() {
+        const raw = localStorage.getItem(CONFIG.SAVE_KEY);
+        if (!raw) return;
+        try {
+            const parsed = JSON.parse(atob(raw));
+            const { _check, ...data } = parsed;
+            if (_check === simpleHash(JSON.stringify(data))) Object.assign(State, data);
+        } catch(e) {}
+    }
+
+    // ЛОГИКА
+    window.processClick = (mult = 1) => {
+        if (State.energy <= 0) return 0;
+        const earned = Math.floor(State.clickPower * mult);
+        State.coins += earned;
+        State.energy--;
+        return earned;
+    };
+
+    window.purchaseItem = (type, index) => {
+        const item = (type === 'cars' ? State.cars : State.houses)[index];
+        if (!item || State.coins < item.price) return false;
+        State.coins -= item.price;
+        State.income += item.inc;
+        if (item.clk) State.clickPower += item.clk;
+        item.count++;
+        item.price = Math.floor(item.price * 2.5);
+        return true;
+    };
+
+    // КАЗИНО (СЛОТЫ И КРАШ ИЗ ТВОЕГО КОДА)
+    let slotsActive = false;
+    window.playSlots = () => {
+        if (slotsActive) return;
+        const bet = parseInt(document.getElementById('bet').value);
+        if (!bet || bet < 1 || bet > State.coins) return showToast('Неверная ставка', 'error');
+
+        State.coins -= bet;
+        slotsActive = true;
+        updateUI();
+
+        const slotEls = ['s1', 's2', 's3'].map(id => document.getElementById(id));
+        slotEls.forEach(el => el.classList.add('slot-spinning'));
+
+        setTimeout(() => {
+            slotEls.forEach(el => el.classList.remove('slot-spinning'));
+            const symbols = ["🍒", "🍋", "💎", "7️⃣", "💩"];
+            const res = [symbols[Math.floor(Math.random()*5)], symbols[Math.floor(Math.random()*5)], symbols[Math.floor(Math.random()*5)]];
+            slotEls.forEach((el, i) => el.textContent = res[i]);
+
+            if (res[0] === res[1] && res[1] === res[2]) {
+                State.coins += bet * 25; showToast('🎉 ДЖЕКПОТ!', 'success'); playSound('win');
+            } else if (res[0] === res[1] || res[1] === res[2]) {
+                State.coins += Math.floor(bet * 1.5); showToast('👍 Пара!', 'success'); playSound('money');
+            } else {
+                showToast('💸 Слив...', 'error'); playSound('lose');
+            }
+            slotsActive = false; updateUI();
+        }, 1000);
+    };
+
+    // КРАШ ЛОГИКА
+    let crashInt, isCrash = false, cMult = 1.0, cBet = 0;
+    window.startCrash = () => {
+        const bet = parseInt(document.getElementById('bet').value);
+        if (!bet || bet < 1 || bet > State.coins || isCrash) return;
+        State.coins -= bet; cBet = bet; isCrash = true; cMult = 1.0;
+        let boom = Math.random() < 0.4 ? 1.0 : 1.1 + Math.random() * 2.5;
+        document.getElementById('cr-start').disabled = true;
+        document.getElementById('cr-out').disabled = false;
+        crashInt = setInterval(() => {
+            cMult += 0.05;
+            document.getElementById('cr-val').textContent = cMult.toFixed(2) + 'x';
+            if (cMult >= boom) {
+                clearInterval(crashInt); isCrash = false;
+                document.getElementById('cr-val').textContent = '💥 BOOM!';
+                document.getElementById('cr-start').disabled = false;
+                document.getElementById('cr-out').disabled = true;
+                playSound('lose'); updateUI();
+            }
+        }, 100);
+    };
+
+    window.cashoutCrash = () => {
+        if (!isCrash) return;
+        clearInterval(crashInt); isCrash = false;
+        State.coins += Math.floor(cBet * cMult);
+        playSound('win'); showToast('✅ Забрал!', 'success');
+        document.getElementById('cr-start').disabled = false;
+        document.getElementById('cr-out').disabled = true;
+        updateUI();
+    };
+
+    // ГЕОГРАФИЯ
+    window.travelTo = (city) => {
+        const ui = document.getElementById('city-ui');
+        document.getElementById('city-title').textContent = city === 'Murino' ? "🏗️ МУРИНО" : city === 'Otso' ? "🎰 ОТСО-СИТИ" : "🌳 МЕДНОБЫЧЕНСК";
+        if (city === 'Murino') {
+            ui.innerHTML = '<button class="menu-btn" id="b-cars">🏎️ АВТОСАЛОН</button><button class="menu-btn" id="b-houses">🏠 НЕДВИЖИМОСТЬ</button><div id="shop-list"></div>';
+            document.getElementById('b-cars').onclick = () => renderShop('cars');
+            document.getElementById('b-houses').onclick = () => renderShop('houses');
+        } else if (city === 'Otso') {
+            ui.innerHTML = `<div style="background:#222;padding:15px;border-radius:15px;">
+                <h3>🎰 КАЗИНО</h3>
+                <div style="display:flex;justify-content:center;gap:10px;margin-bottom:10px;"><div class="slot-box" id="s1">❓</div><div class="slot-box" id="s2">❓</div><div class="slot-box" id="s3">❓</div></div>
+                <input type="number" id="bet" value="100" style="width:70%;padding:8px;text-align:center;"><br><br>
+                <button class="menu-btn" style="background:var(--red);" onclick="window.playSlots()">КРУТИТЬ</button>
+                <div style="margin-top:15px;"><h3>🚀 CRASH</h3><div class="crash-display" id="cr-val">1.00x</div>
+                <button class="buy-btn" id="cr-start" onclick="window.startCrash()">СТАВКА</button><button class="buy-btn" id="cr-out" disabled onclick="window.cashoutCrash()">ЗАБРАТЬ</button></div></div>`;
+        } else if (city === 'Medno') {
+            ui.innerHTML = '<h3>РЕЛАКС-ЗОНА</h3><p>Клики x1.5</p><button class="click-btn" style="background:green" id="medno-click">ОТДЫХАТЬ</button>';
+            document.getElementById('medno-click').onclick = (e) => onClk(e, 1.5);
+        }
+        openTab('city');
+    };
+
+    function renderShop(type) {
+        const list = document.getElementById('shop-list');
+        list.innerHTML = '';
+        (type === 'cars' ? State.cars : State.houses).forEach((item, i) => {
+            const row = document.createElement('div');
+            row.className = 'list-item';
+            row.innerHTML = `<span><b>${item.name}</b><br><small>+${item.inc}/с</small></span>`;
+            const b = document.createElement('button');
+            b.className = 'buy-btn'; b.textContent = fmt(item.price);
+            b.onclick = () => { if(purchaseItem(type, i)) { playSound('money'); renderShop(type); updateUI(); } else showToast('Мало 🪙', 'error'); };
+            row.appendChild(b); list.appendChild(row);
+        });
+    }
+
+    // UI КОР
+    function updateUI() {
+        document.getElementById('coins').textContent = fmt(State.coins);
+        document.getElementById('energy').textContent = State.energy;
+        document.getElementById('clk-val').textContent = State.clickPower;
+        document.getElementById('inc-val').textContent = fmt(State.income);
+        document.getElementById('online-tag').textContent = "ID: " + State.uid.substr(0,6);
+        saveData();
+    }
+
+    function openTab(name) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active-tab');
+        if(document.getElementById('n-' + name)) document.getElementById('n-' + name).classList.add('active');
+        if(name === 'top') loadLeaderboard();
+    }
+
+    function onClk(e, m=1) {
+        const earned = processClick(m);
+        if(earned > 0) { playSound('click'); updateUI(); } else showToast('Нет энергии!', 'error');
+    }
+
+    // ИНИЦИАЛИЗАЦИЯ
+    window.initGame = () => {
+        loadData();
+        document.getElementById('username-input').value = State.username;
+        updateUI();
+        setInterval(() => { State.coins += State.income; if(State.energy < 1000) State.energy++; updateUI(); }, 1000);
+        
+        document.getElementById('main-click-btn').onclick = onClk;
+        document.getElementById('daily-btn').onclick = () => {
+            const bonus = State.income * 10 + 5000;
+            if(Date.now() - State.lastBonus < 86400000) return showToast('Рано!', 'error');
+            State.coins += bonus; State.lastBonus = Date.now(); playSound('win'); updateUI();
+        };
+        document.getElementById('save-username-btn').onclick = () => {
+            State.username = document.getElementById('username-input').value || "Аноним";
+            localStorage.setItem('burm_user', State.username);
+            syncOnline(); showToast('Ник сохранен!');
+        };
+        document.getElementById('n-clicker').onclick = () => openTab('clicker');
+        document.getElementById('n-map').onclick = () => openTab('map');
+        document.getElementById('n-top').onclick = () => openTab('top');
+        document.getElementById('settings-btn').onclick = () => openTab('settings');
+        document.getElementById('city-murino').onclick = () => travelTo('Murino');
+        document.getElementById('city-otso').onclick = () => travelTo('Otso');
+        document.getElementById('city-medno').onclick = () => travelTo('Medno');
+        document.getElementById('promo-btn').onclick = () => {
+            if(simpleHash(document.getElementById('promo-input').value.toUpperCase()) === PROMO_HASH) {
+                State.coins += 1e9; State.income += 5e5; updateUI(); showToast('Ультра Бонус!');
+            }
+        };
+        document.getElementById('reset-btn').onclick = () => { if(confirm('Сброс?')) { localStorage.clear(); location.reload(); } };
+    };
+
+    window.initGame();
+</script>
+</body>
+</html>
