@@ -3,56 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Burmalda: Ultimate Cloud</title>
+    <title>Burmalda: Admin Edition</title>
     <style>
-        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; --purple: #9b59b6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--panel); border-bottom: 2px solid #333; height: 70px; }
-        .balance { font-size: 18px; color: var(--gold); font-weight: bold; }
-        .lvl-badge { font-size: 10px; background: var(--blue); padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
         
-        .tab-content { display: none; padding: 15px; height: calc(100vh - 160px); overflow-y: auto; padding-bottom: 80px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--panel); border-bottom: 2px solid #333; height: 75px; }
+        .balance { font-size: 20px; color: var(--gold); font-weight: bold; }
+        .energy-bar { width: 100px; height: 8px; background: #333; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+        .energy-fill { height: 100%; background: var(--green); transition: width 0.3s; }
+
+        .tab-content { display: none; padding: 15px; height: calc(100vh - 165px); overflow-y: auto; padding-bottom: 80px; }
         .active-tab { display: block; }
 
-        .click-btn { width: 140px; height: 140px; border-radius: 50%; border: 8px solid #222; background: radial-gradient(circle, var(--gold) 0%, #b8860b 100%); color: black; font-weight: 900; margin-top: 20px; cursor: pointer; }
-        
-        /* Стили списков */
+        .click-btn { width: 150px; height: 150px; border-radius: 50%; border: 8px solid #222; background: radial-gradient(circle, var(--gold) 0%, #b8860b 100%); color: black; font-weight: 900; margin: 20px auto; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 0 20px rgba(241, 196, 15, 0.2); }
+        .click-btn:active { transform: scale(0.95); }
+
         .list-item { background: #1a1a1a; padding: 12px; margin: 8px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--blue); }
         .buy-btn { background: var(--green); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
-        /* Чат и Топ */
-        #chat-box { height: 200px; background: #111; border-radius: 10px; overflow-y: auto; padding: 10px; text-align: left; border: 1px solid #333; }
-        .msg { margin-bottom: 5px; font-size: 12px; }
+        #chat-box { height: 250px; background: #000; border-radius: 10px; overflow-y: auto; padding: 10px; text-align: left; border: 1px solid #333; }
+        .msg { margin-bottom: 6px; font-size: 13px; border-bottom: 1px solid #111; padding-bottom: 2px; }
         .msg b { color: var(--blue); cursor: pointer; }
-        .leader-item { display: flex; justify-content: space-between; padding: 10px; background: #222; margin-bottom: 5px; border-radius: 8px; cursor: pointer; }
-        .leader-item:active { background: #333; }
+        .prefix-admin { color: var(--red) !important; font-weight: bold; margin-right: 4px; }
 
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 75px; border-top: 2px solid #333; }
-        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .nav-btn.active { color: var(--gold); }
         .nav-btn span { font-size: 22px; }
 
-        .crash-val { font-size: 40px; color: var(--gold); font-family: monospace; margin: 10px; }
+        .game-card { background: #111; padding: 15px; border-radius: 15px; border: 1px solid #333; margin-bottom: 15px; }
+        .crash-val { font-size: 45px; color: var(--gold); font-family: monospace; margin: 15px 0; }
     </style>
 </head>
-<body>
+<body onload="initGame()">
 
 <div class="top-bar">
     <div style="text-align:left">
         <div class="balance"><span id="coins">0</span> 🪙</div>
-        <div style="font-size:12px; color:var(--blue)">Ур. <span id="user-lvl">1</span> (<span id="user-exp">0</span>)</div>
+        <div class="energy-bar"><div id="energy-fill" class="energy-fill" style="width: 100%;"></div></div>
+        <div style="font-size:10px; color:#888; margin-top:2px;">Молния: <span id="energy-val">1000</span></div>
     </div>
-    <div id="user-tag" style="font-size: 11px; color: #888;">Загрузка...</div>
-    <button onclick="openTab('settings')" style="background:none; border:none; font-size:20px; cursor:pointer;">⚙️</button>
+    <div id="user-tag" style="font-size: 12px; color: var(--blue); font-weight: bold;">...</div>
+    <button onclick="openTab('settings')" style="background:none; border:none; font-size:24px;">⚙️</button>
 </div>
 
 <div id="tab-clicker" class="tab-content active-tab">
-    <button class="click-btn" onclick="makeClick()">БУРМАЛДА</button>
-    <p>Клик: +<span id="clk-val">1</span> | Доход: +<span id="inc-val">0</span>/с</p>
+    <div class="click-btn" onclick="makeClick()">БУРМАЛДА</div>
+    <div style="background: #1a1a1a; padding: 10px; border-radius: 10px; display: inline-block;">
+        Клик: <span id="clk-val">1</span> | Доход: <span id="inc-val">0</span>/с
+    </div>
 </div>
 
 <div id="tab-map" class="tab-content">
-    <h3>ЛОКАЦИИ</h3>
+    <h3>ГОРОДА</h3>
     <button class="list-item" style="width:100%" onclick="travelTo('Shop')">🏗️ МУРИНО (Магазин)</button>
     <button class="list-item" style="width:100%; border-left-color: var(--red);" onclick="travelTo('Casino')">🎰 ОТСО-СИТИ (Казино)</button>
 </div>
@@ -64,25 +68,24 @@
 
 <div id="tab-chat" class="tab-content">
     <h3>ГЛОБАЛЬНЫЙ ЧАТ</h3>
-    <p style="font-size: 10px; color: #666;">Нажми на имя, чтобы подарить 1000 🪙</p>
     <div id="chat-box"></div>
     <div style="display:flex; gap:5px; margin-top:10px;">
-        <input type="text" id="chat-input" placeholder="Сообщение..." style="flex:1; background:#222; border:1px solid #444; color:white; padding:10px; border-radius:8px;">
-        <button class="buy-btn" onclick="sendMessage()">📡</button>
+        <input type="text" id="chat-input" placeholder="Сообщение..." style="flex:1; background:#222; border:1px solid #444; color:white; padding:12px; border-radius:8px;">
+        <button class="buy-btn" onclick="sendMessage()" style="padding: 0 20px;">📡</button>
     </div>
 </div>
 
 <div id="tab-leaderboard" class="tab-content">
-    <h3>🏆 ТОП МИЛЛИАРДЕРОВ</h3>
+    <h3>🏆 ТОП ИГРОКОВ</h3>
     <div id="leader-list"></div>
 </div>
 
 <div id="tab-settings" class="tab-content">
     <h3>НАСТРОЙКИ</h3>
-    <p>Твой ID: <b id="my-id-display"></b></p>
-    <input type="text" id="name-input" placeholder="Новый ник..." style="background:#222; border:1px solid #444; color:white; padding:10px; border-radius:8px;">
-    <button class="buy-btn" onclick="changeNickname()">ИЗМЕНИТЬ</button>
-    <br><br>
+    <p>Твой ID (нажми для админки): <br><b id="my-id-display" onclick="tryAdmin()" style="color:var(--gold); cursor:pointer;"></b></p>
+    <input type="text" id="name-input" placeholder="Новый ник..." style="background:#222; border:1px solid #444; color:white; padding:10px; border-radius:8px; width:80%;">
+    <button class="buy-btn" onclick="changeNickname()" style="margin-top:10px;">СОХРАНИТЬ</button>
+    <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
     <button style="background:var(--red); border:none; color:white; padding:10px; border-radius:8px; cursor:pointer;" onclick="resetGame()">СБРОС ПРОГРЕССА</button>
 </div>
 
@@ -110,74 +113,65 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // СОСТОЯНИЕ
     let State = {
         coins: Number(localStorage.getItem('coins')) || 0,
         income: Number(localStorage.getItem('income')) || 0,
+        energy: Number(localStorage.getItem('energy')) || 1000,
         clickPower: Number(localStorage.getItem('clickPower')) || 1,
         userId: localStorage.getItem('burmalda_uid') || "User_" + Math.floor(Math.random()*9999),
-        totalEarned: Number(localStorage.getItem('totalEarned')) || 0
+        isAdmin: localStorage.getItem('burmalda_admin') === 'true'
     };
-    localStorage.setItem('burmalda_uid', State.userId);
 
     const ITEMS = {
-        cars: [ {n: "Ока", p: 500, i: 2, c: 1}, {n: "Приора", p: 5000, i: 15, c: 5}, {n: "Гелик", p: 50000, i: 100, c: 20} ],
-        houses: [ {n: "Шалаш", p: 2000, i: 10}, {n: "Квартира", p: 25000, i: 80}, {n: "Вилла", p: 500000, i: 1000} ]
+        cars: [ {n: "Жигули", p: 1000, i: 5, c: 2}, {n: "BMW M5", p: 15000, i: 50, c: 10} ],
+        houses: [ {n: "Палатка", p: 500, i: 2}, {n: "Пентхаус", p: 100000, i: 1000} ]
     };
 
-    // ИНИЦИАЛИЗАЦИЯ
-    window.initGame = async () => {
-        document.getElementById('user-tag').innerText = State.userId;
+    window.initGame = () => {
+        document.getElementById('user-tag').innerText = (State.isAdmin ? "[ADMIN] " : "") + State.userId;
         document.getElementById('my-id-display').innerText = State.userId;
         
-        const snap = await get(ref(db, 'users/' + State.userId));
-        if(snap.exists()) {
-            const data = snap.val();
-            State.coins = Math.max(State.coins, data.balance || 0);
-            State.totalEarned = Math.max(State.totalEarned, data.totalEarned || 0);
-        }
-
+        // Пассивный доход и энергия
         setInterval(() => {
             State.coins += State.income;
-            State.totalEarned += State.income;
+            if(State.energy < 1000) State.energy += 1;
             updateUI();
         }, 1000);
 
-        setInterval(syncStats, 15000);
+        setInterval(() => syncStats(), 20000);
         listenChat();
         listenLeaderboard();
+        updateUI();
     };
 
     function updateUI() {
         document.getElementById('coins').innerText = Math.floor(State.coins).toLocaleString();
         document.getElementById('inc-val').innerText = State.income;
         document.getElementById('clk-val').innerText = State.clickPower;
+        document.getElementById('energy-val').innerText = Math.floor(State.energy);
+        document.getElementById('energy-fill').style.width = (State.energy / 10) + "%";
         
-        // Уровень: корень из заработанного / 10
-        let lvl = Math.floor(Math.sqrt(State.totalEarned) / 10) + 1;
-        document.getElementById('user-lvl').innerText = lvl;
-        document.getElementById('user-exp').innerText = Math.floor(State.totalEarned);
-
         localStorage.setItem('coins', State.coins);
+        localStorage.setItem('energy', State.energy);
         localStorage.setItem('income', State.income);
         localStorage.setItem('clickPower', State.clickPower);
-        localStorage.setItem('totalEarned', State.totalEarned);
     }
 
     function syncStats() {
         set(ref(db, 'users/' + State.userId), { 
             username: State.userId, 
-            balance: Math.floor(State.coins),
-            totalEarned: Math.floor(State.totalEarned),
-            lastActive: serverTimestamp()
+            balance: Math.floor(State.coins), 
+            isAdmin: State.isAdmin,
+            lastSeen: serverTimestamp() 
         });
     }
 
-    // ГЛОБАЛЬНЫЕ ФУНКЦИИ
     window.makeClick = () => {
-        State.coins += State.clickPower;
-        State.totalEarned += State.clickPower;
-        updateUI();
+        if(State.energy >= 1) {
+            State.energy -= 1;
+            State.coins += State.clickPower;
+            updateUI();
+        }
     };
 
     window.openTab = (name) => {
@@ -187,34 +181,25 @@
         document.getElementById('n-' + name).classList.add('active');
     };
 
-    // МАГАЗИН
     window.travelTo = (loc) => {
         const ui = document.getElementById('city-ui');
         document.getElementById('city-title').innerText = loc === 'Shop' ? "МУРИНО" : "ОТСО-СИТИ";
-        
         if(loc === 'Shop') {
-            let html = "<h4>МАШИНЫ</h4>";
-            ITEMS.cars.forEach((item, i) => {
-                html += `<div class="list-item"><span>${item.n}<br><small>+${item.i}/с +${item.c} кл</small></span> 
-                <button class="buy-btn" onclick="buyItem('cars', ${i})">${item.p} 🪙</button></div>`;
-            });
-            html += "<h4>ДОМА</h4>";
-            ITEMS.houses.forEach((item, i) => {
-                html += `<div class="list-item"><span>${item.n}<br><small>+${item.i}/с</small></span> 
-                <button class="buy-btn" onclick="buyItem('houses', ${i})">${item.p} 🪙</button></div>`;
-            });
-            ui.innerHTML = html;
+            ui.innerHTML = `<h4>МАГАЗИН</h4>` + 
+            ITEMS.cars.map((item, i) => `<div class="list-item"><span>${item.n} (+${item.i}/с)</span> <button class="buy-btn" onclick="buyItem('cars', ${i})">${item.p}</button></div>`).join('') +
+            ITEMS.houses.map((item, i) => `<div class="list-item"><span>${item.n} (+${item.i}/с)</span> <button class="buy-btn" onclick="buyItem('houses', ${i})">${item.p}</button></div>`).join('');
         } else {
             ui.innerHTML = `
-                <div style="background:#222; padding:15px; border-radius:15px;">
+                <div class="game-card">
                     <h4>🚀 CRASH</h4>
                     <div class="crash-val" id="crash-mult">1.00x</div>
-                    <input type="number" id="crash-bet" value="100" style="width:80%; padding:10px; margin-bottom:10px; background:#000; color:white; border:1px solid #444;">
-                    <div id="crash-ctrl">
-                        <button class="buy-btn" onclick="startCrash()">СТАВКА</button>
-                    </div>
+                    <button class="buy-btn" id="crash-btn" onclick="startCrash()">СТАВИТЬ 100</button>
                 </div>
-            `;
+                <div class="game-card">
+                    <h4>🃏 BLACKJACK</h4>
+                    <p>Дилер: <span id="bj-dealer">?</span> | Вы: <span id="bj-player">0</span></p>
+                    <button class="buy-btn" onclick="playBJ()">ИГРАТЬ (200 🪙)</button>
+                </div>`;
         }
         window.openTab('city');
     };
@@ -225,79 +210,77 @@
             State.coins -= item.p;
             State.income += item.i;
             if(item.c) State.clickPower += item.c;
-            updateUI();
-            syncStats();
-            alert("Поздравляем с покупкой!");
-        } else alert("Не хватает монет!");
+            updateUI(); alert("Куплено!");
+        }
     };
 
-    // CRASH
-    let crashInterval;
+    // GAMES
+    let crashInt;
     window.startCrash = () => {
-        let bet = Number(document.getElementById('crash-bet').value);
-        if(bet > State.coins || bet <= 0) return alert("Недостаточно монет!");
-        
-        State.coins -= bet;
-        updateUI();
-        let mult = 1.0;
-        let boom = 1 + Math.random() * 3; 
-        
-        document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" style="background:var(--gold); color:black;" onclick="cashoutCrash(${bet})">ЗАБРАТЬ</button>`;
-        
-        crashInterval = setInterval(() => {
-            mult += 0.05;
-            document.getElementById('crash-mult').innerText = mult.toFixed(2) + "x";
-            if(mult >= boom) {
-                clearInterval(crashInterval);
-                document.getElementById('crash-mult').innerText = "BOOM!";
-                document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" onclick="startCrash()">СТАВКА</button>`;
-                syncStats();
-            }
+        if(State.coins < 100) return;
+        State.coins -= 100;
+        let m = 1.0; let boom = 1 + Math.random() * 4;
+        document.getElementById('crash-btn').outerHTML = `<button class="buy-btn" id="crash-btn" style="background:var(--gold)" onclick="cashoutCrash(${m})">ЗАБРАТЬ</button>`;
+        crashInt = setInterval(() => {
+            m += 0.07;
+            document.getElementById('crash-mult').innerText = m.toFixed(2) + "x";
+            document.getElementById('crash-btn').onclick = () => cashoutCrash(m);
+            if(m >= boom) { clearInterval(crashInt); document.getElementById('crash-mult').innerText = "BOOM!"; resetCrashBtn(); }
         }, 100);
     };
 
-    window.cashoutCrash = (bet) => {
-        clearInterval(crashInterval);
-        let currentMult = parseFloat(document.getElementById('crash-mult').innerText);
-        let win = Math.floor(bet * currentMult);
+    function cashoutCrash(m) {
+        clearInterval(crashInt);
+        let win = Math.floor(100 * m);
         State.coins += win;
-        State.totalEarned += (win - bet);
         alert("Выигрыш: " + win);
-        document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" onclick="startCrash()">СТАВКА</button>`;
+        resetCrashBtn();
         updateUI();
-        syncStats();
+    }
+
+    function resetCrashBtn() {
+        document.getElementById('crash-btn').outerHTML = `<button class="buy-btn" id="crash-btn" onclick="startCrash()">СТАВИТЬ 100</button>`;
+    }
+
+    window.playBJ = () => {
+        if(State.coins < 200) return;
+        State.coins -= 200;
+        let p = Math.floor(Math.random()*12) + 10;
+        let d = Math.floor(Math.random()*10) + 12;
+        document.getElementById('bj-player').innerText = p;
+        document.getElementById('bj-dealer').innerText = d;
+        if(p > d || d > 21) { State.coins += 400; alert("Победа!"); } else { alert("Проигрыш!"); }
+        updateUI();
     };
 
-    // ЧАТ И ПЕРЕВОДЫ
+    // ADMIN & CHAT
+    window.tryAdmin = () => {
+        let code = prompt("Введите код админа:");
+        if(code === "BURMALDA2026") {
+            State.isAdmin = true;
+            localStorage.setItem('burmalda_admin', 'true');
+            location.reload();
+        }
+    };
+
     window.sendMessage = () => {
-        const input = document.getElementById('chat-input');
-        if(!input.value.trim()) return;
-        push(ref(db, 'chat'), { user: State.userId, text: input.value, time: serverTimestamp() });
-        input.value = "";
-    };
-
-    window.sendGift = (targetId) => {
-        if(targetId === State.userId) return;
-        if(State.coins < 1000) return alert("Нужно минимум 1000 🪙");
-
-        runTransaction(ref(db, 'users/' + targetId), (user) => {
-            if (user) {
-                user.balance = (user.balance || 0) + 1000;
-            }
-            return user;
-        }).then(() => {
-            State.coins -= 1000;
-            updateUI();
-            push(ref(db, 'chat'), { user: "СИСТЕМА", text: `🎁 ${State.userId} подарил 1000 🪙 игроку ${targetId}`, time: serverTimestamp() });
+        const inp = document.getElementById('chat-input');
+        if(!inp.value.trim()) return;
+        push(ref(db, 'chat'), {
+            u: State.userId,
+            t: inp.value,
+            a: State.isAdmin,
+            time: serverTimestamp()
         });
+        inp.value = "";
     };
 
     function listenChat() {
-        onValue(query(ref(db, 'chat'), limitToLast(15)), (snap) => {
+        onValue(query(ref(db, 'chat'), limitToLast(20)), (snap) => {
             let h = "";
             snap.forEach(c => {
                 const m = c.val();
-                h += `<div class="msg"><b onclick="sendGift('${m.user}')">${m.user}</b>: ${m.text}</div>`;
+                h += `<div class="msg">${m.a ? '<span class="prefix-admin">[ADMIN]</span>' : ''}<b>${m.u}</b>: ${m.t}</div>`;
             });
             document.getElementById('chat-box').innerHTML = h;
             document.getElementById('chat-box').scrollTop = 9999;
@@ -305,27 +288,22 @@
     }
 
     function listenLeaderboard() {
-        onValue(query(ref(db, 'users'), orderByChild('balance'), limitToLast(20)), (snap) => {
+        onValue(query(ref(db, 'users'), orderByChild('balance'), limitToLast(15)), (snap) => {
             let players = [];
             snap.forEach(s => players.push(s.val()));
             players.sort((a,b) => b.balance - a.balance);
             document.getElementById('leader-list').innerHTML = players.map((p, i) => `
-                <div class="leader-item ${p.username === State.userId ? 'me' : ''}" onclick="sendGift('${p.username}')">
-                    <span>#${i+1} ${p.username}</span>
-                    <b>${(p.balance || 0).toLocaleString()} 🪙</b>
-                </div>
+                <div class="leader-item"><span>#${i+1} ${p.username}</span><b>${p.balance} 🪙</b></div>
             `).join('');
         });
     }
 
     window.changeNickname = () => {
         const n = document.getElementById('name-input').value.trim();
-        if(n) { State.userId = n; localStorage.setItem('burmalda_uid', n); location.reload(); }
+        if(n) { State.userId = n; localStorage.setItem('burmalda_uid', n); syncStats(); location.reload(); }
     };
 
-    window.resetGame = () => { if(confirm("Сброс?")) { localStorage.clear(); location.reload(); } };
-
-    window.initGame();
+    window.resetGame = () => { if(confirm("Удалить всё?")) { localStorage.clear(); location.reload(); } };
 </script>
 
 </body>
