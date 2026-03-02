@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Burmalda: INNT Edition</title>
+    <title>Burmalda: Ultimate Hardcore</title>
     <style>
         :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; }
@@ -11,35 +11,35 @@
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--panel); border-bottom: 2px solid #333; height: 60px; }
         .balance { font-size: 20px; color: var(--gold); font-weight: bold; }
         
-        .daily-btn { background: linear-gradient(45deg, #f1c40f, #d4ac0d); border: none; border-radius: 12px; color: black; font-weight: bold; padding: 8px 12px; font-size: 11px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .daily-btn.disabled { background: #333; color: #777; animation: none; opacity: 0.6; }
-
-        .tab-content { display: none; padding: 15px; height: calc(100vh - 150px); overflow-y: auto; padding-bottom: 80px; }
+        .tab-content { display: none; padding: 15px; height: calc(100vh - 145px); overflow-y: auto; padding-bottom: 80px; }
         .active-tab { display: block; }
 
-        /* КАЗИНО И КРАШ */
+        /* ИГРЫ */
         .slot-box { width: 60px; height: 80px; background: #000; border: 2px solid var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 35px; }
         .slot-spinning { animation: slotBlur 0.1s infinite; }
-        @keyframes slotBlur { 0% { transform: translateY(-2px); } 50% { transform: translateY(2px); } 100% { transform: translateY(-2px); } }
-        .chance-tag { font-size: 10px; color: #666; margin-top: 5px; }
-
-        .game-card { background: var(--panel); padding: 15px; border-radius: 18px; border: 1px solid #333; margin-top: 10px; }
-        .crash-display { font-size: 35px; font-weight: bold; color: var(--gold); margin: 10px 0; font-family: monospace; }
-
-        /* ИНТЕРФЕЙС */
-        .city-card { background: #222; border: 2px solid var(--blue); border-radius: 15px; padding: 15px; margin-bottom: 12px; }
-        .menu-btn { background: var(--panel); border: 1px solid #444; padding: 12px; border-radius: 10px; color: white; font-weight: bold; width: 100%; margin-bottom: 8px; }
-        .click-btn { width: 150px; height: 150px; border-radius: 50%; border: 8px solid #222; background: radial-gradient(circle, var(--gold) 0%, #d4ac0d 100%); color: black; font-weight: 900; margin-top: 20px; }
+        @keyframes slotBlur { 0% { filter: blur(1px); transform: translateY(-2px); } 50% { filter: blur(3px); transform: translateY(2px); } 100% { filter: blur(1px); } }
         
-        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 70px; border-top: 2px solid #333; }
-        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .crash-display { font-size: 40px; font-weight: bold; color: var(--gold); margin: 15px 0; font-family: monospace; }
+        .chance-info { font-size: 10px; color: #555; margin-bottom: 10px; }
+
+        /* ГОРОДА */
+        .city-card { background: #1a1a1a; border: 1px solid var(--blue); border-radius: 15px; padding: 15px; margin-bottom: 10px; }
+        .menu-btn { background: #222; border: 1px solid #444; padding: 15px; border-radius: 10px; color: white; font-weight: bold; width: 100%; margin-bottom: 8px; }
+        
+        .click-btn { width: 160px; height: 160px; border-radius: 50%; border: 10px solid #222; background: radial-gradient(circle, var(--gold) 0%, #b8860b 100%); color: black; font-weight: 900; margin-top: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .click-btn:active { transform: scale(0.96); }
+
+        /* НАВИГАЦИЯ */
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 75px; border-top: 2px solid #333; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .nav-btn.active { color: var(--gold); }
+        .nav-btn span { font-size: 24px; margin-bottom: 2px; }
 
-        .list-item { background: #1a1a1a; padding: 12px; margin: 5px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--blue); }
-        .buy-btn { background: var(--green); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; }
+        .list-item { background: #121212; padding: 12px; margin: 6px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--blue); }
+        .buy-btn { background: var(--green); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; }
         
-        input { background: #222; color: white; border: 1px solid #444; padding: 10px; border-radius: 8px; width: 70%; text-align: center; }
+        .daily-btn { background: var(--gold); border: none; border-radius: 10px; color: black; padding: 8px 12px; font-weight: bold; font-size: 11px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
 <body onload="initGame()">
@@ -49,37 +49,37 @@
         <div class="balance"><span id="coins">0</span> 🪙</div>
         <div style="color:var(--green); font-size:12px;">⚡ <span id="energy">1000</span></div>
     </div>
-    <button id="daily-bonus-btn" class="daily-btn" onclick="takeDailyBonus()">БОНУС 🎁</button>
-    <button onclick="openTab('settings')" style="background:none; border:none; font-size:22px;">⚙️</button>
+    <button id="daily-btn" class="daily-btn" onclick="takeDailyBonus()">БОНУС 🎁</button>
+    <button onclick="openTab('settings')" style="background:none; border:none; font-size:24px;">⚙️</button>
 </div>
 
 <div id="tab-clicker" class="tab-content active-tab">
-    <button class="click-btn" onclick="makeClick(event)">БУРМАЛДА</button>
-    <p style="color:#666; margin-top:15px;">Клик: <span id="clk-val">1</span> | Доход: <span id="inc-val">0</span>/с</p>
+    <h3 id="click-title">ГЛАВНЫЙ КЛИКЕР</h3>
+    <button class="click-btn" id="main-click-obj" onclick="makeClick(event)">БУРМАЛДА</button>
+    <p style="color:#666; margin-top:20px;">Клик: +<span id="clk-val">1</span> | Пассив: +<span id="inc-val">0</span>/с</p>
 </div>
 
 <div id="tab-map" class="tab-content">
-    <h3>КАРТА МИРА</h3>
-    <div class="city-card" onclick="travelTo('Murino')"><h2>🏗️ Мурино</h2><p>Тут делают деньги</p></div>
-    <div class="city-card" onclick="travelTo('Otso')"><h2>🎰 Отсо-Сити</h2><p>Азарт и риск</p></div>
+    <h3>КАРТА ОБЛАСТИ</h3>
+    <div class="city-card" onclick="travelTo('Murino')"><h2>🏗️ Мурино</h2><p>Магазины и Недвижка</p></div>
+    <div class="city-card" onclick="travelTo('Otso')"><h2>🎰 Отсо-Сити</h2><p>Казино и Краш (ОПАСНО)</p></div>
+    <div class="city-card" onclick="travelTo('Medno')"><h2>🌳 Меднобыченск</h2><p>Курортный кликер (X1.5)</p></div>
 </div>
 
 <div id="tab-city" class="tab-content">
-    <h3 id="city-title">ГОРОД</h3>
+    <h3 id="city-title">ГОРОД НЕ ВЫБРАН</h3>
     <div id="city-ui"></div>
 </div>
 
 <div id="tab-settings" class="tab-content">
-    <h3>⚙️ НАСТРОЙКИ</h3>
-    <div class="game-card">
+    <h3>НАСТРОЙКИ</h3>
+    <div style="background:#222; padding:15px; border-radius:15px;">
         <p>ПРОМОКОД:</p>
-        <input type="text" id="promo-input" placeholder="Введите код...">
-        <button class="buy-btn" style="margin-top:10px;" onclick="checkPromo()">АКТИВИРОВАТЬ</button>
+        <input type="text" id="promo-input" style="padding:10px; width:80%; border-radius:5px; border:none; text-align:center;"><br><br>
+        <button class="buy-btn" onclick="checkPromo()">АКТИВИРОВАТЬ</button>
     </div>
-    <div class="game-card" style="margin-top:20px;">
-        <p><input type="checkbox" id="set-sound" checked> Звуки</p>
-        <button class="buy-btn" style="background:var(--red); width:100%;" onclick="resetGame()">СБРОС ПРОГРЕССА</button>
-    </div>
+    <br>
+    <button class="menu-btn" style="color:var(--red);" onclick="resetGame()">СБРОСИТЬ ПРОГРЕСС</button>
 </div>
 
 <div class="nav">
@@ -89,136 +89,161 @@
 </div>
 
 <script>
-    let coins = 0, energy = 1000, income = 0, clickPower = 1, lastBonusTime = 0;
-    const snd = { click: new Audio('click.mp3'), win: new Audio('win.mp3'), lose: new Audio('loss.mp3'), jackpot: new Audio('jackpot.mp3'), music: new Audio('music.mp3') };
-    snd.music.loop = true;
+    let coins = 0, energy = 1000, income = 0, clickPower = 1, lastBonus = 0, currentCity = 'Main';
+    const snd = { 
+        click: new Audio('https://www.myinstants.com/media/sounds/click_1.mp3'), 
+        win: new Audio('https://www.myinstants.com/media/sounds/win_nfx.mp3'), 
+        lose: new Audio('https://www.myinstants.com/media/sounds/wrong-answer-126515.mp3'),
+        money: new Audio('https://www.myinstants.com/media/sounds/money-sound-effect.mp3')
+    };
 
-    let cars = [{ name: "Ока", price: 500, inc: 1, click: 2, count: 0 }, { name: "BMW M5", price: 80000, inc: 45, click: 50, count: 0 }];
-    let houses = [{ name: "Будка", price: 2000, inc: 10, count: 0 }, { name: "Нефтевышка", price: 50000000, inc: 30000, count: 0 }];
+    let cars = [
+        { name: "Ока", price: 1000, inc: 2, clk: 1, count: 0 },
+        { name: "Лада Гранта", price: 15000, inc: 15, clk: 5, count: 0 },
+        { name: "Гелик", price: 250000, inc: 150, clk: 40, count: 0 },
+        { name: "Rolls-Royce", price: 2000000, inc: 1200, clk: 200, count: 0 },
+        { name: "Bugatti Chiron", price: 15000000, inc: 10000, clk: 1000, count: 0 }
+    ];
+
+    let houses = [
+        { name: "Шалаш", price: 5000, inc: 10, count: 0 },
+        { name: "Квартира в Мурино", price: 100000, inc: 150, count: 0 },
+        { name: "Пентхаус", price: 1500000, inc: 2000, count: 0 },
+        { name: "Москва-Сити", price: 25000000, inc: 25000, count: 0 },
+        { name: "Нефтевышка", price: 150000000, inc: 150000, count: 0 }
+    ];
 
     function initGame() {
-        loadData(); updateUI(); checkBonusStatus();
-        setInterval(() => { coins += income; if(energy < 1000) energy++; updateUI(); checkBonusStatus(); }, 1000);
-    }
-
-    function checkPromo() {
-        let val = document.getElementById('promo-input').value.trim().toUpperCase();
-        if(val === 'INNT') {
-            coins = 999999999; income = 1000000; clickPower = 100000;
-            alert("✅ Промокод INNT активирован! Ты теперь бог Burmalda.");
-            updateUI();
-        } else { alert("❌ Неверный код!"); }
+        loadData(); updateUI();
+        setInterval(() => { coins += income; if(energy < 1000) energy++; updateUI(); }, 1000);
     }
 
     function travelTo(city) {
+        currentCity = city;
         const ui = document.getElementById('city-ui');
-        document.getElementById('city-title').innerText = (city === 'Murino' ? "🏗️ МУРИНО" : "🎰 ОТСО-СИТИ");
+        const titles = { Murino: "🏗️ МУРИНО", Otso: "🎰 ОТСО-СИТИ", Medno: "🌳 МЕДНОБЫЧЕНСК" };
+        document.getElementById('city-title').innerText = titles[city];
+        
         if(city === 'Murino') {
-            ui.innerHTML = `<button class="menu-btn" onclick="renderShop('cars')">🏎️ АВТОСАЛОН</button><button class="menu-btn" onclick="renderShop('houses')">🏠 НЕДВИЖИМОСТЬ</button><div id="shop-list"></div>`;
-        } else {
+            ui.innerHTML = `<button class="menu-btn" onclick="renderShop('cars')">🏎️ АВТОСАЛОН</button>
+                            <button class="menu-btn" onclick="renderShop('houses')">🏠 НЕДВИЖИМОСТЬ</button>
+                            <div id="shop-list"></div>`;
+        } else if(city === 'Otso') {
             ui.innerHTML = `
-                <div class="game-card">
+                <div style="background:#222; padding:15px; border-radius:15px;">
                     <h3>🎰 КАЗИНО</h3>
-                    <div style="display:flex; justify-content:center; gap:10px;">
-                        <div class="slot-box" id="s1">🍒</div><div class="slot-box" id="s2">🍒</div><div class="slot-box" id="s3">🍒</div>
+                    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
+                        <div class="slot-box" id="s1">❓</div><div class="slot-box" id="s2">❓</div><div class="slot-box" id="s3">❓</div>
                     </div>
-                    <div class="chance-tag">Шансы: Джекпот 10% | Пара 30%</div>
-                    <input type="number" id="slot-bet" value="100" style="width:80%; margin:10px;">
+                    <div class="chance-info">Джекпот (2%) | Пара (10%) | Слив (88%)</div>
+                    <input type="number" id="bet" value="100" style="width:70%; padding:8px; border-radius:5px;"><br><br>
                     <button class="menu-btn" style="background:var(--red);" id="slot-btn" onclick="playSlots()">КРУТИТЬ</button>
                 </div>
-                <div class="game-card">
+                <div style="background:#222; padding:15px; border-radius:15px; margin-top:15px;">
                     <h3>🚀 CRASH</h3>
-                    <div class="crash-display" id="crash-val">1.00x</div>
-                    <input type="number" id="crash-bet" value="100" style="width:80%; margin:10px;">
-                    <button class="buy-btn" id="c-start" onclick="startCrash()">СТАВКА</button>
-                    <button class="buy-btn" id="c-out" disabled onclick="cashoutCrash()">ЗАБРАТЬ</button>
+                    <div class="crash-display" id="cr-val">1.00x</div>
+                    <button class="buy-btn" id="cr-start" onclick="startCrash()">СТАВКА</button>
+                    <button class="buy-btn" id="cr-out" disabled onclick="cashoutCrash()" style="background:var(--gold); color:black;">ЗАБРАТЬ</button>
                 </div>`;
+        } else if(city === 'Medno') {
+            ui.innerHTML = `<h3>РЕЛАКС-ЗОНА</h3><p>Тут клики в 1.5 раза мощнее!</p>
+                            <button class="click-btn" style="background:radial-gradient(circle, var(--green) 0%, #1b5e20 100%);" onclick="makeClick(event, 1.5)">ОТДЫХАТЬ</button>`;
         }
         openTab('city');
     }
 
-    // ЛОГИКА КАЗИНО
+    // МАГАЗИН
+    function renderShop(type) {
+        const list = document.getElementById('shop-list');
+        let items = type === 'cars' ? cars : houses;
+        list.innerHTML = items.map((it, i) => `
+            <div class="list-item">
+                <span><b>${it.name}</b> (x${it.count})<br><small>+${it.inc}/с ${it.clk ? '+'+it.clk+' кл' : ''}</small></span>
+                <button class="buy-btn" onclick="buyItem('${type}', ${i})">${Math.floor(it.price)}</button>
+            </div>`).join('');
+    }
+
+    function buyItem(type, i) {
+        let it = (type === 'cars' ? cars[i] : houses[i]);
+        if(coins >= it.price) {
+            coins -= it.price; income += it.inc; if(it.clk) clickPower += it.clk;
+            it.count++; it.price *= 2.5; snd.money.play(); renderShop(type); updateUI();
+        } else alert("Недостаточно 🪙");
+    }
+
+    // КАЗИНО (ШАНСЫ УРЕЗАНЫ)
     function playSlots() {
-        let bet = parseInt(document.getElementById('slot-bet').value);
-        if(bet > coins || bet < 1) return;
-        coins -= bet; document.getElementById('slot-btn').disabled = true;
+        let b = parseInt(document.getElementById('bet').value);
+        if(b > coins || b < 1) return;
+        coins -= b; updateUI(); document.getElementById('slot-btn').disabled = true;
         const s = [document.getElementById('s1'), document.getElementById('s2'), document.getElementById('s3')];
         s.forEach(el => el.classList.add('slot-spinning'));
 
         setTimeout(() => {
             s.forEach(el => el.classList.remove('slot-spinning'));
-            let symbols = ["🍒", "🍋", "💎", "7️⃣"];
-            let r;
-            let rand = Math.random();
-            if(rand < 0.1) r = ["7️⃣", "7️⃣", "7️⃣"]; // 10% джекпот
-            else if(rand < 0.4) { // 30% пара
-                let sym = symbols[Math.floor(Math.random()*4)];
-                r = [sym, sym, symbols[Math.floor(Math.random()*4)]];
-            } else r = [symbols[0], symbols[1], symbols[2]]; // Проигрыш
+            let sym = ["🍒", "🍋", "💎", "7️⃣", "💩"];
+            let res;
+            let r = Math.random();
+            if(r < 0.02) res = ["7️⃣","7️⃣","7️⃣"]; // 2% Джекпот
+            else if(r < 0.12) { 
+                let randSym = sym[Math.floor(Math.random()*4)];
+                res = [randSym, randSym, sym[Math.floor(Math.random()*5)]]; 
+            } // 10% Пара
+            else res = [sym[0], sym[1], sym[4]]; // Слив
 
-            s[0].innerText = r[0]; s[1].innerText = r[1]; s[2].innerText = r[2];
+            s[0].innerText = res[0]; s[1].innerText = res[1]; s[2].innerText = res[2];
 
-            if(r[0]===r[1] && r[1]===r[2]) { coins += bet*20; snd.jackpot.play(); }
-            else if(r[0]===r[1] || r[1]===r[2] || r[0]===r[2]) { coins += Math.floor(bet*1.5); snd.win.play(); }
+            if(res[0]===res[1] && res[1]===res[2]) { coins += b*25; snd.win.play(); }
+            else if(res[0]===res[1] || res[1]===res[2]) { coins += b*1.5; snd.money.play(); }
             else snd.lose.play();
 
             document.getElementById('slot-btn').disabled = false; updateUI();
-        }, 1000);
+        }, 1200);
     }
 
-    // ЛОГИКА КРАШ
+    // КРАШ (ШАНСЫ УРЕЗАНЫ)
     let cM = 1.0, cInt, isC = false, cB;
     function startCrash() {
-        let b = parseInt(document.getElementById('crash-bet').value);
+        let b = parseInt(document.getElementById('bet').value);
         if(b > coins || isC || b < 1) return;
         coins -= b; cB = b; isC = true; cM = 1.0;
-        document.getElementById('c-start').disabled = true; document.getElementById('c-out').disabled = false;
-        let boom = 1.05 + Math.random()*3;
+        document.getElementById('cr-start').disabled = true; document.getElementById('cr-out').disabled = false;
+        // 40% шанс взрыва сразу
+        let boom = Math.random() < 0.4 ? 1.0 : 1.1 + Math.random()*2.5;
         cInt = setInterval(() => {
-            cM += 0.04; document.getElementById('crash-val').innerText = cM.toFixed(2)+"x";
+            cM += 0.05; document.getElementById('cr-val').innerText = cM.toFixed(2)+"x";
             if(cM >= boom) {
                 clearInterval(cInt); isC = false; snd.lose.play();
-                document.getElementById('crash-val').innerText = "BOOM!";
-                document.getElementById('c-start').disabled = false; document.getElementById('c-out').disabled = true;
+                document.getElementById('cr-val').innerText = "BOOM!";
+                document.getElementById('cr-start').disabled = false; document.getElementById('cr-out').disabled = true;
+                updateUI();
             }
         }, 100);
     }
     function cashoutCrash() {
         if(!isC) return;
         coins += Math.floor(cB * cM); clearInterval(cInt); isC = false;
-        snd.win.play(); document.getElementById('c-start').disabled = false; document.getElementById('c-out').disabled = true;
+        snd.win.play(); document.getElementById('cr-start').disabled = false; document.getElementById('cr-out').disabled = true;
         updateUI();
     }
 
-    function renderShop(type) {
-        const list = document.getElementById('shop-list');
-        let items = type === 'cars' ? cars : houses;
-        list.innerHTML = items.map((item, i) => `<div class="list-item"><span><b>${item.name}</b> (x${item.count})</span><button class="buy-btn" onclick="buyItem('${type}', ${i})">${Math.floor(item.price)}</button></div>`).join('');
+    // ОБЩЕЕ
+    function makeClick(e, mult = 1) {
+        if(energy <= 0) return;
+        let p = Math.floor(clickPower * mult);
+        coins += p; energy--; snd.click.currentTime=0; snd.click.play(); updateUI();
     }
 
-    function buyItem(type, i) {
-        let item = (type === 'cars' ? cars[i] : houses[i]);
-        if(coins >= item.price) {
-            coins -= item.price; income += item.inc; if(item.click) clickPower += item.click;
-            item.count++; item.price *= 2.2; snd.win.play(); renderShop(type); updateUI();
+    function checkPromo() {
+        if(document.getElementById('promo-input').value.toUpperCase() === 'INNT') {
+            coins += 1000000000; income += 500000; alert("🎁 Код INNT: +1 Млрд!"); updateUI();
         }
     }
 
     function takeDailyBonus() {
-        const now = Date.now(); if (now - lastBonusTime < 86400000) return;
-        let b = Math.max(5000, income * 100); coins += b; lastBonusTime = now;
-        snd.win.play(); alert("🎁 Бонус: " + b); updateUI();
-    }
-
-    function checkBonusStatus() {
-        const btn = document.getElementById('daily-bonus-btn');
-        if (Date.now() - lastBonusTime > 86400000) btn.classList.remove('disabled');
-        else btn.classList.add('disabled');
-    }
-
-    function makeClick(e) {
-        if(energy <= 0) return; coins += clickPower; energy--;
-        snd.click.currentTime=0; snd.click.play(); updateUI();
+        if(Date.now() - lastBonus < 86400000) return alert("Бонус раз в 24ч!");
+        let b = Math.max(5000, income * 10); coins += b; lastBonus = Date.now();
+        snd.win.play(); updateUI();
     }
 
     function openTab(name) {
@@ -236,12 +261,12 @@
         saveData();
     }
 
-    function saveData() { localStorage.setItem('burmalda_innt_save', JSON.stringify({coins, income, clickPower, lastBonusTime, cars, houses})); }
+    function saveData() { localStorage.setItem('burm_hard_v3', JSON.stringify({coins, income, clickPower, lastBonus, cars, houses})); }
     function loadData() {
-        let d = JSON.parse(localStorage.getItem('burmalda_innt_save'));
-        if(d) { coins=d.coins; income=d.income; clickPower=d.clickPower; lastBonusTime=d.lastBonusTime; cars=d.cars; houses=d.houses; }
+        let d = JSON.parse(localStorage.getItem('burm_hard_v3'));
+        if(d) { coins=d.coins; income=d.income; clickPower=d.clickPower; lastBonus=d.lastBonus; cars=d.cars; houses=d.houses; }
     }
-    function resetGame() { if(confirm("Сбросить?")) { localStorage.clear(); location.reload(); } }
+    function resetGame() { if(confirm("Удалить всё?")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
