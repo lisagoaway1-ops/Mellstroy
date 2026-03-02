@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burmalda: Ultimate Cloud</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; --bg: #0a0a0a; --panel: #161616; --blue: #3498db; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; user-select: none; overflow: hidden; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--panel); border-bottom: 2px solid #333; height: 70px; }
+        .balance { font-size: 18px; color: var(--gold); font-weight: bold; }
+        .tab-content { display: none; padding: 15px; height: calc(100vh - 160px); overflow-y: auto; padding-bottom: 80px; }
+        .active-tab { display: block; }
+        .click-btn { width: 140px; height: 140px; border-radius: 50%; border: 8px solid #222; background: radial-gradient(circle, var(--gold) 0%, #b8860b 100%); color: black; font-weight: 900; font-size: 14px; margin-top: 20px; cursor: pointer; transition: transform 0.1s; }
+        .click-btn:active { transform: scale(0.93); }
+        .list-item { background: #1a1a1a; padding: 12px; margin: 8px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--blue); }
+        .buy-btn { background: var(--green); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        #chat-box { height: 200px; background: #111; border-radius: 10px; overflow-y: auto; padding: 10px; text-align: left; border: 1px solid #333; }
+        .msg { margin-bottom: 5px; font-size: 12px; word-break: break-word; }
+        .msg .msg-name { color: var(--blue); cursor: pointer; font-weight: bold; }
+        .msg .msg-name.system { color: var(--gold); cursor: default; }
+        .msg .msg-name.admin-tag { color: #e74c3c; }
+        .leader-item { display: flex; justify-content: space-between; padding: 10px; background: #222; margin-bottom: 5px; border-radius: 8px; cursor: pointer; align-items: center; }
+        .leader-item.me { border: 2px solid var(--gold); background: #2a2500; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; height: 75px; border-top: 2px solid #333; }
+        .nav-btn { flex: 1; background: none; border: none; color: #555; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn span { font-size: 22px; }
+        .crash-val { font-size: 48px; color: var(--gold); font-family: monospace; margin: 10px; transition: color 0.2s; }
+        .crash-val.crashed { color: var(--red); }
+        input[type=text], input[type=number] { background:#222; border:1px solid #444; color:white; padding:10px; border-radius:8px; }
+
+        /* BLACKJACK */
+        .cards-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
+        .card { width: 50px; height: 70px; background: white; color: #111; border-radius: 6px; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px #0008; border: 2px solid #ddd; flex-direction: column; line-height: 1; }
+        .card.red { color: var(--red); }
+        .card.hidden { background: #1a3a6b; color: transparent; border-color: #2255aa; }
+        .bj-section { background: #1a2a1a; border: 1px solid #2a4a2a; border-radius: 12px; padding: 12px; margin: 10px 0; }
+        .bj-dealer-section { background: #2a1a1a; border: 1px solid #4a2a2a; border-radius: 12px; padding: 12px; margin: 10px 0; }
+        .score-badge { display: inline-block; background: #333; padding: 3px 10px; border-radius: 20px; font-size: 13px; margin: 5px 0; }
+        .bj-btn { padding: 12px 22px; border-radius: 8px; border: none; font-weight: bold; font-size: 15px; cursor: pointer; margin: 4px; }
+
+        /* CRASH PLAYERS */
+        .crash-players { background: #111; border-radius: 10px; padding: 8px; margin: 10px 0; max-height: 120px; overflow-y: auto; text-align: left; }
+        .cp-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 5px; border-bottom: 1px solid #222; }
+        .cp-row.won { color: var(--green); }
+        .cp-row.lost { color: var(--red); }
+
+        /* ADMIN PANEL */
+        #admin-panel { display: none; background: #1a0000; border: 2px solid var(--red); border-radius: 12px; padding: 15px; margin: 10px 0; }
+        .admin-btn { background: #c0392b; border: none; color: white; padding: 8px 14px; border-radius: 6px; cursor: pointer; margin: 3px; font-size: 13px; }
+        .admin-log { background: #111; border-radius: 8px; padding: 8px; font-size: 11px; text-align: left; max-height: 100px; overflow-y: auto; color: #aaa; margin-top: 8px; }
+
+        /* AUTH SCREEN */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        #auth-screen h1 { color: var(--gold); font-size: 32px; }
+        #auth-screen p { color: #888; max-width: 280px; }
+        #auth-btn { background: #0088cc; border: none; color: white; padding: 15px 35px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+
+        /* TOSS ANIMATION */
+        @keyframes coinToss { 0%{transform:scale(1)} 50%{transform:scale(1.3) rotate(15deg)} 100%{transform:scale(1)} }
+        .coin-toss { animation: coinToss 0.15s ease; }
+    </style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+    <div style="font-size:60px">🎮</div>
+    <h1>BURMALDA</h1>
+    <p>Войди через Telegram чтобы сохранить прогресс и играть с другими</p>
+    <button id="auth-btn" onclick="authViaTelegram()">Войти через Telegram</button>
+    <button onclick="authAsGuest()" style="background:none; border:1px solid #444; color:#888; padding:10px 20px; border-radius:8px; cursor:pointer; font-size:14px;">Играть как гость</button>
+</div>
+
+<div class="top-bar">
+    <div style="text-align:left">
+        <div class="balance"><span id="coins">0</span> 🪙</div>
+        <div style="font-size:12px; color:var(--blue)">Ур. <span id="user-lvl">1</span> · <span id="user-exp">0</span> XP</div>
+    </div>
+    <div id="user-tag" style="font-size: 11px; color: #888; max-width:120px; overflow:hidden; text-overflow:ellipsis;">...</div>
+    <button onclick="openTab('settings')" style="background:none; border:none; font-size:20px; cursor:pointer;">⚙️</button>
+</div>
+
+<div id="tab-clicker" class="tab-content active-tab">
+    <button class="click-btn" id="click-btn-el" onclick="makeClick()">БУРМАЛДА</button>
+    <p style="color:#888">Клик: +<span id="clk-val">1</span> | Доход: +<span id="inc-val">0</span>/с</p>
+</div>
+
+<div id="tab-map" class="tab-content">
+    <h3>ЛОКАЦИИ</h3>
+    <button class="list-item" style="width:100%; cursor:pointer;" onclick="travelTo('Shop')">🏗️ МУРИНО (Магазин)</button>
+    <button class="list-item" style="width:100%; border-left-color:var(--red); cursor:pointer;" onclick="travelTo('Casino')">🎰 ОТСО-СИТИ (Казино)</button>
+</div>
+
+<div id="tab-city" class="tab-content">
+    <h3 id="city-title">ГОРОД</h3>
+    <div id="city-ui"></div>
+</div>
+
+<div id="tab-chat" class="tab-content">
+    <h3>ГЛОБАЛЬНЫЙ ЧАТ</h3>
+    <p style="font-size:10px; color:#666">Нажми на имя → подарить 1000 🪙</p>
+    <div id="chat-box"></div>
+    <div style="display:flex; gap:5px; margin-top:10px;">
+        <input type="text" id="chat-input" placeholder="Сообщение..." style="flex:1;" maxlength="200">
+        <button class="buy-btn" onclick="sendMessage()">📡</button>
+    </div>
+    <!-- ADMIN PANEL (hidden) -->
+    <div id="admin-panel">
+        <b style="color:var(--red)">🔴 ПАНЕЛЬ АДМИНИСТРАТОРА</b>
+        <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;">
+            <button class="admin-btn" onclick="adminBan()">🔨 Забанить</button>
+            <button class="admin-btn" onclick="adminGiveCoins()">💰 Выдать монеты</button>
+            <button class="admin-btn" onclick="adminClearChat()">🗑️ Очистить чат</button>
+            <button class="admin-btn" onclick="adminBroadcast()">📢 Объявление</button>
+        </div>
+        <div id="admin-log" class="admin-log">Лог действий...</div>
+    </div>
+</div>
+
+<div id="tab-leaderboard" class="tab-content">
+    <h3>🏆 ТОП ИГРОКОВ</h3>
+    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:10px;">
+        <button onclick="lbSort('balance')" id="lb-btn-bal" style="background:var(--gold); border:none; color:black; padding:6px 14px; border-radius:6px; font-weight:bold; cursor:pointer;">💰 Монеты</button>
+        <button onclick="lbSort('totalEarned')" id="lb-btn-earn" style="background:#333; border:none; color:white; padding:6px 14px; border-radius:6px; cursor:pointer;">📈 Всего заработано</button>
+    </div>
+    <div id="lb-my-rank" style="font-size:12px; color:#888; margin-bottom:8px;"></div>
+    <div id="leader-list"></div>
+</div>
+
+<div id="tab-settings" class="tab-content">
+    <h3>НАСТРОЙКИ</h3>
+    <p style="color:#666; font-size:12px;">Твой ID: <b id="my-id-display" style="color:var(--blue)"></b></p>
+    <p style="color:#666; font-size:12px;">Telegram: <b id="tg-info-display" style="color:#0088cc"></b></p>
+    <input type="text" id="name-input" placeholder="Новый ник..." style="width:100%; margin-bottom:10px;">
+    <button class="buy-btn" onclick="changeNickname()">ИЗМЕНИТЬ НИК</button>
+    <br><br>
+    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <button onclick="openAdminPanel()" style="background:#555; border:none; color:white; padding:10px; border-radius:8px; cursor:pointer;">🔑 Код доступа</button>
+        <button onclick="resetGame()" style="background:var(--red); border:none; color:white; padding:10px; border-radius:8px; cursor:pointer;">♻️ СБРОС</button>
+    </div>
+    <br>
+    <div style="font-size:11px; color:#333; margin-top:20px;">v2.0 | Burmalda Ultimate Cloud</div>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" id="n-clicker" onclick="openTab('clicker')"><span>🖱️</span>Клик</button>
+    <button class="nav-btn" id="n-map" onclick="openTab('map')"><span>🗺️</span>Карта</button>
+    <button class="nav-btn" id="n-chat" onclick="openTab('chat')"><span>💬</span>Чат</button>
+    <button class="nav-btn" id="n-leaderboard" onclick="openTab('leaderboard')"><span>🏆</span>Топ</button>
+    <button class="nav-btn" id="n-settings" onclick="openTab('settings')"><span>⚙️</span>Я</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, query, orderByChild, limitToLast, push, serverTimestamp, get, runTransaction, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDI5JrmS9DTC6ZPf2IpeQi4Z8fe-eZeSi0",
+        authDomain: "burmalda-cc9e2.firebaseapp.com",
+        databaseURL: "https://burmalda-cc9e2-default-rtdb.firebaseio.com",
+        projectId: "burmalda-cc9e2",
+        storageBucket: "burmalda-cc9e2.firebasestorage.app",
+        messagingSenderId: "16974087709",
+        appId: "1:16974087709:web:98efe6ee803de73360e8f4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ============ КОНСТАНТЫ ============
+    const ADMIN_CODE = "burmalda_admin_2025"; // ← Смени на свой секретный код
+    const ITEMS = {
+        cars:   [{n:"Ока",p:500,i:2,c:1},{n:"Приора",p:5000,i:15,c:5},{n:"Гелик",p:50000,i:100,c:20}],
+        houses: [{n:"Шалаш",p:2000,i:10,c:0},{n:"Квартира",p:25000,i:80,c:0},{n:"Вилла",p:500000,i:1000,c:0}]
+    };
+
+    // ============ СОСТОЯНИЕ ============
+    let State = {
+        coins: 0, income: 0, clickPower: 1,
+        userId: "", displayName: "",
+        totalEarned: 0, isAdmin: false, isBanned: false,
+        tgId: null, tgName: null
+    };
+
+    let lbSortField = 'balance';
+    let allPlayers = [];
+
+    // ============ TELEGRAM AUTH ============
+    window.authViaTelegram = () => {
+        const tg = window.Telegram?.WebApp;
+        if (tg && tg.initDataUnsafe?.user) {
+            const user = tg.initDataUnsafe.user;
+            State.tgId = user.id;
+            State.tgName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            State.userId = "tg_" + user.id;
+            State.displayName = user.username ? "@" + user.username : State.tgName;
+            tg.expand();
+            finishAuth();
+        } else {
+            // Не в Telegram — пробуем сохранённый TG ID
+            const savedTgId = localStorage.getItem('burmalda_tg_id');
+            if (savedTgId) {
+                State.tgId = savedTgId;
+                State.userId = "tg_" + savedTgId;
+                State.displayName = localStorage.getItem('burmalda_name') || State.userId;
+                finishAuth();
+            } else {
+                alert("Открой игру через Telegram!\n\nЕсли ты уже в Telegram и видишь это — введи свой Telegram ID вручную.");
+                const tid = prompt("Введи свой Telegram ID (числа):");
+                if (tid && /^\d+$/.test(tid.trim())) {
+                    State.tgId = tid.trim();
+                    State.userId = "tg_" + State.tgId;
+                    State.displayName = localStorage.getItem('burmalda_name') || ("User_" + State.tgId.slice(-4));
+                    localStorage.setItem('burmalda_tg_id', State.tgId);
+                    finishAuth();
+                }
+            }
+        }
+    };
+
+    window.authAsGuest = () => {
+        let gid = localStorage.getItem('burmalda_guest_id');
+        if (!gid) { gid = "guest_" + Math.floor(Math.random() * 99999); localStorage.setItem('burmalda_guest_id', gid); }
+        State.userId = gid;
+        State.displayName = localStorage.getItem('burmalda_name') || gid;
+        finishAuth();
+    };
+
+    async function finishAuth() {
+        document.getElementById('auth-screen').style.display = 'none';
+
+        // Загрузить прогресс из Firebase
+        const snap = await get(ref(db, 'users/' + State.userId));
+        if (snap.exists()) {
+            const d = snap.val();
+            if (d.banned) { alert("Ты забанен!"); return; }
+            State.coins       = d.balance || 0;
+            State.totalEarned = d.totalEarned || 0;
+            State.income      = d.income || 0;
+            State.clickPower  = d.clickPower || 1;
+            State.isAdmin     = d.isAdmin || false;
+            if (d.displayName) State.displayName = d.displayName;
+        }
+
+        if (State.tgId) localStorage.setItem('burmalda_tg_id', State.tgId);
+        localStorage.setItem('burmalda_name', State.displayName);
+
+        document.getElementById('user-tag').innerText = State.displayName;
+        document.getElementById('my-id-display').innerText = State.userId;
+        document.getElementById('tg-info-display').innerText = State.tgId ? ("ID: " + State.tgId) : "Гость";
+
+        setInterval(() => { State.coins += State.income; State.totalEarned += State.income; updateUI(); }, 1000);
+        setInterval(syncStats, 15000);
+        listenChat();
+        listenLeaderboard();
+        updateUI();
+        syncStats();
+    }
+
+    // ============ UI ============
+    function updateUI() {
+        document.getElementById('coins').innerText = fmt(Math.floor(State.coins));
+        document.getElementById('inc-val').innerText = State.income;
+        document.getElementById('clk-val').innerText = State.clickPower;
+        let lvl = Math.floor(Math.sqrt(State.totalEarned) / 10) + 1;
+        document.getElementById('user-lvl').innerText = lvl;
+        document.getElementById('user-exp').innerText = fmt(Math.floor(State.totalEarned));
+    }
+
+    function fmt(n) { return Number(n).toLocaleString('ru'); }
+
+    function syncStats() {
+        if (!State.userId) return;
+        set(ref(db, 'users/' + State.userId), {
+            displayName: State.displayName,
+            userId: State.userId,
+            balance: Math.floor(State.coins),
+            totalEarned: Math.floor(State.totalEarned),
+            income: State.income,
+            clickPower: State.clickPower,
+            isAdmin: State.isAdmin,
+            lastActive: serverTimestamp()
+        });
+    }
+
+    // ============ КЛИК ============
+    window.makeClick = () => {
+        State.coins += State.clickPower;
+        State.totalEarned += State.clickPower;
+        const btn = document.getElementById('click-btn-el');
+        btn.classList.add('coin-toss');
+        setTimeout(() => btn.classList.remove('coin-toss'), 150);
+        updateUI();
+    };
+
+    window.openTab = (name) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const tab = document.getElementById('tab-' + name);
+        const nav = document.getElementById('n-' + name);
+        if (tab) tab.classList.add('active-tab');
+        if (nav) nav.classList.add('active');
+    };
+
+    // ============ МАГАЗИН ============
+    window.travelTo = (loc) => {
+        const ui = document.getElementById('city-ui');
+        document.getElementById('city-title').innerText = loc === 'Shop' ? "🏗️ МУРИНО" : "🎰 ОТСО-СИТИ";
+
+        if (loc === 'Shop') {
+            let html = "<h4>🚗 МАШИНЫ</h4>";
+            ITEMS.cars.forEach((item, i) => {
+                html += `<div class="list-item"><span>${item.n}<br><small style="color:#888">+${item.i}/с, +${item.c} кл</small></span><button class="buy-btn" onclick="buyItem('cars',${i})">${fmt(item.p)} 🪙</button></div>`;
+            });
+            html += "<h4>🏠 ДОМА</h4>";
+            ITEMS.houses.forEach((item, i) => {
+                html += `<div class="list-item"><span>${item.n}<br><small style="color:#888">+${item.i}/с</small></span><button class="buy-btn" onclick="buyItem('houses',${i})">${fmt(item.p)} 🪙</button></div>`;
+            });
+            ui.innerHTML = html;
+        } else {
+            renderCasinoUI(ui);
+        }
+        window.openTab('city');
+    };
+
+    window.buyItem = (type, idx) => {
+        const item = ITEMS[type][idx];
+        if (State.coins >= item.p) {
+            State.coins -= item.p;
+            State.income += item.i;
+            if (item.c) State.clickPower += item.c;
+            updateUI(); syncStats();
+        } else alert("Не хватает монет!");
+    };
+
+    // ============ КАЗИНО ============
+    function renderCasinoUI(ui) {
+        ui.innerHTML = `
+        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:12px;">
+            <button onclick="showGame('crash')" style="flex:1; padding:12px; background:#1a1a3a; border:2px solid #3498db; color:white; border-radius:10px; cursor:pointer; font-weight:bold; font-size:15px;">🚀 CRASH</button>
+            <button onclick="showGame('blackjack')" style="flex:1; padding:12px; background:#1a3a1a; border:2px solid #2ecc71; color:white; border-radius:10px; cursor:pointer; font-weight:bold; font-size:15px;">🃏 БЛЕКДЖЕК</button>
+        </div>
+        <div id="game-area"></div>`;
+        showGame('crash');
+    }
+
+    window.showGame = (game) => {
+        if (game === 'crash') renderCrash();
+        else renderBlackjack();
+    };
+
+    // ─── CRASH ───
+    let crashInterval, crashMult, crashBoom, crashBet = 0, crashActive = false;
+    let crashBets = {}; // uid -> {name, bet, cashedOut, mult}
+
+    function renderCrash() {
+        document.getElementById('game-area').innerHTML = `
+        <div style="background:#222; padding:15px; border-radius:15px;">
+            <h4 style="margin:0 0 8px">🚀 CRASH</h4>
+            <div class="crash-val" id="crash-mult">1.00x</div>
+            <div id="crash-graph" style="height:4px; background:#333; border-radius:4px; margin-bottom:10px; overflow:hidden;"><div id="crash-bar" style="height:100%; width:0%; background:var(--green); transition:width 0.1s;"></div></div>
+            <input type="number" id="crash-bet" value="100" min="1" style="width:80%; margin-bottom:10px;">
+            <div id="crash-ctrl"><button class="buy-btn" onclick="startCrash()">💰 СДЕЛАТЬ СТАВКУ</button></div>
+            <p id="crash-msg" style="font-size:12px; color:#888; min-height:18px;"></p>
+            <div id="crash-players-wrap">
+                <p style="font-size:11px; color:#555; text-align:left;">Ставки игроков:</p>
+                <div class="crash-players" id="crash-players-list"></div>
+            </div>
+        </div>`;
+        listenCrashBets();
+    }
+
+    function listenCrashBets() {
+        onValue(ref(db, 'crash_round/bets'), snap => {
+            if (!snap.exists()) { document.getElementById('crash-players-list').innerHTML = ''; return; }
+            let h = '';
+            snap.forEach(c => {
+                const b = c.val();
+                let cls = b.cashedOut ? 'won' : (b.crashed ? 'lost' : '');
+                let status = b.cashedOut ? `+${fmt(Math.floor(b.bet * b.mult - b.bet))} (${b.mult}x)` : (b.crashed ? 'BOOM' : '...');
+                h += `<div class="cp-row ${cls}"><span>${esc(b.name)}</span><span>${fmt(b.bet)} → ${status}</span></div>`;
+            });
+            const el = document.getElementById('crash-players-list');
+            if (el) el.innerHTML = h;
+        });
+    }
+
+    window.startCrash = () => {
+        if (crashActive) return;
+        let bet = Number(document.getElementById('crash-bet').value);
+        if (!bet || bet <= 0 || bet > State.coins) return alert("Недостаточно монет!");
+        State.coins -= bet;
+        crashBet = bet; crashMult = 1.0; crashActive = true;
+        crashBoom = 1 + Math.expm1(Math.random() * 2); // среднее ~2.7, жёстче
+
+        set(ref(db, 'crash_round/bets/' + State.userId), {
+            name: State.displayName, bet, cashedOut: false, crashed: false, mult: 1
+        });
+
+        document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" style="background:var(--gold);color:black;font-size:16px;padding:12px 24px;" onclick="cashoutCrash()">💰 ЗАБРАТЬ</button>`;
+        setMsg('');
+
+        crashInterval = setInterval(() => {
+            crashMult += 0.02 + crashMult * 0.005;
+            const pct = Math.min((crashMult - 1) / (crashBoom - 1) * 100, 100);
+            const el = document.getElementById('crash-mult');
+            const bar = document.getElementById('crash-bar');
+            if (el) { el.innerText = crashMult.toFixed(2) + "x"; el.className = 'crash-val'; }
+            if (bar) bar.style.width = pct + '%';
+
+            update(ref(db, 'crash_round/bets/' + State.userId), { mult: +crashMult.toFixed(2) });
+
+            if (crashMult >= crashBoom) {
+                clearInterval(crashInterval);
+                crashActive = false;
+                if (el) { el.innerText = "💥 BOOM!"; el.className = 'crash-val crashed'; }
+                if (bar) bar.style.background = 'var(--red)';
+                update(ref(db, 'crash_round/bets/' + State.userId), { crashed: true });
+                document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" onclick="startCrash()">💰 СТАВКА</button>`;
+                setMsg("💥 Краш на " + crashMult.toFixed(2) + "x. Ты потерял " + fmt(crashBet));
+                updateUI(); syncStats();
+            }
+        }, 80);
+    };
+
+    window.cashoutCrash = () => {
+        if (!crashActive) return;
+        clearInterval(crashInterval);
+        crashActive = false;
+        const win = Math.floor(crashBet * crashMult);
+        State.coins += win;
+        State.totalEarned += (win - crashBet);
+        update(ref(db, 'crash_round/bets/' + State.userId), { cashedOut: true, mult: +crashMult.toFixed(2) });
+        document.getElementById('crash-ctrl').innerHTML = `<button class="buy-btn" onclick="startCrash()">💰 СТАВКА</button>`;
+        setMsg("✅ Забрал на " + crashMult.toFixed(2) + "x! Выигрыш: +" + fmt(win - crashBet));
+        updateUI(); syncStats();
+    };
+
+    function setMsg(t) { const el = document.getElementById('crash-msg'); if (el) el.innerText = t; }
+
+    // ─── BLACKJACK ───
+    const SUITS = ['♠','♣','♥','♦'];
+    const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+    let bjDeck, bjPlayer, bjDealer, bjBet = 0, bjGameOver = false;
+
+    function mkDeck() {
+        let d = [];
+        for (let s of SUITS) for (let r of RANKS) d.push({s,r});
+        for (let i = d.length - 1; i > 0; i--) { let j = Math.floor(Math.random()*(i+1)); [d[i],d[j]]=[d[j],d[i]]; }
+        return d;
+    }
+    function cardVal(r) { if (r === 'A') return 11; if (['J','Q','K'].includes(r)) return 10; return +r; }
+    function handVal(hand) {
+        let v = 0, aces = 0;
+        for (let c of hand) { v += cardVal(c.r); if (c.r==='A') aces++; }
+        while (v > 21 && aces > 0) { v -= 10; aces--; }
+        return v;
+    }
+    function cardHTML(c, hidden=false) {
+        if (hidden) return `<div class="card hidden">🂠</div>`;
+        const red = ['♥','♦'].includes(c.s);
+        return `<div class="card${red?' red':''}">${c.r}<br>${c.s}</div>`;
+    }
+
+    function renderBlackjack() {
+        document.getElementById('game-area').innerHTML = `
+        <div style="background:#111; padding:15px; border-radius:15px;">
+            <h4 style="margin:0 0 8px">🃏 БЛЕКДЖЕК</h4>
+            <input type="number" id="bj-bet-input" value="200" min="1" style="width:80%; margin-bottom:10px;">
+            <div><button class="buy-btn" onclick="bjDeal()" style="font-size:16px; padding:12px 28px;">🃏 РАЗДАТЬ</button></div>
+            <div id="bj-area" style="margin-top:10px;"></div>
+        </div>`;
+    }
+
+    window.bjDeal = () => {
+        let bet = Number(document.getElementById('bj-bet-input').value);
+        if (!bet || bet <= 0 || bet > State.coins) return alert("Недостаточно монет!");
+        bjBet = bet;
+        State.coins -= bet;
+        bjDeck = mkDeck();
+        bjPlayer = [bjDeck.pop(), bjDeck.pop()];
+        bjDealer = [bjDeck.pop(), bjDeck.pop()];
+        bjGameOver = false;
+        renderBJ(true);
+        updateUI();
+        if (handVal(bjPlayer) === 21) bjEnd("blackjack");
+    };
+
+    function renderBJ(dealerHidden) {
+        const pv = handVal(bjPlayer), dv = handVal(bjDealer);
+        const dDisplay = dealerHidden
+            ? cardHTML(bjDealer[0]) + cardHTML(null, true)
+            : bjDealer.map(c => cardHTML(c)).join('');
+        const pDisplay = bjPlayer.map(c => cardHTML(c)).join('');
+        const dScore = dealerHidden ? cardVal(bjDealer[0].r) : dv;
+
+        let btns = bjGameOver ? `<button class="bj-btn" style="background:var(--blue);" onclick="bjDeal()">🃏 Новая игра</button>` :
+            `<button class="bj-btn" style="background:var(--green);" onclick="bjHit()">➕ ЕЩЁ</button>
+             <button class="bj-btn" style="background:var(--red);" onclick="bjStand()">✋ СТОП</button>
+             ${pv <= 11 ? `<button class="bj-btn" style="background:#9b59b6;" onclick="bjDouble()">2️⃣ УДВОИТЬ</button>` : ''}`;
+
+        document.getElementById('bj-area').innerHTML = `
+        <div class="bj-dealer-section">
+            <div style="font-size:13px; color:#aaa;">Дилер <span class="score-badge">${dScore}</span></div>
+            <div class="cards-row">${dDisplay}</div>
+        </div>
+        <div class="bj-section">
+            <div style="font-size:13px; color:#aaa;">Ты <span class="score-badge">${pv}</span></div>
+            <div class="cards-row">${pDisplay}</div>
+        </div>
+        <div id="bj-msg" style="font-size:16px; font-weight:bold; min-height:24px; color:var(--gold);"></div>
+        <div style="margin-top:8px;">${btns}</div>`;
+    }
+
+    window.bjHit = () => {
+        bjPlayer.push(bjDeck.pop());
+        if (handVal(bjPlayer) > 21) bjEnd("bust");
+        else renderBJ(true);
+    };
+
+    window.bjStand = () => {
+        while (handVal(bjDealer) < 17) bjDealer.push(bjDeck.pop());
+        const pv = handVal(bjPlayer), dv = handVal(bjDealer);
+        if (dv > 21 || pv > dv) bjEnd("win");
+        else if (pv === dv) bjEnd("push");
+        else bjEnd("lose");
+    };
+
+    window.bjDouble = () => {
+        if (State.coins < bjBet) return alert("Нет монет для удвоения!");
+        State.coins -= bjBet; bjBet *= 2; updateUI();
+        bjPlayer.push(bjDeck.pop());
+        if (handVal(bjPlayer) > 21) bjEnd("bust");
+        else bjStand();
+    };
+
+    function bjEnd(result) {
+        bjGameOver = true;
+        renderBJ(false);
+        let msg = '', win = 0;
+        if (result === "blackjack") { win = Math.floor(bjBet * 2.5); msg = "🃏 БЛЕКДЖЕК! +" + fmt(win - bjBet); }
+        else if (result === "win")  { win = bjBet * 2; msg = "✅ ПОБЕДА! +" + fmt(win - bjBet); }
+        else if (result === "push") { win = bjBet; msg = "🤝 НИЧЬЯ"; }
+        else if (result === "bust") { msg = "💥 ПЕРЕБОР! -" + fmt(bjBet); }
+        else { msg = "❌ ПРОИГРЫШ! -" + fmt(bjBet); }
+        State.coins += win;
+        State.totalEarned += Math.max(0, win - bjBet);
+        const el = document.getElementById('bj-msg');
+        if (el) el.innerText = msg;
+        updateUI(); syncStats();
+    }
+
+    // ============ ЧАТ ============
+    function esc(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    window.sendMessage = () => {
+        if (!State.userId) return;
+        const input = document.getElementById('chat-input');
+        const txt = input.value.trim();
+        if (!txt) return;
+        push(ref(db, 'chat'), {
+            userId: State.userId,
+            user: State.displayName,
+            text: txt.substring(0, 200),
+            isAdmin: State.isAdmin || false,
+            time: serverTimestamp()
+        });
+        input.value = "";
+    };
+
+    document.getElementById('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+    function listenChat() {
+        onValue(query(ref(db, 'chat'), limitToLast(30)), (snap) => {
+            let h = "";
+            snap.forEach(c => {
+                const m = c.val();
+                const safeUser = esc(m.user || m.userId);
+                const safeTxt  = esc(m.text);
+                const isSystem = m.userId === 'СИСТЕМА';
+                const adminMark = m.isAdmin ? ' 🔴' : '';
+                const nameClass = isSystem ? 'msg-name system' : (m.isAdmin ? 'msg-name admin-tag' : 'msg-name');
+                const clickAct  = isSystem ? '' : `onclick="sendGift('${esc(m.userId)}','${safeUser}')"`;
+                h += `<div class="msg"><span class="${nameClass}" ${clickAct}>${safeUser}${adminMark}</span>: ${safeTxt}</div>`;
+            });
+            const box = document.getElementById('chat-box');
+            if (box) { box.innerHTML = h; box.scrollTop = 9999; }
+        });
+    }
+
+    window.sendGift = (targetId, targetName) => {
+        if (!targetId || targetId === State.userId || targetId === 'СИСТЕМА') return;
+        if (State.coins < 1000) return alert("Нужно минимум 1000 🪙");
+        if (!confirm("Подарить 1000 🪙 игроку " + targetName + "?")) return;
+        runTransaction(ref(db, 'users/' + targetId + '/balance'), bal => (bal || 0) + 1000);
+        State.coins -= 1000; updateUI();
+        push(ref(db, 'chat'), { userId:'СИСТЕМА', user:'СИСТЕМА', text:`🎁 ${State.displayName} подарил 1000 🪙 → ${targetName}`, time: serverTimestamp() });
+    };
+
+    // ============ ЛИДЕРБОРД ============
+    window.lbSort = (field) => {
+        lbSortField = field;
+        document.getElementById('lb-btn-bal').style.background = field === 'balance' ? 'var(--gold)' : '#333';
+        document.getElementById('lb-btn-bal').style.color = field === 'balance' ? 'black' : 'white';
+        document.getElementById('lb-btn-earn').style.background = field === 'totalEarned' ? 'var(--gold)' : '#333';
+        document.getElementById('lb-btn-earn').style.color = field === 'totalEarned' ? 'black' : 'white';
+        renderLeaderboard();
+    };
+
+    function listenLeaderboard() {
+        onValue(query(ref(db, 'users'), orderByChild('totalEarned'), limitToLast(50)), (snap) => {
+            allPlayers = [];
+            snap.forEach(s => { const v = s.val(); if (v && v.userId) allPlayers.push(v); });
+            renderLeaderboard();
+        });
+    }
+
+    function renderLeaderboard() {
+        const sorted = [...allPlayers].sort((a, b) => (b[lbSortField]||0) - (a[lbSortField]||0));
+        const myRank = sorted.findIndex(p => p.userId === State.userId) + 1;
+        const rankEl = document.getElementById('lb-my-rank');
+        if (rankEl) rankEl.innerText = myRank > 0 ? `Твоё место: #${myRank} из ${sorted.length}` : '';
+
+        const medals = ['🥇','🥈','🥉'];
+        document.getElementById('leader-list').innerHTML = sorted.slice(0, 30).map((p, i) => {
+            const val = lbSortField === 'balance' ? p.balance : p.totalEarned;
+            const isMe = p.userId === State.userId;
+            const medal = medals[i] || `#${i+1}`;
+            return `<div class="leader-item${isMe?' me':''}" onclick="sendGift('${esc(p.userId)}','${esc(p.displayName||p.userId)}')">
+                <span>${medal} ${esc(p.displayName || p.userId)}</span>
+                <b style="color:var(--gold)">${fmt(val||0)} 🪙</b>
+            </div>`;
+        }).join('');
+    }
+
+    // ============ НАСТРОЙКИ ============
+    window.changeNickname = () => {
+        const n = document.getElementById('name-input').value.trim();
+        if (n && n.length >= 2 && n.length <= 20) {
+            State.displayName = n;
+            localStorage.setItem('burmalda_name', n);
+            document.getElementById('user-tag').innerText = n;
+            syncStats();
+            alert("Ник изменён!");
+        } else alert("Ник: 2–20 символов");
+    };
+
+    window.resetGame = () => {
+        if (confirm("Сбросить весь прогресс?")) { localStorage.clear(); location.reload(); }
+    };
+
+    // ============ ADMIN PANEL ============
+    window.openAdminPanel = () => {
+        const code = prompt("Введи код доступа:");
+        if (code === ADMIN_CODE) {
+            State.isAdmin = true;
+            const panel = document.getElementById('admin-panel');
+            panel.style.display = 'block';
+            openTab('chat');
+            adminLog("✅ Вход в админку: " + State.displayName);
+        } else if (code) {
+            alert("Неверный код");
+        }
+    };
+
+    function adminLog(msg) {
+        const log = document.getElementById('admin-log');
+        if (!log) return;
+        const t = new Date().toLocaleTimeString('ru');
+        log.innerHTML = `[${t}] ${esc(msg)}<br>` + log.innerHTML;
+    }
+
+    window.adminBan = async () => {
+        const uid = prompt("ID игрока для бана:");
+        if (!uid) return;
+        await set(ref(db, 'users/' + uid + '/banned'), true);
+        push(ref(db, 'chat'), { userId:'СИСТЕМА', user:'СИСТЕМА', text:`🔨 Игрок ${uid} заблокирован.`, time: serverTimestamp() });
+        adminLog("Забанен: " + uid);
+    };
+
+    window.adminGiveCoins = async () => {
+        const uid = prompt("ID игрока:");
+        if (!uid) return;
+        const amount = Number(prompt("Сколько монет?"));
+        if (!amount || amount <= 0) return;
+        await runTransaction(ref(db, 'users/' + uid + '/balance'), b => (b||0) + amount);
+        adminLog(`Выдано ${amount} монет → ${uid}`);
+        push(ref(db, 'chat'), { userId:'СИСТЕМА', user:'СИСТЕМА', text:`💰 Администратор выдал ${fmt(amount)} 🪙 игроку ${uid}`, time: serverTimestamp() });
+    };
+
+    window.adminClearChat = async () => {
+        if (!confirm("Очистить весь чат?")) return;
+        await remove(ref(db, 'chat'));
+        adminLog("Чат очищен");
+    };
+
+    window.adminBroadcast = () => {
+        const msg = prompt("Текст объявления:");
+        if (msg) {
+            push(ref(db, 'chat'), { userId:'СИСТЕМА', user:'📢 ОБЪЯВЛЕНИЕ', text: msg, isAdmin: true, time: serverTimestamp() });
+            adminLog("Объявление: " + msg);
+        }
+    };
+
+    // ============ СТАРТ ============
+    // Автовход если Telegram Web App
+    const tg = window.Telegram?.WebApp;
+    if (tg?.initDataUnsafe?.user) {
+        authViaTelegram();
+    } else if (localStorage.getItem('burmalda_tg_id') || localStorage.getItem('burmalda_guest_id')) {
+        // Уже авторизован ранее
+        if (localStorage.getItem('burmalda_tg_id')) authViaTelegram();
+        else authAsGuest();
+    }
+    // иначе показываем экран авторизации
+</script>
+</body>
+</html>
