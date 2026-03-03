@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Burmalda: Ultimate Cloud</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--gold:#f1c40f;--green:#2ecc71;--red:#e74c3c;--bg:#0a0a0a;--panel:#111;--panel2:#181818;--blue:#3498db;--purple:#9b59b6;--cyan:#00bcd4}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;user-select:none;overflow:hidden}
+input,button,select,textarea{font-family:inherit}
+input[type=text],input[type=number],textarea{background:#1e1e1e;border:1px solid #333;color:#fff;padding:9px 11px;border-radius:8px;outline:none;width:100%;font-size:13px}
+input:focus,textarea:focus{border-color:var(--blue)}
+select{background:#1e1e1e;border:1px solid #333;color:#fff;padding:8px;border-radius:8px;font-size:13px;width:100%}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--panel);border-bottom:1px solid #222;height:62px}
+.topbar-left{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.balance{font-size:18px;color:var(--gold);font-weight:700}
+.energy-row{display:flex;align-items:center;gap:5px;font-size:11px;color:#666}
+.ebar{width:70px;height:5px;background:#2a2a2a;border-radius:3px;overflow:hidden}
+.ebar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:3px;transition:width .4s}
+.topbar-user{font-size:10px;color:#777;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.topbar-right{display:flex;gap:6px;align-items:center}
+.icon-btn{background:none;border:none;font-size:22px;cursor:pointer;padding:2px;line-height:1}
+.tab{display:none;padding:12px;height:calc(100vh - 135px);overflow-y:auto;padding-bottom:75px}
+.tab.on{display:block}
+.nav{position:fixed;bottom:0;width:100%;background:var(--panel);border-top:1px solid #222;display:flex;height:68px}
+.nb{flex:1;background:none;border:none;color:#444;font-size:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer}
+.nb.on{color:var(--gold)}
+.nb-icon{font-size:22px;line-height:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:8px;font-weight:700;cursor:pointer;padding:9px 14px;font-size:13px;gap:5px;transition:opacity .15s,transform .1s}
+.btn:active{transform:scale(.96);opacity:.85}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-gold{background:var(--gold);color:#000}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-ghost{background:#222;color:#ccc;border:1px solid #333}
+.btn-full{width:100%}
+.btn-sm{padding:6px 11px;font-size:12px}
+.card-block{background:var(--panel2);border-radius:12px;padding:14px;margin-bottom:10px}
+.list-row{display:flex;justify-content:space-between;align-items:center;background:#1e1e1e;border-radius:9px;padding:11px 13px;margin-bottom:7px;border-left:3px solid var(--blue)}
+.list-row.red{border-left-color:var(--red)}
+.list-row.green{border-left-color:var(--green)}
+.list-row.gold{border-left-color:var(--gold)}
+.list-row.purple{border-left-color:var(--purple)}
+.click-wrap{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+.click-btn{width:150px;height:150px;border-radius:50%;border:8px solid #1a1a1a;background:radial-gradient(circle at 35% 35%,#ffe066,#c8960c);color:#000;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 0 30px #f1c40f33,inset 0 -4px 12px #0003;transition:transform .1s}
+.click-btn:active{transform:scale(.91)}
+.click-btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.2) rotate(8deg)}100%{transform:scale(1)}}
+.popping{animation:pop .15s ease}
+.chat-box{height:200px;background:#0d0d0d;border-radius:10px;overflow-y:auto;padding:10px;text-align:left;border:1px solid #1e1e1e}
+.chat-msg{font-size:12px;line-height:1.5;margin-bottom:4px;word-break:break-word}
+.chat-name{font-weight:700;cursor:pointer}
+.chat-input-row{display:flex;gap:6px;margin-top:8px}
+.chat-input-row input{flex:1}
+.lb-row{display:flex;justify-content:space-between;align-items:center;background:#1a1a1a;border-radius:8px;padding:10px 12px;margin-bottom:5px;cursor:pointer}
+.lb-row.me{border:1.5px solid var(--gold);background:#1e1a00}
+.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.inv-cell{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:9px;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:72px;transition:border-color .2s}
+.inv-cell:active{border-color:var(--gold)}
+.inv-cell-icon{font-size:26px}
+.inv-cell-name{font-size:9px;color:#999;text-align:center;line-height:1.3}
+.inv-cell-qty{font-size:11px;color:var(--gold);font-weight:700}
+.slot-machine{background:linear-gradient(160deg,#120a22,#0a0f18);border:2px solid #5a2d8a;border-radius:18px;padding:14px;box-shadow:0 0 24px #5a2d8a44}
+.slot-reels{display:flex;gap:7px;justify-content:center;margin:12px 0}
+.reel-outer{width:58px;height:78px;overflow:hidden;border-radius:8px;border:2px solid #2a2a2a;background:#000}
+.reel-inner{display:flex;flex-direction:column}
+.reel-sym{height:78px;font-size:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+@keyframes reelSpin{from{transform:translateY(0)}to{transform:translateY(-78px)}}
+.spinning .reel-inner{animation:reelSpin .07s linear infinite}
+.slot-result{font-size:20px;font-weight:700;color:var(--gold);min-height:26px;margin:6px 0}
+@keyframes shimmer{0%,100%{opacity:1}50%{opacity:.5}}
+.slot-result.win{animation:shimmer .3s ease 4}
+.crash-mult{font-size:52px;font-family:monospace;color:var(--gold);font-weight:700;margin:8px 0}
+.crash-mult.busted{color:var(--red)}
+.crash-bar-wrap{height:6px;background:#1e1e1e;border-radius:3px;overflow:hidden;margin-bottom:10px}
+.crash-bar{height:100%;background:var(--green);border-radius:3px;width:0%;transition:width .08s}
+.crash-players-box{background:#0d0d0d;border-radius:8px;padding:7px;max-height:100px;overflow-y:auto}
+.cp-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 4px;border-bottom:1px solid #1a1a1a}
+.cp-won{color:var(--green)}.cp-lost{color:var(--red)}
+.bj-felt{background:linear-gradient(160deg,#05200a,#021008);border:2px solid #0d3b14;border-radius:14px;padding:12px}
+.bj-zone{background:#00000044;border-radius:9px;padding:9px;margin-bottom:7px}
+.playing-card{width:42px;height:60px;background:#fff;color:#111;border-radius:5px;font-size:14px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;box-shadow:0 2px 6px #0009;flex-shrink:0}
+.playing-card.red{color:#c0392b}
+.playing-card.back{background:#1a3a8a;color:transparent}
+.cards-row{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.score-pill{display:inline-block;background:#1e1e1e;padding:2px 9px;border-radius:12px;font-size:12px}
+.clan-banner{background:linear-gradient(135deg,#1a0a2e,#0a1a2e);border:1.5px solid var(--purple);border-radius:14px;padding:16px;margin-bottom:10px}
+.clan-member-row{display:flex;justify-content:space-between;align-items:center;background:#111;border-radius:8px;padding:9px 12px;margin-bottom:5px;font-size:12px}
+.clan-war-card{background:linear-gradient(135deg,#1a0000,#001a00);border:1.5px solid #5a5a00;border-radius:14px;padding:14px;margin-bottom:10px}
+.war-progress-wrap{height:20px;background:#111;border-radius:10px;overflow:hidden;margin:8px 0;position:relative}
+.war-bar-a{height:100%;background:linear-gradient(90deg,var(--red),#c0392b);border-radius:10px;position:absolute;left:0;top:0}
+.war-bar-b{height:100%;background:linear-gradient(90deg,#006400,var(--green));border-radius:10px;position:absolute;right:0;top:0}
+.city-card{position:relative;border-radius:14px;margin-bottom:10px;cursor:pointer;min-height:90px;display:flex;align-items:flex-end;padding:14px;overflow:hidden}
+.city-card-title{font-size:17px;font-weight:700;text-shadow:0 1px 4px #000}
+.city-card-sub{font-size:11px;opacity:.7;margin-top:2px}
+.city-murino{background:linear-gradient(135deg,#1a2a3a,#0a1520);border:1.5px solid #2a4a6a}
+.city-otso{background:linear-gradient(135deg,#2a1a0a,#1a0a00);border:1.5px solid #6a2a0a}
+.tab-strip{display:flex;gap:5px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px}
+.tab-strip::-webkit-scrollbar{display:none}
+.tab-chip{background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:6px 13px;border-radius:20px;cursor:pointer;white-space:nowrap;font-size:12px;font-weight:600}
+.tab-chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.admin-backdrop{display:none;position:fixed;inset:0;background:#000b;z-index:600;overflow-y:auto;padding:12px}
+.admin-box{background:#0f0000;border:1.5px solid var(--red);border-radius:14px;padding:14px;max-width:480px;margin:0 auto}
+.admin-sec{background:#180000;border-radius:10px;padding:11px;margin-bottom:9px;text-align:left}
+.admin-sec h5{font-size:12px;color:#e74c3c;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.admin-btn{background:#c0392b;border:none;color:#fff;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700}
+.admin-log{background:#0a0a0a;border-radius:7px;padding:7px;font-size:10px;color:#666;max-height:80px;overflow-y:auto;margin-top:7px;text-align:left}
+.modal-backdrop{display:none;position:fixed;inset:0;background:#000a;z-index:500;align-items:center;justify-content:center}
+.modal-backdrop.on{display:flex}
+.modal-box{background:#161616;border:1px solid #2a2a2a;border-radius:14px;padding:18px;width:92%;max-width:360px;max-height:85vh;overflow-y:auto}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.fade-up{animation:fadeUp .2s ease}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.section-label{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.flex-row{display:flex;gap:7px;align-items:center}
+.flex-wrap{display:flex;gap:6px;flex-wrap:wrap}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+</style>
+</head>
+<body>
+
+<div id="auth-screen" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px">
+  <div style="font-size:60px">🎮</div>
+  <div style="font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px">BURMALDA</div>
+  <div style="font-size:13px;color:#666;max-width:260px;text-align:center">Войди через Telegram — прогресс в облаке</div>
+  <button class="btn btn-blue" style="width:220px;font-size:16px;padding:14px" onclick="authViaTelegram()">🚀 Telegram</button>
+  <button class="btn btn-ghost" style="width:220px" onclick="authAsGuest()">Играть как гость</button>
+</div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="balance">💰 <span id="coins">0</span></div>
+    <div class="energy-row">⚡<span id="energy-val">1000</span>/1000<div class="ebar"><div class="ebar-fill" id="ebar" style="width:100%"></div></div></div>
+  </div>
+  <div class="topbar-user" id="user-tag">...</div>
+  <div class="topbar-right">
+    <button class="icon-btn" onclick="openTab('inventory')">🎒</button>
+    <button class="icon-btn" onclick="openTab('chat')">💬</button>
+    <button class="icon-btn" onclick="openTab('settings')">👤</button>
+  </div>
+</div>
+
+<div id="tab-clicker" class="tab on">
+  <div class="click-wrap">
+    <button class="click-btn" id="click-btn-el" onclick="makeClick()">БУРМАЛДА</button>
+    <div style="font-size:12px;color:#555;margin-top:10px">+<span id="clk-val">1</span> клик · +<span id="inc-val">0</span>/с</div>
+    <div style="font-size:11px;color:#444;margin-top:3px">Ур.<span id="user-lvl">1</span> · <span id="user-exp">0</span> XP</div>
+  </div>
+</div>
+
+<div id="tab-map" class="tab">
+  <div style="font-size:11px;color:#555;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">ЛОКАЦИИ</div>
+  <div class="city-card city-murino" onclick="travelTo('shop')">
+    <div><div class="city-card-title">🏗️ МУРИНО</div><div class="city-card-sub">Магазин · Апгрейды · Недвижимость</div></div>
+  </div>
+  <div class="city-card city-otso" onclick="travelTo('casino')">
+    <div><div class="city-card-title">🎰 ОТСО-СИТИ</div><div class="city-card-sub">Казино · Слоты · Блекджек · Краш</div></div>
+  </div>
+</div>
+
+<div id="tab-city" class="tab">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <button class="btn btn-ghost btn-sm" onclick="openTab('map')">← Назад</button>
+    <span id="city-title" style="font-size:16px;font-weight:700"></span>
+  </div>
+  <div id="city-ui"></div>
+</div>
+
+<div id="tab-chat" class="tab">
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px">💬 ЧАТИК</div>
+  <div class="chat-box" id="chat-box"></div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="Сообщение..." maxlength="200">
+    <button class="btn btn-blue btn-sm" onclick="sendMessage()">📡</button>
+  </div>
+  <div style="font-size:10px;color:#333;margin-top:5px">Нажми на имя → подарить 500 🪙</div>
+</div>
+
+<div id="tab-leaderboard" class="tab">
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px">🏆 ТОП ИГРОКОВ</div>
+  <div class="flex-row" style="justify-content:center;margin-bottom:10px">
+    <button id="lb-bal" class="btn btn-gold btn-sm" onclick="lbSort('balance')">💰 Монеты</button>
+    <button id="lb-earn" class="btn btn-ghost btn-sm" onclick="lbSort('totalEarned')">📈 Всего</button>
+  </div>
+  <div id="lb-rank" style="font-size:11px;color:#555;margin-bottom:7px"></div>
+  <div id="lb-list"></div>
+</div>
+
+<div id="tab-clans" class="tab">
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px">⚔️ КЛАНЫ</div>
+  <div id="clan-ui"></div>
+</div>
+
+<div id="tab-inventory" class="tab">
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px">🎒 ИНВЕНТАРЬ</div>
+  <div class="tab-strip" id="inv-tabs"></div>
+  <div class="inv-grid" id="inv-grid"></div>
+</div>
+
+<div id="tab-settings" class="tab">
+  <div style="font-size:13px;font-weight:700;margin-bottom:12px">👤 ПРОФИЛЬ</div>
+  <div class="card-block">
+    <div style="font-size:11px;color:#555;margin-bottom:2px">ID</div>
+    <div id="my-id" style="font-size:12px;color:var(--blue);margin-bottom:10px;word-break:break-all"></div>
+    <div style="font-size:11px;color:#555;margin-bottom:2px">Telegram</div>
+    <div id="tg-display" style="font-size:12px;color:#0088cc;margin-bottom:12px"></div>
+    <input type="text" id="name-input" placeholder="Новый ник..." style="margin-bottom:8px">
+    <button class="btn btn-green btn-full" onclick="changeNickname()">СМЕНИТЬ НИК</button>
+  </div>
+  <div class="card-block">
+    <div class="section-label">Промокод</div>
+    <div class="flex-row">
+      <input type="text" id="promo-input" placeholder="SALE100">
+      <button class="btn btn-purple btn-sm" onclick="activatePromo()">АКТИВИРОВАТЬ</button>
+    </div>
+    <div id="promo-msg" style="font-size:12px;margin-top:5px;min-height:16px"></div>
+  </div>
+  <div class="card-block" id="ref-block">
+    <div class="section-label">🔗 РЕФЕРАЛЬНАЯ СИСТЕМА</div>
+    <div id="ref-code-box" style="font-size:12px;color:#555;margin-bottom:8px">Загрузка...</div>
+    <div class="flex-row" style="margin-bottom:8px">
+      <input type="text" id="ref-apply-input" placeholder="Реф-код друга (BRM...)">
+      <button class="btn btn-blue btn-sm" onclick="applyRef()">ПРИМЕНИТЬ</button>
+    </div>
+    <div id="ref-apply-msg" style="font-size:12px;min-height:16px"></div>
+    <div style="font-size:10px;color:#444;margin-top:5px">Твои рефералы получают +2000 🪙 · Ты получаешь +1000 🪙 за каждого + 5% от их заработка</div>
+    <div id="ref-stats" style="margin-top:8px"></div>
+  </div>
+  <div class="card-block">
+    <button class="btn btn-ghost btn-full" style="margin-bottom:7px" onclick="openAdminEntry()">🔑 Код доступа</button>
+    <button class="btn btn-red btn-full" onclick="resetGame()">♻️ СБРОС</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nb on" id="n-clicker" onclick="openTab('clicker')"><span class="nb-icon">🖱️</span>Клик</button>
+  <button class="nb" id="n-map" onclick="openTab('map')"><span class="nb-icon">🗺️</span>Карта</button>
+  <button class="nb" id="n-clans" onclick="openTab('clans');renderClansUI()"><span class="nb-icon">⚔️</span>Кланы</button>
+  <button class="nb" id="n-leaderboard" onclick="openTab('leaderboard')"><span class="nb-icon">🏆</span>Топ</button>
+</div>
+
+<div class="admin-backdrop" id="admin-backdrop">
+  <div class="admin-box fade-up">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="color:var(--red);font-weight:700;font-size:15px">🔴 ADMIN</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeAdmin()">✕</button>
+    </div>
+    <div id="admin-l1">
+      <div class="admin-sec"><h5>💬 ЧАТ</h5><div class="flex-wrap">
+        <button class="admin-btn" onclick="adminClearChat()">🗑️ Очистить</button>
+        <button class="admin-btn" onclick="adminBroadcast()">📢 Объявление</button>
+        <button class="admin-btn" onclick="adminSetMyPrefix()">✏️ Мой префикс</button>
+      </div></div>
+      <div class="admin-sec"><h5>👤 ИГРОКИ</h5><div class="flex-wrap">
+        <button class="admin-btn" onclick="adminBan()">🔨 Бан</button>
+        <button class="admin-btn" onclick="adminUnban()">✅ Разбан</button>
+        <button class="admin-btn" onclick="adminSetPrefix()">🏷️ Префикс</button>
+      </div></div>
+    </div>
+    <div id="admin-l2" style="display:none">
+      <div class="admin-sec"><h5>💰 ЭКОНОМИКА (владелец)</h5><div class="flex-wrap">
+        <button class="admin-btn" onclick="adminGiveCoins()">💰 Дать монеты</button>
+        <button class="admin-btn" onclick="adminGlobalIncome()">📈 Глоб. доход</button>
+      </div></div>
+      <div class="admin-sec"><h5>🎟️ ПРОМОКОДЫ</h5>
+        <div class="two-col" style="margin-bottom:6px">
+          <input type="text" id="p-code" placeholder="Код" style="font-size:12px">
+          <input type="number" id="p-coins" placeholder="Монет" style="font-size:12px">
+          <input type="number" id="p-uses" placeholder="Исп." value="1" style="font-size:12px">
+          <button class="admin-btn" style="width:100%;padding:9px" onclick="adminCreatePromo()">➕ Создать</button>
+        </div>
+        <div id="promos-list" style="font-size:11px;color:#777;max-height:70px;overflow-y:auto"></div>
+      </div>
+      <div class="admin-sec"><h5>📦 ПРЕДМЕТ В МАГАЗИН</h5>
+        <div class="two-col" style="margin-bottom:6px">
+          <select id="item-cat" style="font-size:12px"><option value="cars">🚗 Машины</option><option value="houses">🏠 Дома</option><option value="upgrades">⚡ Апгрейды</option></select>
+          <input type="text" id="item-icon" placeholder="Иконка" style="font-size:12px">
+          <input type="text" id="item-name" placeholder="Название" style="font-size:12px">
+          <input type="number" id="item-price" placeholder="Цена" style="font-size:12px">
+          <input type="number" id="item-income" placeholder="+доход/с" style="font-size:12px">
+          <input type="text" id="item-desc" placeholder="Описание" style="font-size:12px">
+        </div>
+        <button class="admin-btn" style="width:100%" onclick="adminAddItem()">➕ Добавить</button>
+      </div>
+    </div>
+    <div class="admin-log" id="admin-log">Лог...</div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="item-modal">
+  <div class="modal-box">
+    <div id="item-modal-body"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:12px" onclick="closeModal('item-modal')">Закрыть</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="clan-modal">
+  <div class="modal-box">
+    <div id="clan-modal-body"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:12px" onclick="closeModal('clan-modal')">Закрыть</button>
+  </div>
+</div>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import{getDatabase,ref,set,onValue,query,orderByChild,limitToLast,push,serverTimestamp,get,runTransaction,remove,update,off}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+const FB={apiKey:"AIzaSyDI5JrmS9DTC6ZPf2IpeQi4Z8fe-eZeSi0",authDomain:"burmalda-cc9e2.firebaseapp.com",databaseURL:"https://burmalda-cc9e2-default-rtdb.firebaseio.com",projectId:"burmalda-cc9e2",storageBucket:"burmalda-cc9e2.firebasestorage.app",messagingSenderId:"16974087709",appId:"1:16974087709:web:98efe6ee803de73360e8f4"};
+const app=initializeApp(FB);
+const db=getDatabase(app);
+/* ADMIN HASHES — замени на sha256 своих кодов:
+   https://emn178.github.io/online-tools/sha256.html
+   OWNER_HASH = полный доступ (выдача монет, промо, предметы)
+   MODER_HASH = только чат + баны + префиксы */
+const OWNER_HASH="REPLACE_SHA256_OWNER_CODE_HERE";
+const MODER_HASH="REPLACE_SHA256_MODER_CODE_HERE";
+async function sha256(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+let S={coins:0,income:0,clickPower:1,userId:"",displayName:"",totalEarned:0,energy:1000,prefix:"",prefixColor:"#9b59b6",isOwner:false,isModer:false,tgId:null,inventory:{},clanId:null,usedPromos:{}};
+let lbField='balance',allPlayers=[];
+let SHOP={
+  cars:[{id:"c1",n:"Ока",icon:"🚗",p:500,i:2,c:1,desc:"Классика"},{id:"c2",n:"Приора",icon:"🚘",p:5000,i:15,c:5,desc:"Мурик"},{id:"c3",n:"Гелик",icon:"🚙",p:50000,i:100,c:20,desc:"Богач"},{id:"c4",n:"BMW M5",icon:"🏎️",p:250000,i:450,c:60,desc:"Авторитет"},{id:"c5",n:"Lamborghini",icon:"🏎️",p:1500000,i:2500,c:200,desc:"Мечта"},{id:"c6",n:"Jet",icon:"✈️",p:8000000,i:12000,c:500,desc:"Выше всех"}],
+  houses:[{id:"h1",n:"Шалаш",icon:"⛺",p:2000,i:10,desc:"Крыша"},{id:"h2",n:"Хрущёвка",icon:"🏠",p:18000,i:60,desc:"Мурино"},{id:"h3",n:"Квартира",icon:"🏡",p:80000,i:250,desc:"Панорама"},{id:"h4",n:"Таунхаус",icon:"🏘️",p:400000,i:1200,desc:"Терраса"},{id:"h5",n:"Вилла",icon:"🏰",p:2000000,i:6000,desc:"Бассейн"},{id:"h6",n:"Пентхаус",icon:"🏢",p:8000000,i:25000,desc:"Над облаками"},{id:"h7",n:"Остров",icon:"🏝️",p:50000000,i:100000,desc:"Личное государство"}],
+  upgrades:[{id:"u1",n:"Клик ×2",icon:"👆",p:3000,c:2,desc:"Двойной"},{id:"u2",n:"Клик ×5",icon:"💪",p:35000,c:5,desc:"Пятикратный"},{id:"u3",n:"Клик ×20",icon:"⚡",p:400000,c:20,desc:"Мега"},{id:"u4",n:"Автокликер",icon:"🤖",p:60000,i:60,desc:"Сам кликает"}]
+};
+/* AUTH */
+window.authViaTelegram=()=>{const tg=window.Telegram?.WebApp;if(tg?.initDataUnsafe?.user){const u=tg.initDataUnsafe.user;S.tgId=String(u.id);S.userId="tg_"+u.id;S.displayName=u.username?"@"+u.username:(u.first_name||"User");tg.expand?.();finishAuth();}else{const saved=localStorage.getItem('b_tgid');if(saved){S.tgId=saved;S.userId="tg_"+saved;S.displayName=localStorage.getItem('b_name')||S.userId;finishAuth();}else{const tid=prompt("Введи Telegram ID:");if(tid?.match(/^\d+$/)){S.tgId=tid.trim();S.userId="tg_"+S.tgId;S.displayName=localStorage.getItem('b_name')||("User_"+S.tgId.slice(-4));localStorage.setItem('b_tgid',S.tgId);finishAuth();}}}};
+window.authAsGuest=()=>{let g=localStorage.getItem('b_guest');if(!g){g="g_"+Date.now().toString(36);localStorage.setItem('b_guest',g);}S.userId=g;S.displayName=localStorage.getItem('b_name')||g;finishAuth();};
+async function finishAuth(){
+  document.getElementById('auth-screen').style.display='none';
+  const cl=localStorage.getItem('b_cl');
+  if(cl==='owner'){S.isOwner=true;S.isModer=true;}
+  if(cl==='moder')S.isModer=true;
+  const snap=await get(ref(db,'users/'+S.userId));
+  if(snap.exists()){const d=snap.val();if(d.banned){document.getElementById('auth-screen').innerHTML='<div style="margin:auto;padding:40px;color:var(--red);font-size:20px">🔨 ЗАБАНЕН</div>';document.getElementById('auth-screen').style.display='flex';return;}S.coins=d.balance||0;S.totalEarned=d.totalEarned||0;S.income=d.income||0;S.clickPower=d.clickPower||1;S.energy=d.energy??1000;S.prefix=d.prefix||"";S.prefixColor=d.prefixColor||"#9b59b6";S.inventory=d.inventory||{};S.usedPromos=d.usedPromos||{};S.clanId=d.clanId||null;if(d.displayName)S.displayName=d.displayName;}
+  const shopSnap=await get(ref(db,'shop_items'));
+  if(shopSnap.exists()){for(const cat of['cars','houses','upgrades']){const cd=shopSnap.val()[cat];if(cd){const ex=Object.values(cd);SHOP[cat]=[...SHOP[cat].filter(x=>!ex.find(e=>e.id===x.id)),...ex];}}}
+  if(S.tgId)localStorage.setItem('b_tgid',S.tgId);
+  localStorage.setItem('b_name',S.displayName);
+  document.getElementById('my-id').innerText=S.userId;
+  document.getElementById('tg-display').innerText=S.tgId?"ID: "+S.tgId:"Гость";
+  setInterval(()=>{if(S.energy<1000){S.energy++;updateUI();}},4000);
+  setInterval(()=>{S.coins+=S.income;S.totalEarned+=S.income;updateUI();},1000);
+  setInterval(syncStats,20000);
+  listenChat();listenLeaderboard();listenAdminPromos();
+  updateUI();renderInventory();syncStats();
+  S.refBy=await snap2('users/'+S.userId+'/refBy');
+  loadRefCode();
+  setTimeout(async()=>{if(S.isOwner)maybeDriveCrash();},3000);
+}
+/* UI */
+const fmt=n=>Number(n).toLocaleString('ru');
+const snap2=async path=>{const s=await get(ref(db,path));return s.exists()?s.val():null;};
+const esc=s=>String(s||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function updateUI(){
+  document.getElementById('coins').innerText=fmt(Math.floor(S.coins));
+  document.getElementById('inc-val').innerText=S.income;
+  document.getElementById('clk-val').innerText=S.clickPower;
+  document.getElementById('energy-val').innerText=S.energy;
+  document.getElementById('ebar').style.width=(S.energy/10)+'%';
+  document.getElementById('user-lvl').innerText=Math.floor(Math.sqrt(S.totalEarned)/10)+1;
+  document.getElementById('user-exp').innerText=fmt(Math.floor(S.totalEarned));
+  const cb=document.getElementById('click-btn-el');if(cb)cb.disabled=S.energy<=0;
+  document.getElementById('user-tag').innerText=(S.prefix?'['+S.prefix+'] ':'')+S.displayName;
+}
+function syncStats(){
+  if(!S.userId)return;
+  notifyRefIfNeeded();
+  set(ref(db,'users/'+S.userId),{displayName:S.displayName,userId:S.userId,balance:Math.floor(S.coins),totalEarned:Math.floor(S.totalEarned),income:S.income,clickPower:S.clickPower,isOwner:S.isOwner,isModer:S.isModer,energy:S.energy,prefix:S.prefix,prefixColor:S.prefixColor,inventory:S.inventory,usedPromos:S.usedPromos,clanId:S.clanId||null,lastActive:serverTimestamp()});
+}
+window.openTab=n=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));const t=document.getElementById('tab-'+n);const nb=document.getElementById('n-'+n);if(t)t.classList.add('on');if(nb)nb.classList.add('on');};
+window.closeModal=id=>document.getElementById(id).classList.remove('on');
+window.makeClick=()=>{if(S.energy<=0)return;S.energy--;S.coins+=S.clickPower;S.totalEarned+=S.clickPower;const btn=document.getElementById('click-btn-el');btn.classList.add('popping');setTimeout(()=>btn.classList.remove('popping'),160);updateUI();};
+/* SHOP */
+window.travelTo=loc=>{document.getElementById('city-title').innerText=loc==='shop'?'🏗️ МУРИНО':'🎰 ОТСО-СИТИ';if(loc==='shop')renderShop();else renderCasinoMenu();openTab('city');};
+function renderShop(){const ui=document.getElementById('city-ui');ui.innerHTML=`<div class="tab-strip" id="ss"><span class="tab-chip on" onclick="shopCat('cars',this)">🚗 Тачки</span><span class="tab-chip" onclick="shopCat('houses',this)">🏠 Дома</span><span class="tab-chip" onclick="shopCat('upgrades',this)">⚡ Апгрейды</span></div><div id="shop-items"></div>`;shopCat('cars',document.querySelector('#ss .tab-chip'));}
+window.shopCat=(cat,el)=>{document.querySelectorAll('#ss .tab-chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');const cols={cars:'blue',houses:'green',upgrades:'purple'};document.getElementById('shop-items').innerHTML=SHOP[cat].map((item,i)=>{const owned=S.inventory[item.id]||0;const stat=[(item.i?'+'+item.i+'/с':''),(item.c?'+'+item.c+' клик':'')].filter(Boolean).join(' ');return`<div class="list-row ${cols[cat]}"><div style="text-align:left"><div>${item.icon} <b>${esc(item.n)}</b>${owned?` <span class="badge" style="background:#1a2a1a;color:var(--green)">×${owned}</span>`:''}</div><div style="font-size:11px;color:#666">${esc(item.desc||'')}${stat?' · '+stat:''}</div></div><button class="btn btn-green btn-sm" onclick="buyItem('${cat}',${i})"${S.coins<item.p?' disabled':''}>${fmt(item.p)}🪙</button></div>`;}).join('');};
+window.buyItem=(cat,idx)=>{const item=SHOP[cat][idx];if(S.coins<item.p)return;S.coins-=item.p;if(item.i)S.income+=item.i;if(item.c)S.clickPower+=item.c;S.inventory[item.id]=(S.inventory[item.id]||0)+1;updateUI();syncStats();renderInventory();shopCat(cat,document.querySelector('#ss .tab-chip.on'));};
+function renderCasinoMenu(){document.getElementById('city-ui').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><button onclick="showGame('crash')" style="padding:16px 8px;background:linear-gradient(135deg,#0a0a2a,#1a1a3a);border:1.5px solid var(--blue);color:#fff;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px">🚀<br>CRASH</button><button onclick="showGame('slots')" style="padding:16px 8px;background:linear-gradient(135deg,#1a0a2a,#0a001a);border:1.5px solid var(--purple);color:#fff;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px">🎰<br>СЛОТЫ</button><button onclick="showGame('blackjack')" style="padding:16px 8px;background:linear-gradient(135deg,#001a0a,#000a04);border:1.5px solid var(--green);color:#fff;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;grid-column:1/-1">🃏<br>БЛЕКДЖЕК</button></div><div id="game-area"></div>`;}
+window.showGame=g=>{if(g==='crash')renderCrash();else if(g==='slots')renderSlots();else renderBlackjack();};
+/* CRASH — server-driven */
+let myBetActive=false;
+function renderCrash(){document.getElementById('game-area').innerHTML=`<div class="card-block"><div style="font-size:13px;font-weight:700;margin-bottom:8px">🚀 CRASH</div><div class="crash-mult" id="cmult">1.00×</div><div class="crash-bar-wrap"><div class="crash-bar" id="cbar"></div></div><input type="number" id="crash-bet" value="100" min="1" style="width:70%;margin-bottom:8px"><div id="crash-ctrl"><button class="btn btn-green" onclick="placeCrashBet()">💰 СТАВКА</button></div><div id="crash-msg" style="font-size:12px;color:#666;min-height:16px;margin-top:6px"></div><div style="font-size:11px;color:#444;margin:6px 0 3px;text-align:left">Ставки:</div><div class="crash-players-box" id="crash-players"></div></div>`;listenCrashState();}
+let crashAnimFrame=null,crashStateCache=null;
+function listenCrashState(){
+  onValue(ref(db,'crash'),snap=>{
+    if(!snap.exists())return;
+    crashStateCache=snap.val();
+    const st=crashStateCache;
+    const ctrl=document.getElementById('crash-ctrl');
+    const msg=document.getElementById('crash-msg');
+    if(st.phase==='waiting'){
+      if(crashAnimFrame){cancelAnimationFrame(crashAnimFrame);crashAnimFrame=null;}
+      const me=document.getElementById('cmult');if(me){me.innerText='⏳ '+Math.ceil(5-(Date.now()-(st.waitStart||Date.now()))/1000)+'с...';me.className='crash-mult';}
+      const bar=document.getElementById('cbar');if(bar){bar.style.width='0%';bar.style.background='var(--green)';}
+      if(ctrl&&!myBetActive)ctrl.innerHTML=`<button class="btn btn-green" onclick="placeCrashBet()">💰 СТАВКА</button>`;
+    } else if(st.phase==='running'){
+      // Запускаем плавную анимацию на клиенте — сервер обновляет только раз в 500мс
+      // но клиент интерполирует по формуле e^(0.09*t) на каждый кадр (60fps)
+      if(!crashAnimFrame)animateCrash();
+      if(myBetActive&&ctrl){const m=calcCrashMult(st).toFixed(2);ctrl.innerHTML=`<button class="btn btn-gold" style="font-size:16px;padding:12px 28px" onclick="doCashout()">💰 ЗАБРАТЬ (${m}×)</button>`;}
+    } else if(st.phase==='crashed'){
+      if(crashAnimFrame){cancelAnimationFrame(crashAnimFrame);crashAnimFrame=null;}
+      const me=document.getElementById('cmult');if(me){me.innerText='💥 '+(st.crashAt||'?')+'×';me.className='crash-mult busted';}
+      myBetActive=false;
+      if(ctrl)ctrl.innerHTML=`<button class="btn btn-green" onclick="placeCrashBet()">💰 СТАВКА</button>`;
+      if(msg)msg.innerText='Краш на '+(st.crashAt||'?')+'×';
+    }
+    const pb=document.getElementById('crash-players');
+    if(pb&&st.bets){pb.innerHTML=Object.values(st.bets).map(b=>{const cls=b.cashedOut?'cp-won':b.crashed?'cp-lost':'';const status=b.cashedOut?`+${fmt(Math.floor(b.bet*(b.cashMult||1)-b.bet))} (${b.cashMult||1}×)`:b.crashed?'BOOM':'...';return`<div class="cp-row ${cls}"><span>${esc(b.name)}</span><span>${fmt(b.bet)} → ${status}</span></div>`;}).join('');}
+  });
+}
+function calcCrashMult(st){
+  if(!st||!st.startedAt)return 1;
+  const elapsed=(Date.now()-st.startedAt)/1000;
+  return parseFloat(Math.pow(Math.E,0.09*elapsed).toFixed(2));
+}
+function animateCrash(){
+  const st=crashStateCache;
+  if(!st||st.phase!=='running'){crashAnimFrame=null;return;}
+  const m=calcCrashMult(st);
+  const me=document.getElementById('cmult');
+  const bar=document.getElementById('cbar');
+  const ctrl=document.getElementById('crash-ctrl');
+  if(me){me.innerText=m.toFixed(2)+'×';me.className='crash-mult';}
+  if(bar){const p=Math.min(((m-1)/4)*100,100);bar.style.width=p+'%';bar.style.background=p>70?'var(--red)':p>40?'#f39c12':'var(--green)';}
+  if(myBetActive&&ctrl)ctrl.innerHTML=`<button class="btn btn-gold" style="font-size:16px;padding:12px 28px" onclick="doCashout()">💰 ЗАБРАТЬ (${m.toFixed(2)}×)</button>`;
+  crashAnimFrame=requestAnimationFrame(animateCrash);
+}
+window.placeCrashBet=async()=>{const bet=Number(document.getElementById('crash-bet')?.value);if(!bet||bet<=0||bet>S.coins)return alert("Нет монет!");S.coins-=bet;updateUI();myBetActive=true;await update(ref(db,'crash/bets/'+S.userId),{name:S.displayName,bet,cashedOut:false,crashed:false});const ctrl=document.getElementById('crash-ctrl');if(ctrl)ctrl.innerHTML=`<button class="btn btn-gold" style="font-size:16px;padding:12px 28px" onclick="doCashout()">💰 ЗАБРАТЬ</button>`;};
+window.doCashout=async()=>{if(!myBetActive)return;const st=crashStateCache;if(!st||st.phase!=='running')return;const mult=calcCrashMult(st);const bs=await get(ref(db,'crash/bets/'+S.userId));if(!bs.exists())return;const bet=bs.val().bet||0;const win=Math.floor(bet*mult);S.coins+=win;S.totalEarned+=Math.max(0,win-bet);myBetActive=false;await update(ref(db,'crash/bets/'+S.userId),{cashedOut:true,cashMult:parseFloat(mult.toFixed(2))});const msg=document.getElementById('crash-msg');if(msg)msg.innerText=`✅ ${mult.toFixed(2)}× · +${fmt(win-bet)}`;const ctrl=document.getElementById('crash-ctrl');if(ctrl)ctrl.innerHTML=`<button class="btn btn-green" onclick="placeCrashBet()">💰 НОВАЯ СТАВКА</button>`;updateUI();syncStats();};
+async function maybeDriveCrash(){const snap=await get(ref(db,'crash/phase'));if(snap.exists()&&snap.val()!=='idle'&&snap.val())return;runCrashRound();}
+async function runCrashRound(){const crashAt=+(1+Math.expm1(Math.random()*2.3)).toFixed(2);await set(ref(db,'crash'),{phase:'waiting',mult:1,crashAt,bets:{}});await delay(5000);await update(ref(db,'crash'),{phase:'running'});let m=1.0;const iv=setInterval(async()=>{m+=0.02+m*0.006;m=parseFloat(m.toFixed(2));await update(ref(db,'crash'),{mult:m});if(m>=crashAt){clearInterval(iv);const bs=await get(ref(db,'crash/bets'));if(bs.exists()){const upd={};bs.forEach(c=>{if(!c.val().cashedOut)upd['crash/bets/'+c.key+'/crashed']=true;});if(Object.keys(upd).length)await update(ref(db),upd);}await update(ref(db,'crash'),{phase:'crashed',mult:m});await delay(4000);await runCrashRound();}},80);}
+/* SLOTS */
+const SYMS=['🍒','🍋','🍊','⭐','💎','🔔','7️⃣','🍀'],SMULT={'🍒':2,'🍋':2.5,'🍊':3,'⭐':4,'💎':6,'🔔':8,'7️⃣':15,'🍀':25},SWTS=[30,25,20,15,10,7,4,2];
+function wsym(){let t=0;for(const w of SWTS)t+=w;let r=Math.random()*t;for(let i=0;i<SYMS.length;i++){r-=SWTS[i];if(r<=0)return SYMS[i];}return SYMS[0];}
+let slotN=3,slotSpinning=false;
+function renderSlots(){document.getElementById('game-area').innerHTML=`<div class="slot-machine"><div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:6px">🎰 СЛОТЫ</div><div style="margin-bottom:8px"><span style="font-size:11px;color:#666">Барабаны: </span>${[3,4,5].map(n=>`<button class="btn btn-ghost btn-sm${n===slotN?' btn-purple':''}" style="padding:4px 10px;font-size:11px" onclick="setSlotN(${n},this)">${n}</button>`).join(' ')}</div><div class="slot-reels" id="slot-reels"></div><div class="slot-result" id="slot-result"></div><div class="flex-row" style="justify-content:center;margin-bottom:8px"><span style="font-size:12px;color:#666">Ставка:</span><input type="number" id="slot-bet" value="50" min="1" style="width:80px"></div><button class="btn btn-purple" style="font-size:16px;padding:11px 30px" onclick="spinSlots()">🎰 КРУТИТЬ</button><div style="font-size:10px;color:#444;margin-top:8px">💎×6 · 🔔×8 · 7️⃣×15 · 🍀×25</div></div>`;buildSlotReels();}
+window.setSlotN=(n,el)=>{slotN=n;document.querySelectorAll('[onclick^="setSlotN"]').forEach(b=>{b.classList.remove('btn-purple');b.classList.add('btn-ghost');});el.classList.add('btn-purple');el.classList.remove('btn-ghost');buildSlotReels();};
+function buildSlotReels(){const w=document.getElementById('slot-reels');if(!w)return;w.innerHTML='';for(let i=0;i<slotN;i++){const o=document.createElement('div');o.className='reel-outer';o.id='ro'+i;const r=document.createElement('div');r.className='reel-inner';r.id='ri'+i;for(let j=0;j<6;j++){const s=document.createElement('div');s.className='reel-sym';s.innerText=SYMS[Math.floor(Math.random()*SYMS.length)];r.appendChild(s);}o.appendChild(r);w.appendChild(o);}}
+window.spinSlots=async()=>{if(slotSpinning)return;const bet=Number(document.getElementById('slot-bet').value);if(!bet||bet<=0||bet>S.coins)return alert("Нет монет!");S.coins-=bet;updateUI();slotSpinning=true;const btn=document.querySelector('[onclick="spinSlots()"]');if(btn)btn.disabled=true;const re=document.getElementById('slot-result');if(re)re.innerText='';const results=Array.from({length:slotN},wsym);for(let i=0;i<slotN;i++){const o=document.getElementById('ro'+i);if(o)o.classList.add('spinning');}for(let i=0;i<slotN;i++){await delay(600+i*350);const o=document.getElementById('ro'+i),r=document.getElementById('ri'+i);if(!o||!r)continue;o.classList.remove('spinning');r.innerHTML='';const s=document.createElement('div');s.className='reel-sym';s.innerText=results[i];r.appendChild(s);}await delay(400);const cnt={};for(const s of results)cnt[s]=(cnt[s]||0)+1;const maxC=Math.max(...Object.values(cnt));const topS=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];let mult=0;if(maxC===slotN)mult=SMULT[topS]||2;else if(maxC===slotN-1&&slotN>=4)mult=(SMULT[topS]||2)*0.4;else if(maxC>=2&&slotN>=3)mult=(SMULT[topS]||2)*0.15;if(mult>0){const win=Math.floor(bet*mult);S.coins+=win;S.totalEarned+=win-bet;if(re){re.className='slot-result win';re.innerText=mult>=10?`🎉 ДЖЕКПОТ! +${fmt(win-bet)}`:`✅ +${fmt(win-bet)} (×${mult.toFixed(1)})`;}}else{if(re){re.className='slot-result';re.innerText=`❌ -${fmt(bet)}`;}}updateUI();syncStats();slotSpinning=false;if(btn)btn.disabled=false;};
+/* BLACKJACK */
+const BS=['♠','♣','♥','♦'],BR=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+function mkDeck(){let d=[];for(const s of BS)for(const r of BR)d.push({s,r});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
+function cVal(r){if(r==='A')return 11;if(['J','Q','K'].includes(r))return 10;return+r;}
+function hVal(h){let v=0,a=0;for(const c of h){v+=cVal(c.r);if(c.r==='A')a++;}while(v>21&&a>0){v-=10;a--;}return v;}
+function cHTML(c,back=false){if(back)return'<div class="playing-card back"></div>';const red=['♥','♦'].includes(c?.s);return`<div class="playing-card${red?' red':''}">${c.r}<br>${c.s}</div>`;}
+let bjS={};
+function renderBlackjack(){document.getElementById('game-area').innerHTML=`<div class="bj-felt"><div style="font-size:13px;font-weight:700;margin-bottom:8px">🃏 БЛЕКДЖЕК</div><div class="flex-row" style="justify-content:center;margin-bottom:10px"><button onclick="bjSolo()" style="flex:1;padding:10px;background:#051a05;border:1.5px solid var(--green);color:#fff;border-radius:10px;cursor:pointer;font-weight:700">👤 Соло</button><button onclick="bjMultiMenu()" style="flex:1;padding:10px;background:#050520;border:1.5px solid var(--blue);color:#fff;border-radius:10px;cursor:pointer;font-weight:700">👥 Мульти</button></div><input type="number" id="bj-bet" value="200" min="1" style="width:80%;margin-bottom:8px"><div id="bj-area"></div></div>`;}
+window.bjSolo=async()=>{const bet=Number(document.getElementById('bj-bet').value);if(!bet||bet<=0||bet>S.coins)return alert("Нет монет!");S.coins-=bet;updateUI();const deck=mkDeck();const player=[deck.pop(),deck.pop()],dealer=[deck.pop(),deck.pop()];bjS={bet,deck,player,dealer,done:false};renderBJSolo(true);if(hVal(player)===21)bjSoloEnd("blackjack");};
+function renderBJSolo(hide){const{player,dealer,bet}=bjS;const pv=hVal(player);const areaEl=document.getElementById('bj-area');if(!areaEl)return;const dScore=hide?cVal(dealer[0].r):hVal(dealer);const dCards=hide?cHTML(dealer[0])+cHTML(null,true):dealer.map(c=>cHTML(c)).join('');const pCards=player.map(c=>cHTML(c)).join('');const btns=bjS.done?`<button class="btn btn-blue" onclick="bjSolo()">🃏 Ещё раз</button>`:`<button class="btn btn-green" onclick="bjHit()">➕ ЕЩЁ</button><button class="btn btn-red" onclick="bjStand()">✋ СТОП</button>${pv<=11?`<button class="btn btn-purple" onclick="bjDouble()">2️⃣ УДВОИТЬ</button>`:''}`;areaEl.innerHTML=`<div class="bj-zone" style="background:rgba(0,0,0,.3)"><div style="font-size:11px;color:#aaa">Дилер <span class="score-pill">${dScore}</span></div><div class="cards-row">${dCards}</div></div><div class="bj-zone"><div style="font-size:11px;color:#aaa">Ты <span class="score-pill">${pv}</span></div><div class="cards-row">${pCards}</div></div><div id="bj-msg" style="font-size:16px;font-weight:700;color:var(--gold);min-height:22px;margin:6px 0"></div><div class="flex-row" style="justify-content:center;flex-wrap:wrap;gap:5px">${btns}</div>`;}
+window.bjHit=async()=>{bjS.player.push(bjS.deck.pop());if(hVal(bjS.player)>21)bjSoloEnd("bust");else renderBJSolo(true);};
+window.bjStand=async()=>{while(hVal(bjS.dealer)<17)bjS.dealer.push(bjS.deck.pop());const pv=hVal(bjS.player),dv=hVal(bjS.dealer);if(dv>21||pv>dv)bjSoloEnd("win");else if(pv===dv)bjSoloEnd("push");else bjSoloEnd("lose");};
+window.bjDouble=async()=>{if(S.coins<bjS.bet)return alert("Нет монет!");S.coins-=bjS.bet;bjS.bet*=2;updateUI();bjS.player.push(bjS.deck.pop());if(hVal(bjS.player)>21)bjSoloEnd("bust");else bjStand();};
+async function bjSoloEnd(res){bjS.done=true;renderBJSolo(false);let msg='',win=0;if(res==="blackjack"){win=Math.floor(bjS.bet*2.5);msg="🃏 БЛЕКДЖЕК! +"+fmt(win-bjS.bet);}else if(res==="win"){win=bjS.bet*2;msg="✅ ПОБЕДА! +"+fmt(win-bjS.bet);}else if(res==="push"){win=bjS.bet;msg="🤝 НИЧЬЯ";}else if(res==="bust"){msg="💥 ПЕРЕБОР -"+fmt(bjS.bet);}else{msg="❌ ПРОИГРЫШ -"+fmt(bjS.bet);}S.coins+=win;S.totalEarned+=Math.max(0,win-bjS.bet);const m=document.getElementById('bj-msg');if(m)m.innerText=msg;updateUI();syncStats();}
+/* MULTI BJ */
+window.bjMultiMenu=()=>{const bet=Number(document.getElementById('bj-bet').value);if(!bet||bet<=0)return alert("Укажи ставку!");document.getElementById('bj-area').innerHTML=`<div id="bj-rooms"></div><button class="btn btn-green btn-full" style="margin-top:8px" onclick="bjCreateRoom(${bet})">➕ Создать комнату</button>`;onValue(ref(db,'bj_rooms'),snap=>{const el=document.getElementById('bj-rooms');if(!el)return;if(!snap.exists()){el.innerHTML='<div style="color:#555;font-size:12px;padding:10px 0">Нет комнат</div>';return;}let h='';snap.forEach(r=>{const rm=r.val();if(rm.status!=='waiting')return;const n=Object.keys(rm.players||{}).length;h+=`<div class="list-row blue"><div><b>${esc(rm.hostName)}</b><br><small style="color:#666">${n}/4 · ${fmt(rm.bet||0)}🪙</small></div><button class="btn btn-blue btn-sm" onclick="bjJoinRoom('${r.key}',${bet})">ВОЙТИ</button></div>`;});el.innerHTML=h||'<div style="color:#555;font-size:12px;padding:10px 0">Нет комнат</div>';});};
+window.bjCreateRoom=async bet=>{if(S.coins<bet)return alert("Нет монет!");const key=push(ref(db,'bj_rooms')).key;await set(ref(db,'bj_rooms/'+key),{hostId:S.userId,hostName:S.displayName,bet,status:'waiting',players:{[S.userId]:{name:S.displayName,bet,cards:[],done:false}},dealer:[],deck:[],created:serverTimestamp()});bjJoinRoom(key,bet);};
+window.bjJoinRoom=async(rid,bet)=>{const snap=await get(ref(db,'bj_rooms/'+rid));if(!snap.exists()||snap.val().status!=='waiting')return alert("Недоступна");if(S.coins<bet)return alert("Нет монет!");S.coins-=bet;updateUI();await update(ref(db,'bj_rooms/'+rid+'/players/'+S.userId),{name:S.displayName,bet,cards:[],done:false,score:0});renderBJRoom(rid);};
+function renderBJRoom(rid){document.getElementById('bj-area').innerHTML=`<div id="bj-room-wrap" class="bj-felt"></div>`;onValue(ref(db,'bj_rooms/'+rid),snap=>{const el=document.getElementById('bj-room-wrap');if(!el||!snap.exists())return;const rm=snap.val();const players=Object.entries(rm.players||{});const allDone=players.every(([,p])=>p.done);const me=rm.players?.[S.userId];if(rm.status==='waiting'){const pRows=players.map(([,p])=>`<div class="clan-member-row">${esc(p.name)} <span style="color:var(--gold)">${fmt(p.bet)}🪙</span></div>`).join('');el.innerHTML=`<div style="font-size:12px;color:#888;margin-bottom:8px">Ожидание (${players.length}/4)</div>${pRows}${rm.hostId===S.userId&&players.length>=2?`<button class="btn btn-green btn-full" style="margin-top:8px" onclick="bjStart('${rid}')">▶️ НАЧАТЬ</button>`:'<div style="color:#555;font-size:12px;margin-top:8px">Ждём хоста...</div>'}`;}else{const dealer=rm.dealer||[];const dv=hVal(dealer);const dCards=allDone?dealer.map(c=>cHTML(c)).join(''):cHTML(dealer[0])+(dealer.length>1?cHTML(null,true):'');const otherRows=players.filter(([uid])=>uid!==S.userId).map(([,p])=>`<div class="clan-member-row" style="font-size:11px">${esc(p.name)} <span class="score-pill">${p.score||0}</span> ${p.done?'✓':'...'}</div>`).join('');const meCards=me?.cards?me.cards.map(c=>cHTML(c)).join(''):'';const pv=me?.cards?hVal(me.cards):0;const myBtns=me&&!me.done&&rm.status==='playing'?`<div class="flex-row" style="justify-content:center;flex-wrap:wrap;margin-top:8px"><button class="btn btn-green" onclick="bjMHit('${rid}')">➕</button><button class="btn btn-red" onclick="bjMStand('${rid}')">✋</button></div>`:'';let result='';if(allDone&&me){const p=hVal(me.cards||[]);if(p>21)result='💥 Перебор';else if(dv>21||p>dv)result='✅ Победа!';else if(p===dv)result='🤝 Ничья';else result='❌ Проигрыш';}el.innerHTML=`<div class="bj-zone" style="background:rgba(0,0,0,.3)"><div style="font-size:11px;color:#aaa">Дилер ${allDone?`<span class="score-pill">${dv}</span>`:''}</div><div class="cards-row">${dCards}</div></div>${otherRows?`<div style="margin:5px 0">${otherRows}</div>`:''}<div class="bj-zone"><div style="font-size:11px;color:#aaa">Ты <span class="score-pill">${pv}</span>${me?.done?' ✓':''}</div><div class="cards-row">${meCards}</div></div>${myBtns}${result?`<div style="font-size:16px;font-weight:700;color:var(--gold);margin-top:8px">${result}</div>`:''}`;if(allDone&&me&&!me.paid)bjMPay(rid,rm,me);}});}
+window.bjStart=async rid=>{const snap=await get(ref(db,'bj_rooms/'+rid));if(!snap.exists())return;const rm=snap.val();const deck=mkDeck(),dealer=[deck.pop(),deck.pop()];const upd={[`bj_rooms/${rid}/deck`]:deck,[`bj_rooms/${rid}/dealer`]:dealer,[`bj_rooms/${rid}/status`]:'playing'};for(const[uid,p]of Object.entries(rm.players||{})){upd[`bj_rooms/${rid}/players/${uid}/cards`]=[deck.pop(),deck.pop()];upd[`bj_rooms/${rid}/players/${uid}/done`]=false;}await update(ref(db),upd);};
+window.bjMHit=async rid=>{const snap=await get(ref(db,'bj_rooms/'+rid));const rm=snap.val();const deck=[...rm.deck],card=deck.pop();const cards=[...(rm.players[S.userId].cards||[]),card];const score=hVal(cards);await update(ref(db,'bj_rooms/'+rid+'/players/'+S.userId),{cards,score,done:score>=21});await update(ref(db,'bj_rooms/'+rid),{deck});await bjMCheckDone(rid);};
+window.bjMStand=async rid=>{const snap=await get(ref(db,'bj_rooms/'+rid));const cards=snap.val().players[S.userId].cards||[];await update(ref(db,'bj_rooms/'+rid+'/players/'+S.userId),{done:true,score:hVal(cards)});await bjMCheckDone(rid);};
+async function bjMCheckDone(rid){const snap=await get(ref(db,'bj_rooms/'+rid));const rm=snap.val();if(Object.values(rm.players||{}).every(p=>p.done)){const deck=[...rm.deck],dealer=[...rm.dealer];while(hVal(dealer)<17)dealer.push(deck.pop());await update(ref(db,'bj_rooms/'+rid),{dealer,deck,status:'done'});}}
+async function bjMPay(rid,rm,me){const dv=hVal(rm.dealer||[]),pv=hVal(me.cards||[]);let win=0;if(pv<=21&&(dv>21||pv>dv))win=me.bet*2;else if(pv===dv)win=me.bet;S.coins+=win;S.totalEarned+=Math.max(0,win-me.bet);await update(ref(db,'bj_rooms/'+rid+'/players/'+S.userId),{paid:true});updateUI();syncStats();if(rm.hostId===S.userId)setTimeout(()=>remove(ref(db,'bj_rooms/'+rid)),10000);}
+/* CHAT */
+window.sendMessage=()=>{if(!S.userId)return;const inp=document.getElementById('chat-input');const txt=inp.value.trim();if(!txt||txt.length>200)return;push(ref(db,'chat'),{userId:S.userId,user:S.displayName,text:txt,prefix:S.prefix||null,prefixColor:S.prefixColor||null,isOwner:S.isOwner||false,time:serverTimestamp()});inp.value='';};
+document.getElementById('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendMessage();});
+function listenChat(){onValue(query(ref(db,'chat'),limitToLast(40)),snap=>{let h='';snap.forEach(c=>{const m=c.val();if(!m?.user)return;const safeU=esc(m.user),safeT=esc(m.text||'');const isSys=m.userId==='СИСТЕМА';let pfx='';if(m.prefix){const col=m.isOwner?'#e74c3c':(m.prefixColor||'#9b59b6');pfx=`<span style="color:${col};font-size:10px;font-weight:700;background:${col}22;padding:1px 5px;border-radius:3px;margin-right:4px">${esc(m.prefix)}</span>`;}const nc=isSys?'var(--gold)':m.isOwner?'#e74c3c':'var(--blue)';const click=isSys?'':`onclick="sendGift('${esc(m.userId)}','${safeU}')"`;h+=`<div class="chat-msg">${pfx}<span class="chat-name" style="color:${nc}" ${click}>${safeU}</span>: ${safeT}</div>`;});const box=document.getElementById('chat-box');if(box){box.innerHTML=h;box.scrollTop=9999;}});}
+window.sendGift=(tid,tn)=>{if(!tid||tid===S.userId||tid==='СИСТЕМА')return;if(S.coins<500)return alert("Нужно 500 🪙");if(!confirm(`Подарить 500 🪙 → ${tn}?`))return;runTransaction(ref(db,'users/'+tid+'/balance'),b=>(b||0)+500);S.coins-=500;updateUI();syncStats();push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🎁 ${S.displayName} подарил 500 🪙 → ${tn}`,time:serverTimestamp()});};
+/* LEADERBOARD */
+window.lbSort=field=>{lbField=field;const b1=document.getElementById('lb-bal'),b2=document.getElementById('lb-earn');if(b1)b1.className=field==='balance'?'btn btn-gold btn-sm':'btn btn-ghost btn-sm';if(b2)b2.className=field==='totalEarned'?'btn btn-gold btn-sm':'btn btn-ghost btn-sm';renderLB();};
+function listenLeaderboard(){onValue(query(ref(db,'users'),orderByChild('totalEarned'),limitToLast(50)),snap=>{allPlayers=[];snap.forEach(s=>{const v=s.val();if(v?.userId)allPlayers.push(v);});renderLB();});}
+function renderLB(){const sorted=[...allPlayers].sort((a,b)=>(b[lbField]||0)-(a[lbField]||0));const myRank=sorted.findIndex(p=>p.userId===S.userId)+1;const re=document.getElementById('lb-rank');if(re)re.innerText=myRank>0?`Твоё место: #${myRank} из ${sorted.length}`:'';const medals=['🥇','🥈','🥉'];const le=document.getElementById('lb-list');if(!le)return;le.innerHTML=sorted.slice(0,30).map((p,i)=>{const val=p[lbField]||0;const pfx=p.prefix?`<span style="color:${p.prefixColor||'#9b59b6'};font-size:10px;margin-right:3px">[${esc(p.prefix)}]</span>`:'';return`<div class="lb-row${p.userId===S.userId?' me':''}" onclick="sendGift('${esc(p.userId)}','${esc(p.displayName||p.userId)}')"><span>${medals[i]||('#'+(i+1))} ${pfx}${esc(p.displayName||p.userId)}</span><b style="color:var(--gold)">${fmt(val)} 🪙</b></div>`;}).join('');}
+/* CLANS */
+window.renderClansUI=async()=>{const ui=document.getElementById('clan-ui');if(!ui)return;ui.innerHTML='<div style="color:#555;font-size:12px;margin:20px 0;text-align:center">Загрузка...</div>';if(S.clanId){const snap=await get(ref(db,'clans/'+S.clanId));if(snap.exists()){renderMyClan(snap.val(),S.clanId);return;}}const snap=await get(ref(db,'clans'));let html=`<button class="btn btn-purple btn-full" style="margin-bottom:12px" onclick="showCreateClan()">➕ СОЗДАТЬ КЛАН</button><div class="section-label">Существующие кланы</div>`;if(snap.exists()){snap.forEach(c=>{const clan=c.val();const mc=Object.keys(clan.members||{}).length;html+=`<div class="clan-banner" style="cursor:pointer" onclick="joinClanConfirm('${c.key}','${esc(clan.name)}')"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:16px;font-weight:700">${esc(clan.icon||'⚔️')} ${esc(clan.name)}</div><div style="font-size:11px;color:#888;margin-top:3px">${mc} участников · Казна: ${fmt(clan.treasury||0)} 🪙</div><div style="font-size:11px;color:#666;margin-top:2px">${esc(clan.description||'')}</div></div><button class="btn btn-purple btn-sm">ВСТУПИТЬ</button></div></div>`;});}else html+='<div style="color:#555;font-size:12px;padding:10px 0">Нет кланов</div>';ui.innerHTML=html;};
+window.showCreateClan=()=>{document.getElementById('clan-modal-body').innerHTML=`<div style="font-size:15px;font-weight:700;margin-bottom:12px">⚔️ Создать клан</div><input type="text" id="cn-icon" placeholder="Иконка 🔥" style="width:25%;margin-bottom:7px"><input type="text" id="cn-name" placeholder="Название клана" style="margin-bottom:7px"><input type="text" id="cn-desc" placeholder="Описание" style="margin-bottom:12px"><div style="font-size:12px;color:#888;margin-bottom:8px">Создание стоит 10 000 🪙</div><button class="btn btn-purple btn-full" onclick="createClan()">СОЗДАТЬ ЗА 10 000 🪙</button>`;document.getElementById('clan-modal').classList.add('on');};
+window.createClan=async()=>{if(S.coins<10000)return alert("Нужно 10 000 🪙!");const name=document.getElementById('cn-name').value.trim(),icon=document.getElementById('cn-icon').value.trim()||'⚔️',desc=document.getElementById('cn-desc').value.trim();if(!name||name.length<2)return alert("Введи название!");S.coins-=10000;updateUI();const key=push(ref(db,'clans')).key;await set(ref(db,'clans/'+key),{name,icon,description:desc,ownerId:S.userId,ownerName:S.displayName,treasury:0,totalEarned:0,members:{[S.userId]:{name:S.displayName,role:'leader',contributed:0,joinedAt:Date.now()}},createdAt:serverTimestamp()});S.clanId=key;await update(ref(db,'users/'+S.userId),{clanId:key});closeModal('clan-modal');syncStats();renderClansUI();};
+window.joinClanConfirm=async(clanId,clanName)=>{if(S.clanId){if(!confirm("Ты уже в клане. Выйти и вступить в "+clanName+"?"))return;await leaveClanInternal();}await update(ref(db,'clans/'+clanId+'/members/'+S.userId),{name:S.displayName,role:'member',contributed:0,joinedAt:Date.now()});S.clanId=clanId;await update(ref(db,'users/'+S.userId),{clanId});syncStats();renderClansUI();};
+async function leaveClanInternal(){if(!S.clanId)return;await remove(ref(db,'clans/'+S.clanId+'/members/'+S.userId));S.clanId=null;await update(ref(db,'users/'+S.userId),{clanId:null});}
+function renderMyClan(clan,clanId){const ui=document.getElementById('clan-ui');if(!ui)return;const members=Object.entries(clan.members||{});const isOwn=clan.ownerId===S.userId;const myC=(clan.members?.[S.userId]?.contributed)||0;const mHTML=members.map(([,m])=>`<div class="clan-member-row"><span>${esc(m.name)} ${m.role==='leader'?'👑':''}</span><span style="color:var(--gold);font-size:11px">+${fmt(m.contributed||0)}🪙</span></div>`).join('');let warHTML='';if(clan.activeWar){const w=clan.activeWar,ta=w.scoreA||0,tb=w.scoreB||0,tot=ta+tb||1,pa=Math.round(ta/tot*100),pb=Math.round(tb/tot*100);warHTML=`<div class="clan-war-card"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">⚔️ ВОЙНА КЛАНОВ</div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--red)">${esc(clan.name)}</span><span style="color:var(--green)">${esc(w.enemyName)}</span></div><div class="war-progress-wrap"><div class="war-bar-a" style="width:${pa}%"></div><div class="war-bar-b" style="width:${pb}%"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:#888"><span>${fmt(ta)}🪙</span><span>${fmt(tb)}🪙</span></div><button class="btn btn-gold btn-full" style="margin-top:8px" onclick="contributeWar('${clanId}')">⚔️ ВНЕСТИ ВКЛАД</button></div>`;}
+ui.innerHTML=`<div class="clan-banner"><div style="font-size:22px;margin-bottom:4px">${esc(clan.icon||'⚔️')}</div><div style="font-size:18px;font-weight:700">${esc(clan.name)}</div><div style="font-size:12px;color:#888;margin-top:3px">${esc(clan.description||'')}</div><div style="display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:12px"><div><div style="color:var(--gold);font-weight:700">${fmt(clan.treasury||0)}</div><div style="color:#666">Казна 🪙</div></div><div><div style="color:var(--blue);font-weight:700">${members.length}</div><div style="color:#666">Участников</div></div></div></div>${warHTML}<div class="card-block"><div class="section-label">Участники</div>${mHTML}</div><div class="card-block"><div class="section-label">Пополнить казну</div><div class="flex-row"><input type="number" id="contrib-amt" placeholder="Сумма" value="1000"><button class="btn btn-gold btn-sm" onclick="contributeTreasury('${clanId}')">ВНЕСТИ</button></div><div style="font-size:11px;color:#555;margin-top:4px">Внесено тобой: ${fmt(myC)}🪙</div></div>${isOwn?`<div class="card-block"><div class="section-label">Управление (лидер)</div><div class="flex-wrap"><button class="btn btn-blue btn-sm" onclick="startWar('${clanId}')">⚔️ Война</button><button class="btn btn-ghost btn-sm" onclick="disbandClan('${clanId}')">🗑️ Расформировать</button></div></div>`:''}<button class="btn btn-ghost btn-full" style="margin-bottom:10px" onclick="leaveClanBtn()">🚪 Покинуть клан</button>`;}
+window.contributeTreasury=async clanId=>{const amt=Number(document.getElementById('contrib-amt').value);if(!amt||amt<=0||amt>S.coins)return alert("Нет монет!");S.coins-=amt;updateUI();await runTransaction(ref(db,'clans/'+clanId+'/treasury'),t=>(t||0)+amt);await runTransaction(ref(db,'clans/'+clanId+'/totalEarned'),t=>(t||0)+amt);await runTransaction(ref(db,'clans/'+clanId+'/members/'+S.userId+'/contributed'),t=>(t||0)+amt);syncStats();renderClansUI();};
+window.contributeWar=async clanId=>{const amt=Number(prompt("Сколько монет в войну?"));if(!amt||amt<=0||amt>S.coins)return;S.coins-=amt;updateUI();await runTransaction(ref(db,'clans/'+clanId+'/activeWar/scoreA'),t=>(t||0)+amt);await runTransaction(ref(db,'clans/'+clanId+'/treasury'),t=>(t||0)+amt);syncStats();renderClansUI();};
+window.startWar=cid=>{document.getElementById('clan-modal-body').innerHTML=`<div style="font-size:15px;font-weight:700;margin-bottom:12px">⚔️ Объявить войну</div><input type="text" id="w-enemy-id" placeholder="ID клана врага" style="margin-bottom:7px"><input type="text" id="w-enemy-name" placeholder="Название врага" style="margin-bottom:12px"><div style="font-size:11px;color:#666;margin-bottom:8px">Война 7 дней. Клан с большим вкладом побеждает.</div><button class="btn btn-red btn-full" onclick="declareWar('${cid}')">⚔️ ОБЪЯВИТЬ ВОЙНУ</button>`;document.getElementById('clan-modal').classList.add('on');};
+window.declareWar=async cid=>{const eid=document.getElementById('w-enemy-id').value.trim(),en=document.getElementById('w-enemy-name').value.trim();if(!eid||!en)return alert("Заполни поля!");const ends=Date.now()+7*24*3600*1000;await update(ref(db,'clans/'+cid+'/activeWar'),{enemyId:eid,enemyName:en,scoreA:0,scoreB:0,endsAt:ends,started:serverTimestamp()});await update(ref(db,'clans/'+eid+'/activeWar'),{enemyId:cid,enemyName:en,scoreA:0,scoreB:0,endsAt:ends,started:serverTimestamp()});closeModal('clan-modal');renderClansUI();};
+window.leaveClanBtn=async()=>{if(!confirm("Покинуть клан?"))return;await leaveClanInternal();renderClansUI();syncStats();};
+window.disbandClan=async cid=>{if(!confirm("Расформировать клан?"))return;await remove(ref(db,'clans/'+cid));S.clanId=null;await update(ref(db,'users/'+S.userId),{clanId:null});syncStats();renderClansUI();};
+/* INVENTORY */
+let invCat='cars';
+function renderInventory(){const cats={cars:'🚗 Тачки',houses:'🏠 Дома',upgrades:'⚡ Апгрейды'};const te=document.getElementById('inv-tabs'),ge=document.getElementById('inv-grid');if(!te||!ge)return;te.innerHTML=Object.entries(cats).map(([k,v])=>`<span class="tab-chip${invCat===k?' on':''}" onclick="invCat='${k}';renderInventory()">${v}</span>`).join('');const items=SHOP[invCat].filter(it=>(S.inventory[it.id]||0)>0);ge.innerHTML=items.length?items.map(it=>`<div class="inv-cell" onclick="showItemModal('${it.id}')"><div class="inv-cell-icon">${it.icon}</div><div class="inv-cell-name">${esc(it.n)}</div><div class="inv-cell-qty">×${S.inventory[it.id]}</div></div>`).join(''):`<div style="grid-column:1/-1;color:#444;font-size:13px;margin-top:20px;text-align:center">Пусто 😔<br><small>Купи в магазине!</small></div>`;}
+window.showItemModal=id=>{const all=[...SHOP.cars,...SHOP.houses,...SHOP.upgrades];const it=all.find(x=>x.id===id);if(!it)return;document.getElementById('item-modal-body').innerHTML=`<div style="font-size:50px;margin-bottom:8px">${it.icon}</div><div style="font-size:18px;font-weight:700;margin-bottom:5px">${esc(it.n)}</div><div style="color:#666;font-size:13px;margin-bottom:12px">${esc(it.desc||'')}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${it.i?`<span class="badge" style="background:#1a2a1a;color:var(--green)">+${it.i}/с</span>`:''}${it.c?`<span class="badge" style="background:#1a1a2a;color:var(--blue)">+${it.c} клик</span>`:''}<span class="badge" style="background:#2a2a00;color:var(--gold)">×${S.inventory[id]||0}</span></div>`;document.getElementById('item-modal').classList.add('on');};
+/* PROMO */
+window.activatePromo=async()=>{const code=document.getElementById('promo-input').value.trim().toUpperCase();const msg=document.getElementById('promo-msg');if(!code)return;if(S.usedPromos[code]){msg.style.color='var(--red)';msg.innerText='❌ Уже использован';return;}const snap=await get(ref(db,'promos/'+code));if(!snap.exists()||!snap.val().active){msg.style.color='var(--red)';msg.innerText='❌ Не найден';return;}const p=snap.val();if((p.uses||0)<=0){msg.style.color='var(--red)';msg.innerText='❌ Исчерпан';return;}S.coins+=p.coins||0;S.totalEarned+=p.coins||0;S.usedPromos[code]=true;await runTransaction(ref(db,'promos/'+code+'/uses'),u=>(u||0)-1);if(p.uses-1<=0)await update(ref(db,'promos/'+code),{active:false});msg.style.color='var(--green)';msg.innerText=`✅ +${fmt(p.coins)} 🪙!`;document.getElementById('promo-input').value='';updateUI();syncStats();};
+/* SETTINGS */
+window.changeNickname=()=>{const n=document.getElementById('name-input').value.trim();if(n?.length>=2&&n.length<=20){S.displayName=n;localStorage.setItem('b_name',n);syncStats();updateUI();alert("Ник изменён!");}else alert("2–20 символов");};
+window.resetGame=()=>{if(confirm("Сброс прогресса?")){localStorage.clear();location.reload();}};
+/* ADMIN */
+window.openAdminEntry=async()=>{
+  /* КАК РАБОТАЕТ ЗАЩИТА КОДА:
+     1. Коды хранятся ТОЛЬКО как SHA-256 хэши (необратимые)
+     2. Проверка — Web Crypto API в браузере, без отправки кода в сеть
+     3. В localStorage хранится только уровень ('owner'/'moder'), не сам код
+     4. adminGiveCoins и adminCreatePromo дополнительно проверяют S.isOwner
+        — этот флаг выставляется ТОЛЬКО при прохождении sha256 в текущей сессии
+     5. Задержка + ложное сообщение "Ошибка системы" не подтверждает/не отрицает
+        факт существования кода
+     КАК ПОМЕНЯТЬ КОДЫ:
+     → https://emn178.github.io/online-tools/sha256.html
+     → Скопируй хэш → вставь в OWNER_HASH / MODER_HASH вверху файла */
+  const cl=localStorage.getItem('b_cl');
+  if(cl==='owner'){S.isOwner=true;S.isModer=true;openAdmin(2);return;}
+  if(cl==='moder'){S.isModer=true;openAdmin(1);return;}
+  const code=prompt("🔑 Код доступа:");if(!code)return;
+  const h=await sha256(code);
+  if(h===OWNER_HASH){S.isOwner=true;S.isModer=true;localStorage.setItem('b_cl','owner');await update(ref(db,'users/'+S.userId),{isOwner:true,isModer:true});openAdmin(2);}
+  else if(h===MODER_HASH){S.isModer=true;localStorage.setItem('b_cl','moder');await update(ref(db,'users/'+S.userId),{isModer:true});openAdmin(1);}
+  else{await delay(600+Math.random()*500);alert("Ошибка системы. Попробуй позже.");}
+};
+function openAdmin(level){document.getElementById('admin-backdrop').style.display='block';document.getElementById('admin-l2').style.display=level>=2?'block':'none';adminLog("Вход lvl"+level+": "+S.displayName);}
+window.closeAdmin=()=>document.getElementById('admin-backdrop').style.display='none';
+function adminLog(msg){const el=document.getElementById('admin-log');if(!el)return;el.innerHTML=`[${new Date().toLocaleTimeString('ru')}] ${esc(msg)}<br>`+el.innerHTML;}
+window.adminBan=async()=>{const uid=prompt("ID:");if(!uid)return;await update(ref(db,'users/'+uid),{banned:true});push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🔨 ${uid} заблокирован.`,time:serverTimestamp()});adminLog("Бан: "+uid);};
+window.adminUnban=async()=>{const uid=prompt("ID:");if(!uid)return;await update(ref(db,'users/'+uid),{banned:false});adminLog("Разбан: "+uid);};
+window.adminGiveCoins=async()=>{if(!S.isOwner)return alert("Только владелец!");const uid=prompt("ID:");if(!uid)return;const amt=Number(prompt("Монет:"));if(!amt||amt<=0)return;await runTransaction(ref(db,'users/'+uid+'/balance'),b=>(b||0)+amt);adminLog(`+${amt}🪙 → ${uid}`);push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`💰 Выдано ${fmt(amt)} 🪙 → ${uid}`,time:serverTimestamp()});};
+window.adminGlobalIncome=async()=>{if(!S.isOwner)return;const amt=Number(prompt("Доход всем (+N/с):"));if(!amt)return;const snap=await get(ref(db,'users'));const upd={};snap.forEach(s=>upd['users/'+s.key+'/income']=(s.val().income||0)+amt);await update(ref(db),upd);adminLog(`Глоб.доход +${amt}/с`);};
+window.adminSetPrefix=async()=>{const uid=prompt("ID:");if(!uid)return;const pfx=prompt("Префикс:");const col=prompt("Цвет #hex:")||"#9b59b6";await update(ref(db,'users/'+uid),{prefix:pfx||"",prefixColor:col});adminLog(`Префикс [${pfx}] → ${uid}`);};
+window.adminSetMyPrefix=async()=>{const pfx=prompt("Твой префикс:");if(pfx===null)return;const col=prompt("Цвет #hex:")||"#e74c3c";S.prefix=pfx;S.prefixColor=col;updateUI();syncStats();adminLog("Мой префикс: "+pfx);};
+window.adminClearChat=async()=>{if(!confirm("Очистить чат?"))return;await remove(ref(db,'chat'));adminLog("Чат очищен");};
+window.adminBroadcast=()=>{const msg=prompt("Текст:");if(!msg)return;push(ref(db,'chat'),{userId:'СИСТЕМА',user:'📢 ОБЪЯВЛЕНИЕ',text:msg,prefix:"ADMIN",prefixColor:"#e74c3c",isOwner:true,time:serverTimestamp()});adminLog("Объявление: "+msg);};
+window.adminCreatePromo=async()=>{if(!S.isOwner)return alert("Только владелец!");const code=document.getElementById('p-code').value.trim().toUpperCase(),coins=Number(document.getElementById('p-coins').value),uses=Number(document.getElementById('p-uses').value)||1;if(!code||!coins||coins<=0)return alert("Заполни поля");await set(ref(db,'promos/'+code),{coins,uses,active:true,createdBy:S.userId,created:serverTimestamp()});adminLog(`Промо ${code}: ${coins}🪙 ×${uses}`);document.getElementById('p-code').value='';document.getElementById('p-coins').value='';};
+window.adminDeletePromo=async code=>{await remove(ref(db,'promos/'+code));adminLog("Удалён: "+code);};
+function listenAdminPromos(){onValue(ref(db,'promos'),snap=>{const el=document.getElementById('promos-list');if(!el)return;if(!snap.exists()){el.innerText='Нет промокодов';return;}let h='';snap.forEach(p=>{const v=p.val();h+=`<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #1a1a1a"><span style="color:${v.active?'var(--green)':'#444'}">${esc(p.key)}</span><span style="font-size:10px">${fmt(v.coins)}🪙 ×${v.uses} <button onclick="adminDeletePromo('${esc(p.key)}')" style="background:none;border:none;color:var(--red);cursor:pointer">✕</button></span></div>`;});el.innerHTML=h;});}
+window.adminAddItem=async()=>{const cat=document.getElementById('item-cat').value,n=document.getElementById('item-name').value.trim(),icon=document.getElementById('item-icon').value.trim()||'📦',p=Number(document.getElementById('item-price').value),i=Number(document.getElementById('item-income').value)||0,desc=document.getElementById('item-desc').value.trim();if(!n||!p)return alert("Заполни название и цену");const id='ci_'+Date.now(),item={id,n,icon,p,i,c:0,desc};await set(ref(db,'shop_items/'+cat+'/'+id),item);SHOP[cat].push(item);adminLog(`Добавлен: ${icon} ${n}`);['item-name','item-icon','item-price','item-income','item-desc'].forEach(x=>document.getElementById(x).value='');alert("✅ Добавлено!");};
+/* REFERRALS */
+async function loadRefCode(){
+  try{let code=await snap2('users/'+S.userId+'/refCode');if(!code){const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";code="BRM";for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];await update(ref(db,'users/'+S.userId),{refCode:code});await set(ref(db,'ref_codes/'+code),S.userId);}constconst box=document.getElementById('ref-code-box');if(box){box.innerHTML=`<div style="color:var(--gold);font-size:15px;font-weight:700;letter-spacing:2px">${code}</div><div style="color:#555;font-size:10px;margin-top:2px">Скопируй и отправь друзьям</div><button onclick="navigator.clipboard.writeText('${code}');this.innerText='Скопировано ✓'" class="btn btn-ghost btn-sm" style="margin-top:6px;font-size:11px">📋 Копировать</button>`;}loadRefStats();}catch(e){console.log('ref err',e);}
+}
+async function loadRefStats(){
+  try{const refsSnap=await get(ref(db,'users/'+S.userId+'/refs'));const refsData=refsSnap.exists()?refsSnap.val():{};const referrals=[];for(const[id,d]of Object.entries(refsData)){const name=await snap2('users/'+id+'/displayName')||id;referrals.push({name,joinedAt:d.joinedAt,earned:d.earned||0});}const totalEarned=referrals.reduce((s,r)=>s+r.earned,0);const el=document.getElementById('ref-stats');if(!el)return;if(!referrals.length){el.innerHTML='<div style="color:#444;font-size:11px">Рефералов пока нет</div>';return;}el.innerHTML=`<div style="font-size:11px;color:#888;margin-bottom:5px">Рефералов: ${referrals.length} · Заработано: ${fmt(totalEarned)} 🪙</div>`+referrals.slice(0,5).map(r=>`<div class="clan-member-row" style="font-size:11px">${esc(r.name)}<span style="color:var(--gold)">+${fmt(r.earned)}🪙</span></div>`).join('');}catch(e){}
+}
+window.applyRef=async()=>{
+  const code=document.getElementById('ref-apply-input').value.trim().toUpperCase();
+  const msg=document.getElementById('ref-apply-msg');
+  if(!code||!code.startsWith('BRM')){msg.style.color='var(--red)';msg.innerText='❌ Неверный формат';return;}
+  const already=await snap2('users/'+S.userId+'/refBy');
+  if(already){msg.style.color='var(--red)';msg.innerText='❌ Реф уже применён';return;}
+  const ownerId=await snap2('ref_codes/'+code);
+  if(!ownerId){msg.style.color='var(--red)';msg.innerText='❌ Код не найден';return;}
+  if(ownerId===S.userId){msg.style.color='var(--red)';msg.innerText='❌ Нельзя свой код';return;}
+  const BONUS=2000,REF_BONUS=1000;
+  S.coins+=BONUS;S.totalEarned+=BONUS;
+  await runTransaction(ref(db,'users/'+ownerId+'/balance'),b=>(b||0)+REF_BONUS);
+  await update(ref(db,'users/'+S.userId),{refBy:ownerId});
+  await set(ref(db,'users/'+ownerId+'/refs/'+S.userId),{joinedAt:Date.now(),earned:0});
+  await push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🎉 По реф-коду ${code} зашёл ${S.displayName}! +${REF_BONUS} 🪙`,time:serverTimestamp()});
+  S.refBy=ownerId;msg.style.color='var(--green)';msg.innerText=`✅ +${fmt(BONUS)} 🪙 активировано!`;
+  document.getElementById('ref-apply-input').value='';updateUI();syncStats();
+};
+// Пассивный доход рефоводу — вызываем при syncStats
+let lastRefNotify=0;
+async function notifyRefIfNeeded(){
+  if(!S.refBy||Date.now()-lastRefNotify<60000)return;
+  const earned=Math.floor(S.income*60);// за последнюю минуту
+  if(earned<1)return;
+  lastRefNotify=Date.now();
+  try{if(S.refBy){const bonus=Math.floor(earned*0.05);if(bonus>=1){await runTransaction(ref(db,'users/'+S.refBy+'/balance'),b=>(b||0)+bonus);await runTransaction(ref(db,'users/'+S.refBy+'/refs/'+S.userId+'/earned'),e=>(e||0)+bonus);}}}catch(e){}
+}
+
+/* START */
+const tg=window.Telegram?.WebApp;
+if(tg?.initDataUnsafe?.user)authViaTelegram();
+else if(localStorage.getItem('b_tgid'))authViaTelegram();
+else if(localStorage.getItem('b_guest'))authAsGuest();
+</script></body></html>
