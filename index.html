@@ -345,7 +345,7 @@ const FB={
 const app=initializeApp(FB);
 const db=getDatabase(app);
 
-const ADMIN_HASH="a1b9c84e6f2d3e5a7c0b8d4f1e2a3c5d6b7e8f9a0c1d2e3f4a5b6c7d8e9f0a1b";
+const ADMIN_HASH="1263b35347fbd7a52840d902ea89b12c0e97a7e162036b078a167424ddbb48eb";
 
 async function hashCode(str){
   const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
