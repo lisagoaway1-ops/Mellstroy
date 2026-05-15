@@ -1,3 +1,4 @@
+cat > /home/claude/game_v5.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,348 +7,360 @@
 <title>Burmalda: Ultimate Cloud</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root{--gold:#f1c40f;--green:#2ecc71;--red:#e74c3c;--bg:#0a0a0a;--panel:#111;--panel2:#181818;--blue:#3498db;--purple:#9b59b6}
+:root{--gold:#f1c40f;--green:#2ecc71;--red:#e74c3c;--bg:#0a0a0a;--panel:#111;--panel2:#181818;--blue:#3498db;--purple:#9b59b6;--cyan:#00bcd4}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:white;text-align:center;user-select:none;overflow:hidden}
-.top-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:var(--panel);border-bottom:1px solid #1e1e1e;height:62px;gap:8px}
-.top-left{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
-.balance{font-size:19px;color:var(--gold);font-weight:900;letter-spacing:.5px}
-.energy-row{display:flex;align-items:center;gap:5px;font-size:11px;color:#555}
-.energy-bar-wrap{width:60px;height:5px;background:#222;border-radius:3px;overflow:hidden}
-.energy-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:3px;transition:width 0.4s}
-.top-user{font-size:10px;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;max-width:100px}
-.top-icons{display:flex;gap:4px;align-items:center}
-.top-icon-btn{background:#1a1a1a;border:1px solid #252525;border-radius:8px;font-size:18px;cursor:pointer;padding:5px 7px;line-height:1;transition:background .15s}
-.top-icon-btn:active{background:#2a2a2a}
-.tab-content{display:none;padding:12px;height:calc(100vh - 130px);overflow-y:auto;padding-bottom:80px}
-.active-tab{display:block}
-.click-btn{width:150px;height:150px;border-radius:50%;border:none;background:radial-gradient(circle at 35% 35%,#ffe066,#c8960c);color:#000;font-weight:900;font-size:15px;margin-top:10px;cursor:pointer;transition:transform .1s,box-shadow .1s;box-shadow:0 0 30px #f1c40f33,0 4px 20px #0008}
-.click-btn:active{transform:scale(.91);box-shadow:0 0 15px #f1c40f22}
-.click-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
-.list-item{background:#181818;padding:12px;margin:6px 0;border-radius:10px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid var(--blue)}
-.buy-btn{background:var(--green);border:none;color:white;padding:8px 13px;border-radius:7px;font-weight:bold;cursor:pointer;font-size:13px;transition:opacity .15s}
-.buy-btn:disabled{opacity:0.35;cursor:not-allowed}
-.buy-btn:active{opacity:.8}
-#chat-box{height:200px;background:#0d0d0d;border-radius:10px;overflow-y:auto;padding:10px;text-align:left;border:1px solid #1a1a1a}
-.msg{margin-bottom:4px;font-size:12px;word-break:break-word;line-height:1.5}
-.leader-item{display:flex;justify-content:space-between;padding:10px 12px;background:#181818;margin-bottom:5px;border-radius:9px;cursor:pointer;align-items:center}
-.leader-item.me{border:1.5px solid var(--gold);background:#1e1800}
-.nav{position:fixed;bottom:0;width:100%;background:var(--panel);display:flex;height:68px;border-top:1px solid #1e1e1e}
-.nav-btn{flex:1;background:none;border:none;color:#444;font-size:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:color .15s}
-.nav-btn.active{color:var(--gold)}
-.nav-btn span{font-size:22px;line-height:1}
-input[type=text],input[type=number]{background:#1e1e1e;border:1px solid #2a2a2a;color:white;padding:9px 11px;border-radius:8px;outline:none;font-family:inherit}
-input[type=text]:focus,input[type=number]:focus{border-color:var(--blue)}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;user-select:none;overflow:hidden}
+input,button,select{font-family:inherit}
+input[type=text],input[type=number]{background:#1e1e1e;border:1px solid #333;color:#fff;padding:9px 11px;border-radius:8px;outline:none;width:100%;font-size:13px}
+input:focus{border-color:var(--blue)}
 
-/* === SLOTS === */
-.slot-machine{background:linear-gradient(180deg,#1a0a2e,#0d1117);border:3px solid #6c3483;border-radius:20px;padding:15px;margin:8px 0;box-shadow:0 0 30px #6c348355}
-.slot-reels{display:flex;gap:6px;justify-content:center;margin:12px 0}
-.reel-wrap{width:60px;height:80px;overflow:hidden;border-radius:8px;border:2px solid #444;background:#000;position:relative}
-.reel{display:flex;flex-direction:column;transition:transform 0s;will-change:transform}
-.reel-symbol{height:80px;display:flex;align-items:center;justify-content:center;font-size:34px;flex-shrink:0}
-.reel-wrap.spin .reel{animation:spinReel 0.08s linear infinite}
-@keyframes spinReel{0%{transform:translateY(0)}100%{transform:translateY(-80px)}}
-.reel-wrap.stopping .reel{animation:none;transition:transform 0.3s cubic-bezier(.17,.67,.4,1.2)}
-.slot-win{font-size:22px;font-weight:bold;color:var(--gold);min-height:30px;margin:5px 0}
-@keyframes winPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15);color:#fff}}
-.slot-win.won{animation:winPulse 0.4s ease 3}
-.slot-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
-.slot-btn{padding:9px 16px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;font-size:13px}
-.reel-count-btn{background:#333;border:1px solid #555;color:white;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px}
-.reel-count-btn.active{background:var(--purple);border-color:var(--purple)}
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--panel);border-bottom:1px solid #222;height:62px}
+.topbar-left{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.balance{font-size:18px;color:var(--gold);font-weight:700}
+.energy-row{display:flex;align-items:center;gap:5px;font-size:11px;color:#666}
+.ebar{width:70px;height:5px;background:#222;border-radius:3px;overflow:hidden}
+.ebar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .4s}
+.topbar-user{font-size:10px;color:#777;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.topbar-right{display:flex;gap:5px;align-items:center}
+.icon-btn{background:#1a1a1a;border:1px solid #252525;border-radius:8px;font-size:18px;cursor:pointer;padding:5px 7px;line-height:1}
+.icon-btn:active{background:#2a2a2a}
 
-/* === CRASH === */
-.crash-val{font-size:46px;color:var(--gold);font-family:monospace;margin:8px;transition:color 0.2s}
-.crash-val.crashed{color:var(--red)}
-.crash-players{background:#111;border-radius:10px;padding:8px;margin:8px 0;max-height:110px;overflow-y:auto;text-align:left}
-.cp-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 5px;border-bottom:1px solid #1a1a1a}
-.cp-row.won{color:var(--green)}.cp-row.lost{color:var(--red)}
+/* TABS */
+.tab{display:none;padding:12px;height:calc(100vh - 130px);overflow-y:auto;padding-bottom:80px}
+.tab.on{display:block}
+.nav{position:fixed;bottom:0;width:100%;background:var(--panel);border-top:1px solid #222;display:flex;height:68px}
+.nb{flex:1;background:none;border:none;color:#444;font-size:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer}
+.nb.on{color:var(--gold)}
+.nb span{font-size:22px;line-height:1}
 
-/* === BLACKJACK MULTIPLAYER === */
-.bj-table{background:linear-gradient(180deg,#0a3a0a,#061a06);border:2px solid #1a5a1a;border-radius:16px;padding:12px;margin:6px 0}
-.bj-player-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#111;border-radius:8px;margin:4px 0;font-size:12px}
-.bj-player-row.active-player{border:2px solid var(--gold)}
-.bj-player-row.bust{border:2px solid var(--red)}
-.cards-row{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:8px 0}
-.card{width:44px;height:62px;background:white;color:#111;border-radius:5px;font-size:15px;font-weight:bold;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px #0008;border:2px solid #ddd;flex-direction:column;line-height:1.1}
-.card.red{color:var(--red)}.card.hidden{background:#1a3a6b;color:transparent;border-color:#2255aa}
-.score-badge{display:inline-block;background:#333;padding:2px 8px;border-radius:15px;font-size:12px;margin:3px 0}
-.bj-btn{padding:10px 18px;border-radius:8px;border:none;font-weight:bold;font-size:14px;cursor:pointer;margin:3px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:8px;font-weight:700;cursor:pointer;padding:9px 14px;font-size:13px;gap:5px;transition:opacity .15s,transform .1s}
+.btn:active{transform:scale(.96);opacity:.85}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-gold{background:var(--gold);color:#000}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-ghost{background:#222;color:#ccc;border:1px solid #333}
+.btn-full{width:100%}
+.btn-sm{padding:6px 11px;font-size:12px}
 
-/* === INVENTORY === */
-.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-.inv-item{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:8px 4px;cursor:pointer;transition:border-color 0.2s;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
-.inv-item:active{border-color:var(--gold)}
-.inv-item .inv-icon{font-size:24px}
-.inv-item .inv-name{font-size:9px;color:#aaa;line-height:1.2;text-align:center}
-.inv-item .inv-qty{font-size:11px;color:var(--gold);font-weight:bold}
-.tab-btns{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}
-.tab-btn{background:#222;border:1px solid #444;color:#aaa;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:12px}
-.tab-btn.active{background:var(--blue);border-color:var(--blue);color:white}
+/* CARDS */
+.card-block{background:var(--panel2);border-radius:12px;padding:14px;margin-bottom:10px}
+.list-row{display:flex;justify-content:space-between;align-items:center;background:#1e1e1e;border-radius:9px;padding:11px 13px;margin-bottom:7px;border-left:3px solid var(--blue)}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.section-label{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.flex-row{display:flex;gap:7px;align-items:center}
+.flex-wrap{display:flex;gap:6px;flex-wrap:wrap}
 
-/* === CLAN === */
-.clan-card{background:linear-gradient(135deg,#0a0a2e,#1a0a2e);border:2px solid var(--purple);border-radius:16px;padding:14px;margin-bottom:10px}
-.clan-member{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#111;border-radius:8px;margin:4px 0;font-size:12px}
-.clan-war-box{background:linear-gradient(135deg,#1a0000,#001a00);border:2px solid #5a5a00;border-radius:14px;padding:14px;margin-bottom:10px}
-.war-bar-wrap{height:22px;background:#1a1a1a;border-radius:11px;overflow:hidden;position:relative;margin:8px 0}
-.war-bar-a{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--red),#c0392b);border-radius:11px 0 0 11px;transition:width 0.5s}
-.war-bar-b{position:absolute;right:0;top:0;height:100%;background:linear-gradient(90deg,#006400,var(--green));border-radius:0 11px 11px 0;transition:width 0.5s}
-.war-bar-label{position:absolute;width:100%;top:50%;transform:translateY(-50%);font-size:11px;font-weight:bold;pointer-events:none}
+/* CLICKER */
+.click-wrap{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+.click-btn{width:160px;height:160px;border-radius:50%;border:none;background:radial-gradient(circle at 35% 35%,#ffe066,#c8960c);color:#000;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 0 30px #f1c40f44,inset 0 -4px 12px #0003;transition:transform .1s}
+.click-btn:active{transform:scale(.91)}
+.click-btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(6deg)}100%{transform:scale(1)}}
+.popping{animation:pop .15s ease}
+.combo-bar{height:6px;background:#1e1e1e;border-radius:3px;overflow:hidden;margin:8px 0;width:100%;max-width:200px}
+.combo-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--red));transition:width .1s}
 
-/* === ADMIN PANEL === */
-.admin-overlay{display:none;position:fixed;inset:0;background:#000a;z-index:500;overflow-y:auto}
-.admin-panel{background:#0d0000;border:2px solid var(--red);border-radius:16px;padding:15px;margin:15px;max-width:500px;margin-left:auto;margin-right:auto}
-.admin-btn{background:#c0392b;border:none;color:white;padding:8px 13px;border-radius:6px;cursor:pointer;margin:3px;font-size:12px}
-.admin-log{background:#111;border-radius:8px;padding:8px;font-size:11px;text-align:left;max-height:90px;overflow-y:auto;color:#aaa;margin-top:8px}
-.admin-section{background:#1a0000;border-radius:10px;padding:10px;margin:8px 0;text-align:left}
-.admin-section h5{margin:0 0 8px;color:var(--red);font-size:13px}
+/* STREAK / EVENTS */
+.event-banner{background:linear-gradient(135deg,#1a0a2e,#2e0a0a);border:1.5px solid var(--gold);border-radius:12px;padding:12px;margin-bottom:10px;text-align:center}
 
-/* === PROMO === */
-.promo-box{background:#1a1a2e;border:1px solid var(--purple);border-radius:12px;padding:12px;margin:10px 0}
+/* SLOT */
+.slot-machine{background:linear-gradient(160deg,#120a22,#0a0f18);border:2px solid #5a2d8a;border-radius:18px;padding:14px;box-shadow:0 0 24px #5a2d8a44}
+.slot-reels{display:flex;gap:7px;justify-content:center;margin:12px 0}
+.reel-outer{width:60px;height:80px;overflow:hidden;border-radius:8px;border:2px solid #2a2a2a;background:#000}
+.reel-inner{display:flex;flex-direction:column}
+.reel-sym{height:80px;font-size:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+@keyframes reelSpin{from{transform:translateY(0)}to{transform:translateY(-80px)}}
+.spinning .reel-inner{animation:reelSpin .07s linear infinite}
+.slot-result{font-size:20px;font-weight:700;color:var(--gold);min-height:26px;margin:6px 0}
+@keyframes shimmer{0%,100%{opacity:1}50%{opacity:.5}}
+.slot-result.win{animation:shimmer .3s ease 4}
 
-/* === AUTH === */
-#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-#auth-screen h1{color:var(--gold);font-size:30px;margin:0}
-#auth-screen p{color:#888;max-width:280px;font-size:14px;margin:0}
-.auth-tg-btn{background:#0088cc;border:none;color:white;padding:14px 30px;border-radius:10px;font-size:17px;font-weight:bold;cursor:pointer}
-.auth-guest-btn{background:none;border:1px solid #444;color:#888;padding:9px 18px;border-radius:8px;cursor:pointer;font-size:13px}
+/* CRASH */
+.crash-mult{font-size:52px;font-family:monospace;color:var(--gold);font-weight:700;margin:8px 0}
+.crash-mult.busted{color:var(--red)}
+.crash-bar-wrap{height:6px;background:#1e1e1e;border-radius:3px;overflow:hidden;margin-bottom:10px}
+.crash-bar{height:100%;background:var(--green);border-radius:3px;width:0%;transition:width .08s}
+.cp-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 4px;border-bottom:1px solid #1a1a1a}
+.cp-won{color:var(--green)}.cp-lost{color:var(--red)}
 
-/* === MISC === */
-@keyframes coinToss{0%{transform:scale(1)}50%{transform:scale(1.25) rotate(10deg)}100%{transform:scale(1)}}
-.coin-toss{animation:coinToss 0.15s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.fade-in{animation:fadeIn 0.25s ease}
-.section-title{font-size:14px;color:#888;text-align:left;margin:12px 0 5px;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
-.modal{display:none;position:fixed;inset:0;background:#000a;z-index:400;align-items:center;justify-content:center}
-.modal.open{display:flex}
-.modal-box{background:#1a1a1a;border:1px solid #333;border-radius:14px;padding:20px;width:90%;max-width:380px;max-height:80vh;overflow-y:auto}
-.close-btn{background:#333;border:none;color:white;padding:8px 18px;border-radius:6px;cursor:pointer;margin-top:10px}
+/* BLACKJACK */
+.bj-felt{background:linear-gradient(160deg,#05200a,#021008);border:2px solid #0d3b14;border-radius:14px;padding:12px}
+.playing-card{width:44px;height:62px;background:#fff;color:#111;border-radius:5px;font-size:14px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;box-shadow:0 2px 6px #0009}
+.playing-card.red{color:#c0392b}
+.playing-card.back{background:#1a3a8a}
+.cards-row{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.score-pill{display:inline-block;background:#1e1e1e;padding:2px 9px;border-radius:12px;font-size:12px}
+
+/* CLAN */
+.clan-banner{background:linear-gradient(135deg,#1a0a2e,#0a1a2e);border:1.5px solid var(--purple);border-radius:14px;padding:16px;margin-bottom:10px}
+.clan-member-row{display:flex;justify-content:space-between;align-items:center;background:#111;border-radius:8px;padding:9px 12px;margin-bottom:5px;font-size:12px}
+.clan-war-card{background:linear-gradient(135deg,#1a0000,#001a00);border:1.5px solid #5a5a00;border-radius:14px;padding:14px;margin-bottom:10px}
+.war-progress-wrap{height:20px;background:#111;border-radius:10px;overflow:hidden;margin:8px 0;position:relative}
+.war-bar-a{height:100%;background:linear-gradient(90deg,var(--red),#c0392b);border-radius:10px;position:absolute;left:0;top:0;transition:width .5s}
+.war-bar-b{height:100%;background:linear-gradient(90deg,#006400,var(--green));border-radius:10px;position:absolute;right:0;top:0;transition:width .5s}
+
+/* CITY */
+.city-card{border-radius:14px;margin-bottom:10px;cursor:pointer;min-height:90px;display:flex;align-items:flex-end;padding:14px;overflow:hidden;position:relative}
+.city-murino{background:linear-gradient(135deg,#1a2a3a,#0a1520);border:1.5px solid #2a4a6a}
+.city-otso{background:linear-gradient(135deg,#2a1a0a,#1a0a00);border:1.5px solid #6a2a0a}
+.city-card-title{font-size:17px;font-weight:700}
+.city-card-sub{font-size:11px;opacity:.7;margin-top:2px}
+
+/* INV */
+.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.inv-cell{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:9px;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:72px}
+.inv-cell:active{border-color:var(--gold)}
+.tab-strip{display:flex;gap:5px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px}
+.tab-strip::-webkit-scrollbar{display:none}
+.tab-chip{background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:6px 13px;border-radius:20px;cursor:pointer;white-space:nowrap;font-size:12px;font-weight:600}
+.tab-chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* ADMIN */
+.admin-backdrop{display:none;position:fixed;inset:0;background:#000b;z-index:600;overflow-y:auto;padding:12px}
+.admin-box{background:#0f0000;border:1.5px solid var(--red);border-radius:14px;padding:14px;max-width:480px;margin:0 auto}
+.admin-sec{background:#180000;border-radius:10px;padding:11px;margin-bottom:9px;text-align:left}
+.admin-sec h5{font-size:12px;color:#e74c3c;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.admin-btn{background:#c0392b;border:none;color:#fff;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700}
+.admin-log{background:#0a0a0a;border-radius:7px;padding:7px;font-size:10px;color:#666;max-height:80px;overflow-y:auto;margin-top:7px}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:#000a;z-index:500;align-items:center;justify-content:center}
+.modal-backdrop.on{display:flex}
+.modal-box{background:#161616;border:1px solid #2a2a2a;border-radius:14px;padding:18px;width:92%;max-width:360px;max-height:85vh;overflow-y:auto}
+
+/* CHAT */
+.chat-box{height:200px;background:#0d0d0d;border-radius:10px;overflow-y:auto;padding:10px;text-align:left;border:1px solid #1e1e1e}
+.chat-msg{font-size:12px;line-height:1.5;margin-bottom:4px;word-break:break-word}
+
+/* LB */
+.lb-row{display:flex;justify-content:space-between;align-items:center;background:#1a1a1a;border-radius:8px;padding:10px 12px;margin-bottom:5px;cursor:pointer}
+.lb-row.me{border:1.5px solid var(--gold);background:#1e1a00}
+
+/* QUESTS */
+.quest-row{background:#1a1a1a;border-radius:10px;padding:12px;margin-bottom:8px;border-left:3px solid var(--cyan)}
+.quest-row.done{border-left-color:var(--green);opacity:.6}
+.quest-bar{height:5px;background:#2a2a2a;border-radius:3px;overflow:hidden;margin-top:6px}
+.quest-fill{height:100%;background:var(--cyan);border-radius:3px;transition:width .4s}
+
+/* AUTH */
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.fade-up{animation:fadeUp .2s ease}
 </style>
 </head>
 <body>
 
 <!-- AUTH -->
 <div id="auth-screen">
-  <div style="font-size:55px">🎮</div>
-  <h1>BURMALDA</h1>
-  <p>Войди через Telegram чтобы сохранить прогресс</p>
-  <button class="auth-tg-btn" onclick="authViaTelegram()">🚀 Войти через Telegram</button>
-  <button class="auth-guest-btn" onclick="authAsGuest()">Играть как гость</button>
+  <div style="font-size:60px">🎮</div>
+  <div style="font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px">BURMALDA</div>
+  <div style="font-size:13px;color:#666;max-width:260px;text-align:center">Войди через Telegram — прогресс в облаке</div>
+  <button class="btn btn-blue" style="width:220px;font-size:16px;padding:14px" onclick="authViaTelegram()">🚀 Telegram</button>
+  <button class="btn btn-ghost" style="width:220px" onclick="authAsGuest()">Играть как гость</button>
 </div>
 
-<!-- TOP BAR -->
-<div class="top-bar">
-  <div class="top-left">
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
     <div class="balance">💰 <span id="coins">0</span></div>
     <div class="energy-row">⚡<span id="energy-val">1000</span>/1000
-      <div class="energy-bar-wrap"><div class="energy-bar" id="energy-bar" style="width:100%"></div></div>
+      <div class="ebar"><div class="ebar-fill" id="ebar" style="width:100%"></div></div>
     </div>
   </div>
-  <div id="user-tag" class="top-user">...</div>
-  <div class="top-icons">
-    <button class="top-icon-btn" onclick="openTab('chat')" title="Чат">💬</button>
-    <button class="top-icon-btn" onclick="openTab('settings')" title="Профиль">👤</button>
+  <div class="topbar-user" id="user-tag">...</div>
+  <div class="topbar-right">
+    <button class="icon-btn" onclick="openTab('inventory')" title="Инвентарь">🎒</button>
+    <button class="icon-btn" onclick="openTab('chat')" title="Чат">💬</button>
+    <button class="icon-btn" onclick="openTab('settings')" title="Профиль">👤</button>
   </div>
 </div>
 
-<!-- TABS -->
-<div id="tab-clicker" class="tab-content active-tab">
-  <div style="display:flex;flex-direction:column;align-items:center;padding:10px 0">
+<!-- TAB: CLICKER -->
+<div id="tab-clicker" class="tab on">
+  <div id="event-banner-area"></div>
+  <div class="click-wrap">
     <button class="click-btn" id="click-btn-el" onclick="makeClick()">БУРМАЛДА</button>
-    <div style="font-size:12px;color:#555;margin-top:10px">+<span id="clk-val">1</span> клик · +<span id="inc-val">0</span>/с</div>
+    <div class="combo-bar"><div class="combo-fill" id="combo-fill" style="width:0%"></div></div>
+    <div style="font-size:12px;color:#555;margin-top:4px">+<span id="clk-val">1</span> клик · +<span id="inc-val">0</span>/с · 🔥<span id="combo-val">1</span>x</div>
     <div style="font-size:11px;color:#444;margin-top:3px">Ур.<span id="user-lvl">1</span> · <span id="user-exp">0</span> XP</div>
+    <div id="streak-display" style="font-size:11px;color:var(--gold);margin-top:3px"></div>
   </div>
-  <div class="promo-box">
-    <div style="font-size:12px;color:#888;margin-bottom:6px;text-align:left">🎟️ ПРОМОКОД</div>
-    <div style="display:flex;gap:6px">
-      <input type="text" id="promo-input" placeholder="Введи промокод..." style="flex:1;font-size:13px">
-      <button class="buy-btn" onclick="activatePromo()">ПРИМЕНИТЬ</button>
-    </div>
-    <div id="promo-msg" style="font-size:12px;margin-top:5px;min-height:16px;text-align:left"></div>
+  <div id="quests-area"></div>
+</div>
+
+<!-- TAB: MAP -->
+<div id="tab-map" class="tab">
+  <div style="font-size:13px;color:#555;margin-bottom:10px;text-align:left">ВЫБЕРИ ЛОКАЦИЮ</div>
+  <div class="city-card city-murino" onclick="travelTo('Shop')">
+    <div><div class="city-card-title">🏗️ МУРИНО</div><div class="city-card-sub">Магазин · Покупки</div></div>
+  </div>
+  <div class="city-card city-otso" onclick="travelTo('Casino')">
+    <div><div class="city-card-title">🎰 ОТСО-СИТИ</div><div class="city-card-sub">Казино · Игры</div></div>
+  </div>
+  <div class="city-card" style="background:linear-gradient(135deg,#0a2a1a,#051510);border:1.5px solid #1a5a3a" onclick="openTab('clans');renderClansUI()">
+    <div><div class="city-card-title">⚔️ ШТАБ КЛАНОВ</div><div class="city-card-sub">Война · Казна</div></div>
   </div>
 </div>
 
-<div id="tab-map" class="tab-content">
-  <h3 style="margin:0 0 12px">ЛОКАЦИИ</h3>
-  <button class="list-item" style="width:100%;cursor:pointer;border:none" onclick="travelTo('Shop')">🏗️ МУРИНО — Магазин</button>
-  <button class="list-item" style="width:100%;cursor:pointer;border:none;border-left-color:var(--red)" onclick="travelTo('Casino')">🎰 ОТСО-СИТИ — Казино</button>
-  <button class="list-item" style="width:100%;cursor:pointer;border:none;border-left-color:var(--green)" onclick="openTab('inventory')">🎒 ИНВЕНТАРЬ</button>
-</div>
-
-<div id="tab-city" class="tab-content">
-  <h3 id="city-title" style="margin:0 0 10px">ГОРОД</h3>
+<!-- TAB: CITY -->
+<div id="tab-city" class="tab">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <button class="btn btn-ghost btn-sm" onclick="openTab('map')">← Карта</button>
+    <h3 id="city-title" style="margin:0">ГОРОД</h3>
+  </div>
   <div id="city-ui"></div>
 </div>
 
-<div id="tab-chat" class="tab-content">
-  <h3 style="margin:0 0 6px">ГЛОБАЛЬНЫЙ ЧАТ</h3>
-  <p style="font-size:10px;color:#555;margin:0 0 6px">Нажми на имя → подарить 1000 🪙</p>
-  <div id="chat-box"></div>
-  <div style="display:flex;gap:5px;margin-top:8px">
-    <input type="text" id="chat-input" placeholder="Сообщение..." style="flex:1;font-size:13px" maxlength="200">
-    <button class="buy-btn" onclick="sendMessage()">📡</button>
+<!-- TAB: LEADERBOARD -->
+<div id="tab-leaderboard" class="tab">
+  <div style="display:flex;gap:6px;margin-bottom:10px">
+    <button id="lb-bal" class="btn btn-gold btn-sm" onclick="lbSort('balance')">💰 Монеты</button>
+    <button id="lb-earn" class="btn btn-ghost btn-sm" onclick="lbSort('totalEarned')">📈 За всё время</button>
+  </div>
+  <div id="lb-rank" style="font-size:12px;color:#555;margin-bottom:8px"></div>
+  <div id="lb-list"></div>
+</div>
+
+<!-- TAB: CHAT -->
+<div id="tab-chat" class="tab">
+  <div style="font-size:10px;color:#555;margin-bottom:5px;text-align:left">Нажми на имя → подарить 500 🪙</div>
+  <div class="chat-box" id="chat-box"></div>
+  <div class="flex-row" style="margin-top:8px">
+    <input type="text" id="chat-input" placeholder="Сообщение..." maxlength="200" style="flex:1">
+    <button class="btn btn-blue btn-sm" onclick="sendMessage()">📡</button>
   </div>
 </div>
 
-<div id="tab-leaderboard" class="tab-content">
-  <h3 style="margin:0 0 8px">🏆 ТОП ИГРОКОВ</h3>
-  <div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px">
-    <button onclick="lbSort('balance')" id="lb-btn-bal" style="background:var(--gold);border:none;color:black;padding:6px 12px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:12px">💰 Монеты</button>
-    <button onclick="lbSort('totalEarned')" id="lb-btn-earn" style="background:#333;border:none;color:white;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px">📈 За всё время</button>
-  </div>
-  <div id="lb-my-rank" style="font-size:12px;color:#666;margin-bottom:8px"></div>
-  <div id="leader-list"></div>
-</div>
-
-<div id="tab-inventory" class="tab-content">
-  <h3 style="margin:0 0 8px">🎒 ИНВЕНТАРЬ</h3>
-  <div class="tab-btns" id="inv-cat-btns"></div>
-  <div id="inv-grid" class="inv-grid"></div>
-</div>
-
-<!-- КЛАНЫ TAB -->
-<div id="tab-clans" class="tab-content">
-  <h3 style="margin:0 0 8px">⚔️ КЛАНЫ</h3>
+<!-- TAB: CLANS -->
+<div id="tab-clans" class="tab">
+  <h3 style="margin:0 0 10px">⚔️ КЛАНЫ</h3>
   <div id="clan-ui"></div>
 </div>
 
-<div id="tab-settings" class="tab-content">
+<!-- TAB: INVENTORY -->
+<div id="tab-inventory" class="tab">
+  <h3 style="margin:0 0 10px">🎒 ИНВЕНТАРЬ</h3>
+  <div class="tab-strip" id="inv-tabs"></div>
+  <div class="inv-grid" id="inv-grid"></div>
+</div>
+
+<!-- TAB: SETTINGS -->
+<div id="tab-settings" class="tab">
   <h3 style="margin:0 0 12px;text-align:left">👤 ПРОФИЛЬ</h3>
   <div class="card-block">
-    <div style="font-size:10px;color:#555;margin-bottom:2px">ID</div>
-    <div id="my-id-display" style="font-size:12px;color:var(--blue);margin-bottom:8px;word-break:break-all;text-align:left"></div>
-    <div style="font-size:10px;color:#555;margin-bottom:2px">Telegram</div>
-    <div id="tg-info-display" style="font-size:12px;color:#0088cc;margin-bottom:12px;text-align:left"></div>
-    <input type="text" id="name-input" placeholder="Новый никнейм..." style="width:100%;margin-bottom:8px">
-    <button class="buy-btn" onclick="changeNickname()" style="width:100%">СМЕНИТЬ НИК</button>
+    <div class="section-label">ID</div>
+    <div id="my-id" style="font-size:11px;color:var(--blue);margin-bottom:8px;word-break:break-all;text-align:left"></div>
+    <input type="text" id="name-input" placeholder="Новый никнейм..." style="margin-bottom:8px">
+    <button class="btn btn-green btn-full" onclick="changeNickname()">СМЕНИТЬ НИК</button>
   </div>
   <div class="card-block">
-    <button onclick="openAdminEntry()" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:10px;border-radius:8px;cursor:pointer;width:100%;font-size:13px;margin-bottom:8px">🔑 Код доступа</button>
-    <button onclick="resetGame()" style="background:#1a0000;border:1px solid #3a0000;color:var(--red);padding:10px;border-radius:8px;cursor:pointer;width:100%;font-size:13px">♻️ СБРОС ПРОГРЕССА</button>
+    <div class="section-label">🎟️ ПРОМОКОД</div>
+    <div class="flex-row" style="margin-bottom:6px">
+      <input type="text" id="promo-input" placeholder="Введи промокод...">
+      <button class="btn btn-purple btn-sm" onclick="activatePromo()">ПРИМЕНИТЬ</button>
+    </div>
+    <div id="promo-msg" style="font-size:12px;min-height:16px"></div>
+  </div>
+  <div class="card-block">
+    <div class="section-label">🔗 РЕФЕРАЛЫ</div>
+    <div id="ref-code-box" style="font-size:12px;color:#555;margin-bottom:8px">Загрузка...</div>
+    <div class="flex-row" style="margin-bottom:6px">
+      <input type="text" id="ref-input" placeholder="Реф-код друга (BRM...)">
+      <button class="btn btn-blue btn-sm" onclick="applyRef()">ПРИМЕНИТЬ</button>
+    </div>
+    <div id="ref-msg" style="font-size:11px;min-height:14px"></div>
+    <div id="ref-stats" style="margin-top:6px"></div>
+  </div>
+  <div class="card-block">
+    <button class="btn btn-ghost btn-full" style="margin-bottom:7px" onclick="openAdminEntry()">🔑 Код доступа</button>
+    <button class="btn btn-red btn-full" onclick="resetGame()">♻️ СБРОС</button>
   </div>
 </div>
 
 <!-- NAV -->
 <div class="nav">
-  <button class="nav-btn active" id="n-clicker" onclick="openTab('clicker')"><span>🖱️</span>Клик</button>
-  <button class="nav-btn" id="n-map" onclick="openTab('map')"><span>🗺️</span>Карта</button>
-  <button class="nav-btn" id="n-leaderboard" onclick="openTab('leaderboard')"><span>🏆</span>Топ</button>
-  <button class="nav-btn" id="n-clans" onclick="openTab('clans');renderClansUI()"><span>⚔️</span>Кланы</button>
-  <button class="nav-btn" id="n-inventory" onclick="openTab('inventory')"><span>🎒</span>Вещи</button>
+  <button class="nb on" id="nb-clicker" onclick="openTab('clicker')"><span>🖱️</span>Клик</button>
+  <button class="nb" id="nb-map" onclick="openTab('map')"><span>🗺️</span>Карта</button>
+  <button class="nb" id="nb-leaderboard" onclick="openTab('leaderboard')"><span>🏆</span>Топ</button>
+  <button class="nb" id="nb-clans" onclick="openTab('clans');renderClansUI()"><span>⚔️</span>Кланы</button>
 </div>
 
-<!-- ADMIN OVERLAY -->
-<div class="admin-overlay" id="admin-overlay">
-  <div class="admin-panel fade-in">
-
-    <!-- Заголовок -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div>
-        <span style="color:var(--red);font-size:15px;font-weight:900;letter-spacing:1px">🔴 ADMIN</span>
-        <span id="admin-who" style="font-size:10px;color:#555;margin-left:8px"></span>
-      </div>
-      <button onclick="closeAdmin()" style="background:#1a0000;border:1px solid #3a0000;color:#e74c3c;padding:5px 11px;border-radius:6px;cursor:pointer;font-weight:bold">✕</button>
+<!-- ADMIN -->
+<div class="admin-backdrop" id="admin-backdrop">
+  <div class="admin-box fade-up">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="color:var(--red);font-size:15px;font-weight:900">🔴 ADMIN <span id="admin-lvl-label" style="font-size:11px;color:#888"></span></span>
+      <button class="btn btn-ghost btn-sm" onclick="closeAdmin()">✕</button>
     </div>
-
-    <!-- Код доступа (для копирования) -->
-    <div class="admin-section" style="background:#0a0a00;border-color:#2a2a00">
-      <h5 style="color:#f1c40f">🔑 КОД ВХОДА</h5>
-      <p style="font-size:11px;color:#888;margin-bottom:6px">Смени хэш в коде: <a href="https://emn178.github.io/online-tools/sha256.html" target="_blank" style="color:var(--blue)">sha256 генератор</a></p>
-      <code style="font-size:10px;color:#aaa;word-break:break-all;display:block;background:#111;padding:6px;border-radius:5px" id="admin-hash-display"></code>
-    </div>
-
-    <!-- Игроки -->
-    <div class="admin-section">
-      <h5>👤 УПРАВЛЕНИЕ ИГРОКАМИ</h5>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
-        <button class="admin-btn" onclick="adminBan()">🔨 Забанить</button>
-        <button class="admin-btn" onclick="adminUnban()">✅ Разбанить</button>
-        <button class="admin-btn" onclick="adminGiveCoins()">💰 Дать монеты</button>
-        <button class="admin-btn" onclick="adminSetPrefix()">🏷️ Префикс игроку</button>
-      </div>
-    </div>
-
-    <!-- Чат -->
-    <div class="admin-section">
+    <!-- Moder section -->
+    <div class="admin-sec">
       <h5>💬 ЧАТ</h5>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+      <div class="flex-wrap">
         <button class="admin-btn" onclick="adminClearChat()">🗑️ Очистить</button>
         <button class="admin-btn" onclick="adminBroadcast()">📢 Анонс</button>
         <button class="admin-btn" onclick="adminSetMyPrefix()">✏️ Мой тег</button>
       </div>
     </div>
-
-    <!-- Приколы -->
-    <div class="admin-section" style="background:#001a0a;border-color:#002a10">
-      <h5 style="color:var(--green)">🎉 ПРИКОЛЫ</h5>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
-        <button class="admin-btn" style="background:#1a4a00" onclick="adminRainCoins()">🌧️ Дождь монет</button>
-        <button class="admin-btn" style="background:#4a1a00" onclick="adminGlobalMultiplier()">⚡ Глоб. множитель</button>
-        <button class="admin-btn" style="background:#001a4a" onclick="adminFreezeAll()">🥶 Заморозить всех</button>
-        <button class="admin-btn" style="background:#3a003a" onclick="adminShuffleNicknames()">🔀 Перемешать ники</button>
-        <button class="admin-btn" style="background:#4a3a00" onclick="adminGiveAllPromo()">🎁 Промо всем</button>
-        <button class="admin-btn" style="background:#2a002a" onclick="adminCasinoEvent()">🎰 Казино-ивент</button>
+    <div class="admin-sec">
+      <h5>👤 ИГРОКИ</h5>
+      <div class="flex-wrap">
+        <button class="admin-btn" onclick="adminBan()">🔨 Забанить</button>
+        <button class="admin-btn" onclick="adminUnban()">✅ Разбанить</button>
+        <button class="admin-btn" onclick="adminSetPrefix()">🏷️ Префикс</button>
       </div>
     </div>
-
-    <!-- Промокоды -->
-    <div class="admin-section">
-      <h5>🎟️ СОЗДАТЬ ПРОМОКОД</h5>
-      <div style="display:flex;gap:5px;margin-bottom:5px">
-        <input type="text" id="promo-code-input" placeholder="Код (SALE100)" style="flex:1;font-size:12px">
-        <input type="number" id="promo-coins-input" placeholder="💰" style="width:70px;font-size:12px">
-        <input type="number" id="promo-uses-input" placeholder="×" value="1" style="width:50px;font-size:12px">
+    <!-- Owner only -->
+    <div id="admin-l2">
+      <div class="admin-sec" style="background:#001a00;border:1px solid #0a3a0a">
+        <h5 style="color:var(--green)">💰 ЭКОНОМИКА (только владелец)</h5>
+        <div class="flex-wrap">
+          <button class="admin-btn" style="background:#1a5a1a" onclick="adminGiveCoins()">💰 Выдать монеты</button>
+          <button class="admin-btn" style="background:#1a4a00" onclick="adminRainCoins()">🌧️ Дождь монет</button>
+          <button class="admin-btn" style="background:#003a3a" onclick="adminSetEvent()">⚡ Ивент</button>
+        </div>
       </div>
-      <button class="admin-btn" style="width:100%" onclick="adminCreatePromo()">➕ СОЗДАТЬ</button>
-      <div id="promos-list" style="margin-top:8px;font-size:11px;color:#888;max-height:80px;overflow-y:auto"></div>
-    </div>
-
-    <!-- Добавить предмет -->
-    <div class="admin-section">
-      <h5>📦 ДОБАВИТЬ В МАГАЗИН</h5>
-      <select id="item-cat" style="background:#1e1e1e;border:1px solid #333;color:white;padding:7px;border-radius:7px;width:100%;margin-bottom:6px;font-size:12px">
-        <option value="cars">🚗 Машины</option>
-        <option value="houses">🏠 Дома</option>
-        <option value="upgrades">⚡ Апгрейды</option>
-      </select>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px">
-        <input type="text" id="item-name" placeholder="Название" style="font-size:12px">
-        <input type="text" id="item-icon" placeholder="Иконка 🎁" style="font-size:12px">
-        <input type="number" id="item-price" placeholder="Цена 🪙" style="font-size:12px">
-        <input type="number" id="item-income" placeholder="+/с" style="font-size:12px">
+      <div class="admin-sec">
+        <h5>🎟️ ПРОМОКОДЫ</h5>
+        <div class="flex-row" style="margin-bottom:6px">
+          <input type="text" id="p-code" placeholder="Код">
+          <input type="number" id="p-coins" placeholder="💰" style="width:80px">
+          <input type="number" id="p-uses" placeholder="×" value="1" style="width:60px">
+        </div>
+        <button class="admin-btn btn-full" style="width:100%" onclick="adminCreatePromo()">➕ СОЗДАТЬ</button>
+        <div id="promos-list" style="margin-top:8px;font-size:11px;color:#888;max-height:80px;overflow-y:auto"></div>
       </div>
-      <input type="text" id="item-desc" placeholder="Описание" style="width:100%;margin-bottom:6px;font-size:12px">
-      <button class="admin-btn" style="width:100%" onclick="adminAddItem()">➕ ДОБАВИТЬ ПРЕДМЕТ</button>
-    </div>
-
-    <!-- Список всех игроков -->
-    <div class="admin-section">
-      <h5>👥 ВСЕ ИГРОКИ</h5>
-      <div style="display:flex;gap:5px;margin-bottom:6px">
-        <input type="text" id="admin-search" placeholder="Поиск по нику или ID..." style="flex:1;font-size:11px" oninput="adminFilterPlayers()">
+      <div class="admin-sec">
+        <h5>📦 ДОБАВИТЬ ТОВАР</h5>
+        <select id="item-cat" style="background:#1e1e1e;border:1px solid #333;color:#fff;padding:7px;border-radius:7px;width:100%;margin-bottom:6px;font-size:12px">
+          <option value="cars">🚗 Тачки</option>
+          <option value="houses">🏠 Дома</option>
+          <option value="upgrades">⚡ Апгрейды</option>
+        </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px">
+          <input type="text" id="item-name" placeholder="Название" style="font-size:12px">
+          <input type="text" id="item-icon" placeholder="Иконка" style="font-size:12px">
+          <input type="number" id="item-price" placeholder="Цена" style="font-size:12px">
+          <input type="number" id="item-income" placeholder="+/с" style="font-size:12px">
+        </div>
+        <input type="text" id="item-desc" placeholder="Описание" style="margin-bottom:6px;font-size:12px">
+        <button class="admin-btn" style="width:100%" onclick="adminAddItem()">➕ ДОБАВИТЬ</button>
       </div>
-      <div id="admin-players-list" style="max-height:200px;overflow-y:auto;font-size:11px"></div>
     </div>
-
-    <!-- Лог -->
     <div class="admin-log" id="admin-log">Лог действий...</div>
-
   </div>
 </div>
 
-<!-- ITEM INFO MODAL -->
-<div class="modal" id="item-modal">
+<!-- MODAL -->
+<div class="modal-backdrop" id="main-modal">
   <div class="modal-box">
-    <div id="item-modal-content"></div>
-    <button class="close-btn" onclick="closeModal('item-modal')">Закрыть</button>
-  </div>
-</div>
-
-<!-- CLAN MODAL -->
-<div class="modal" id="clan-modal">
-  <div class="modal-box">
-    <div id="clan-modal-content"></div>
-    <button class="close-btn" onclick="closeModal('clan-modal')">Закрыть</button>
+    <div id="modal-body"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:12px" onclick="closeModal()">Закрыть</button>
   </div>
 </div>
 
@@ -367,94 +380,123 @@ const FB={
 const app=initializeApp(FB);
 const db=getDatabase(app);
 
-const ADMIN_HASH="a1b9c84e6f2d3e5a7c0b8d4f1e2a3c5d6b7e8f9a0c1d2e3f4a5b6c7d8e9f0a1b";
-
-async function hashCode(str){
+// ─── SHA256 ───────────────────────────────────
+async function sha256(str){
   const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+// ЗАМЕНИ ЭТИ ХЭШИ на свои через https://emn178.github.io/online-tools/sha256.html
+const OWNER_HASH="a1b9c84e6f2d3e5a7c0b8d4f1e2a3c5d6b7e8f9a0c1d2e3f4a5b6c7d8e9f0a1b";
+const MODER_HASH="b2c0d95f7e3e4f6b8d1c9e5f2f3b4d6e7c8f9a0b1d2e3f4a5b6c7d8e9f0b2c0";
 
-// Базовые цены — динамика применяется при каждой покупке (+15% за каждый купленный экземпляр)
-let SHOP_ITEMS={
+// ─── SHOP DATA ───────────────────────────────
+const SHOP={
   cars:[
-    {id:"car_oka",     n:"Ока",           icon:"🚗",  p:500,       i:2,    c:1,   desc:"Классика жанра"},
-    {id:"car_prior",   n:"Приора",         icon:"🚘",  p:5000,      i:15,   c:5,   desc:"Мощь 90х"},
-    {id:"car_gelik",   n:"Гелик",          icon:"🚙",  p:50000,     i:100,  c:20,  desc:"Понты из 2000х"},
-    {id:"car_bmw",     n:"BMW M5",         icon:"🏎️", p:200000,    i:400,  c:50,  desc:"Тачка для серьёзных"},
-    {id:"car_lambo",   n:"Lamborghini",    icon:"🏎️", p:1000000,   i:2000, c:200, desc:"Мечта"},
-    {id:"car_jet",     n:"Частный Jet",    icon:"✈️", p:5000000,   i:10000,c:500, desc:"Ты богат"},
-    {id:"car_yacht",   n:"Яхта",           icon:"🛥️", p:15000000,  i:30000,c:1000,desc:"Жизнь на воде"},
-    {id:"car_rocket",  n:"Ракета",         icon:"🚀",  p:80000000,  i:150000,c:5000,desc:"До звёзд"},
-    {id:"car_ufo",     n:"НЛО",            icon:"🛸",  p:500000000, i:1000000,c:25000,desc:"Пришелец"},
+    {id:"car_oka",     n:"Ока",          icon:"🚗", p:500,        i:2,    c:1,   desc:"Классика жанра"},
+    {id:"car_prior",   n:"Приора",        icon:"🚘", p:5000,       i:15,   c:5,   desc:"Мощь 90-х"},
+    {id:"car_gelik",   n:"Гелик",         icon:"🚙", p:50000,      i:100,  c:20,  desc:"Понты из 2000-х"},
+    {id:"car_bmw",     n:"BMW M5",        icon:"🏎️",p:200000,     i:400,  c:50,  desc:"Тачка для серьёзных"},
+    {id:"car_lambo",   n:"Lamborghini",   icon:"🏎️",p:1000000,    i:2000, c:200, desc:"Мечта"},
+    {id:"car_jet",     n:"Частный Jet",   icon:"✈️",p:5000000,    i:10000,c:500, desc:"Ты богат"},
+    {id:"car_yacht",   n:"Яхта",          icon:"🛥️",p:15000000,   i:30000,c:1000,desc:"Жизнь на воде"},
+    {id:"car_rocket",  n:"Ракета",        icon:"🚀", p:80000000,   i:150000,c:5000,desc:"До звёзд"},
+    {id:"car_ufo",     n:"НЛО",           icon:"🛸", p:500000000,  i:1000000,c:25000,desc:"Пришелец"},
   ],
   houses:[
-    {id:"h_shalash",   n:"Шалаш",          icon:"⛺",  p:20000,       i:10,    desc:"Крыша над головой"},
-    {id:"h_komnata",   n:"Комната",         icon:"🛏️", p:150000,      i:40,    desc:"Сдаётся посуточно"},
-    {id:"h_kvart",     n:"Квартира",        icon:"🏠",  p:800000,      i:80,    desc:"Мурино, 1й этаж"},
-    {id:"h_taunhaus",  n:"Таунхаус",        icon:"🏘️", p:5000000,     i:400,   desc:"Свой дворик"},
-    {id:"h_villa",     n:"Вилла",           icon:"🏡",  p:25000000,    i:1000,  desc:"Своя земля"},
-    {id:"h_zamok",     n:"Замок",           icon:"🏰",  p:150000000,   i:7000,  desc:"Средневековый стиль"},
-    {id:"h_pent",      n:"Пентхаус",        icon:"🏢",  p:800000000,   i:20000, desc:"Вид на весь город"},
-    {id:"h_bunker",    n:"Бункер",          icon:"🏗️", p:5000000000,  i:60000, desc:"Выживание обеспечено"},
-    {id:"h_island",    n:"Остров",          icon:"🏝️", p:30000000000, i:200000,desc:"Твой личный рай"},
-    {id:"h_moon",      n:"База на Луне",    icon:"🌙",  p:200000000000,i:2000000,desc:"Лунный риэлтор"},
+    {id:"h_shalash",  n:"Шалаш",         icon:"⛺", p:20000,      i:10,   desc:"Крыша над головой"},
+    {id:"h_komnata",  n:"Комната",        icon:"🛏️",p:150000,     i:40,   desc:"Сдаётся посуточно"},
+    {id:"h_kvart",    n:"Квартира",       icon:"🏠", p:800000,     i:80,   desc:"Мурино, 1й этаж"},
+    {id:"h_taun",     n:"Таунхаус",       icon:"🏘️",p:5000000,    i:400,  desc:"Свой дворик"},
+    {id:"h_villa",    n:"Вилла",          icon:"🏡", p:25000000,   i:1000, desc:"Своя земля"},
+    {id:"h_zamok",    n:"Замок",          icon:"🏰", p:150000000,  i:7000, desc:"Средневековый стиль"},
+    {id:"h_pent",     n:"Пентхаус",       icon:"🏢", p:800000000,  i:20000,desc:"Вид на весь город"},
+    {id:"h_bunker",   n:"Бункер",         icon:"🏗️",p:5000000000, i:60000,desc:"Выживание обеспечено"},
+    {id:"h_island",   n:"Остров",         icon:"🏝️",p:30000000000,i:200000,desc:"Личный рай"},
+    {id:"h_moon",     n:"База на Луне",   icon:"🌙", p:200000000000,i:2000000,desc:"Лунный риэлтор"},
   ],
   upgrades:[
-    {id:"up_click2",   n:"Клик ×2",         icon:"👆",  p:3000,      c:2,   desc:"Двойной удар"},
-    {id:"up_click5",   n:"Турбо клик ×5",   icon:"💪",  p:30000,     c:5,   desc:"Пять за раз"},
-    {id:"up_click20",  n:"Мега клик ×20",   icon:"⚡",  p:300000,    c:20,  desc:"Абсолютная мощь"},
-    {id:"up_autoc",    n:"Автокликер",       icon:"🤖",  p:50000,     i:50,  desc:"Клики сами"},
-    {id:"up_autoc2",   n:"Автокликер Pro",   icon:"🦾",  p:500000,    i:500, desc:"Промышленный"},
-    {id:"up_click100", n:"Клик ×100",        icon:"💥",  p:5000000,   c:100, desc:"Читерский"},
-    {id:"up_matrix",   n:"Матрица",          icon:"🖥️", p:50000000,  i:5000,c:500,desc:"Ты в матрице"},
-    {id:"up_god",      n:"Режим бога",       icon:"👑",  p:500000000, i:100000,c:10000,desc:"Конец игры"},
+    {id:"up_click2",  n:"Клик ×2",        icon:"👆", p:3000,       c:2,   desc:"Двойной удар"},
+    {id:"up_click5",  n:"Турбо клик ×5",  icon:"💪", p:30000,      c:5,   desc:"Пять за раз"},
+    {id:"up_click20", n:"Мега клик ×20",  icon:"⚡", p:300000,     c:20,  desc:"Абсолютная мощь"},
+    {id:"up_autoc",   n:"Автокликер",      icon:"🤖", p:50000,      i:50,  desc:"Клики сами"},
+    {id:"up_autoc2",  n:"Автокликер Pro",  icon:"🦾", p:500000,     i:500, desc:"Промышленный"},
+    {id:"up_click100",n:"Клик ×100",       icon:"💥", p:5000000,    c:100, desc:"Читерский"},
+    {id:"up_matrix",  n:"Матрица",         icon:"🖥️",p:50000000,   i:5000,c:500,desc:"Ты в матрице"},
+    {id:"up_god",     n:"Режим бога",      icon:"👑", p:500000000,  i:100000,c:10000,desc:"Конец игры"},
   ]
 };
 
-// Динамическая цена: +15% за каждый купленный экземпляр
-function getDynPrice(item){
-  const owned=S.inventory[item.id]||0;
-  return Math.floor(item.p*Math.pow(1.15,owned));
-}
+// ─── QUESTS ──────────────────────────────────
+const QUESTS=[
+  {id:"q_click100",  label:"Кликни 100 раз",        field:"totalClicks",   goal:100,    reward:500,    icon:"🖱️"},
+  {id:"q_click1k",   label:"Кликни 1000 раз",        field:"totalClicks",   goal:1000,   reward:5000,   icon:"🖱️"},
+  {id:"q_click10k",  label:"Кликни 10 000 раз",      field:"totalClicks",   goal:10000,  reward:50000,  icon:"🖱️"},
+  {id:"q_earn10k",   label:"Заработай 10 000 монет", field:"totalEarned",   goal:10000,  reward:2000,   icon:"💰"},
+  {id:"q_earn1m",    label:"Заработай 1 000 000",    field:"totalEarned",   goal:1000000,reward:100000, icon:"💰"},
+  {id:"q_buy3",      label:"Купи 3 предмета",        field:"totalBought",   goal:3,      reward:3000,   icon:"🛒"},
+  {id:"q_buy20",     label:"Купи 20 предметов",      field:"totalBought",   goal:20,     reward:30000,  icon:"🛒"},
+  {id:"q_income100", label:"Достигни дохода 100/с",  field:"income",        goal:100,    reward:20000,  icon:"📈"},
+  {id:"q_income10k", label:"Достигни дохода 10к/с",  field:"income",        goal:10000,  reward:500000, icon:"📈"},
+  {id:"q_spin5",     label:"Прокрути слоты 5 раз",   field:"totalSpins",    goal:5,      reward:1000,   icon:"🎰"},
+  {id:"q_spin50",    label:"Прокрути слоты 50 раз",  field:"totalSpins",    goal:50,     reward:15000,  icon:"🎰"},
+  {id:"q_combo20",   label:"Достигни комбо 20x",     field:"maxCombo",      goal:20,     reward:10000,  icon:"🔥"},
+  {id:"q_streak3",   label:"3 дня подряд в игре",    field:"streak",        goal:3,      reward:30000,  icon:"📅"},
+  {id:"q_streak7",   label:"7 дней подряд в игре",   field:"streak",        goal:7,      reward:100000, icon:"📅"},
+];
+
+// ─── STATE ───────────────────────────────────
+const fmt=n=>Number(n).toLocaleString('ru');
+const esc=s=>String(s||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+const snap2=async path=>{const s=await get(ref(db,path));return s.exists()?s.val():null;};
+const getDynPrice=item=>Math.floor(item.p*Math.pow(1.15,S.inventory[item.id]||0));
 
 let S={
   coins:0,income:0,clickPower:1,userId:"",displayName:"",
-  totalEarned:0,isAdmin:false,isBanned:false,
-  tgId:null,tgName:null,energy:1000,prefix:"",
-  inventory:{},clanId:null,
+  totalEarned:0,isOwner:false,isModer:false,isBanned:false,
+  tgId:null,energy:1000,prefix:"",prefixColor:"",
+  inventory:{},clanId:null,refBy:null,refCode:null,
+  totalClicks:0,totalBought:0,totalSpins:0,maxCombo:0,
+  streak:0,lastDay:0,completedQuests:{},
 };
-let lbSortField='balance';
-let allPlayers=[];
-let usedPromos={};
-let chatListener=null;
+let lbField='balance',allPlayers=[],invCat='cars';
+let comboCount=0,comboTimer=null;
+let slotN=3,slotSpinning=false;
+let bjS={};
+let crashStateCache=null,crashAnimFrame=null,myBetActive=false;
 
-// ────────────────────────────────────────
-// AUTH
-// ────────────────────────────────────────
+const SYMS=['🍒','🍋','🍊','⭐','💎','🔔','7️⃣','🍀'];
+const SWEIGHTS=[28,24,20,16,12,8,5,3];
+const SMULT={'🍒':2,'🍋':2.5,'🍊':3,'⭐':4,'💎':6,'🔔':8,'7️⃣':15,'🍀':25};
+function wsym(){
+  let r=Math.random()*SWEIGHTS.reduce((a,b)=>a+b,0);
+  for(let i=0;i<SYMS.length;i++){r-=SWEIGHTS[i];if(r<=0)return SYMS[i];}
+  return SYMS[0];
+}
+
+// BJ helpers
+const SUITS=['♠','♣','♥','♦'],RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+function mkDeck(){let d=[];for(const s of SUITS)for(const r of RANKS)d.push({s,r});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
+function cVal(r){if(r==='A')return 11;if(['J','Q','K'].includes(r))return 10;return+r;}
+function hVal(h){let v=0,a=0;for(const c of h){v+=cVal(c.r);if(c.r==='A')a++;}while(v>21&&a>0){v-=10;a--;}return v;}
+function cardHTML(c,hidden=false){if(hidden)return'<div class="playing-card back">🂠</div>';const red=['♥','♦'].includes(c.s);return`<div class="playing-card${red?' red':''}">${c.r}<br>${c.s}</div>`;}
+
+// ─── AUTH ─────────────────────────────────────
 window.authViaTelegram=()=>{
   const tg=window.Telegram?.WebApp;
   if(tg?.initDataUnsafe?.user){
     const u=tg.initDataUnsafe.user;
     S.tgId=String(u.id);
-    S.tgName=u.first_name+(u.last_name?' '+u.last_name:'');
     S.userId="tg_"+u.id;
-    S.displayName=u.username?"@"+u.username:S.tgName;
+    S.displayName=u.username?"@"+u.username:(u.first_name||S.userId);
     tg.expand();
-    finishAuth();
   } else {
     const saved=localStorage.getItem('b_tgid');
-    if(saved){S.tgId=saved;S.userId="tg_"+saved;S.displayName=localStorage.getItem('b_name')||S.userId;finishAuth();}
-    else{
-      const tid=prompt("Введи свой Telegram ID:");
-      if(tid&&/^\d+$/.test(tid.trim())){
-        S.tgId=tid.trim();S.userId="tg_"+S.tgId;
-        S.displayName=localStorage.getItem('b_name')||("User_"+S.tgId.slice(-4));
-        localStorage.setItem('b_tgid',S.tgId);finishAuth();
-      }
-    }
+    if(saved){S.tgId=saved;S.userId="tg_"+saved;S.displayName=localStorage.getItem('b_name')||S.userId;}
+    else{const tid=prompt("Telegram ID:");if(!tid||!/^\d+$/.test(tid.trim()))return;S.tgId=tid.trim();S.userId="tg_"+S.tgId;S.displayName=localStorage.getItem('b_name')||("User_"+S.tgId.slice(-4));localStorage.setItem('b_tgid',S.tgId);}
   }
+  finishAuth();
 };
-
 window.authAsGuest=()=>{
   let gid=localStorage.getItem('b_guestid');
   if(!gid){gid="guest_"+Math.floor(Math.random()*999999);localStorage.setItem('b_guestid',gid);}
@@ -472,60 +514,80 @@ async function finishAuth(){
     S.totalEarned=d.totalEarned||0;
     S.income=d.income||0;
     S.clickPower=d.clickPower||1;
-    S.isAdmin=d.isAdmin||false;
     S.energy=d.energy!=null?d.energy:1000;
     S.prefix=d.prefix||"";
+    S.prefixColor=d.prefixColor||"";
     S.inventory=d.inventory||{};
     S.clanId=d.clanId||null;
+    S.refBy=d.refBy||null;
+    S.refCode=d.refCode||null;
+    S.totalClicks=d.totalClicks||0;
+    S.totalBought=d.totalBought||0;
+    S.totalSpins=d.totalSpins||0;
+    S.maxCombo=d.maxCombo||0;
+    S.streak=d.streak||0;
+    S.lastDay=d.lastDay||0;
+    S.completedQuests=d.completedQuests||{};
     if(d.displayName)S.displayName=d.displayName;
-    usedPromos=d.usedPromos||{};
   }
+  // Чек стрика
+  checkDailyStreak();
+  // Достроить магазин из Firebase
+  const shopSnap=await get(ref(db,'shop_items'));
+  if(shopSnap.exists()){const si=shopSnap.val();for(const cat of['cars','houses','upgrades']){if(si[cat]){const ex=Object.values(si[cat]);SHOP[cat]=[...SHOP[cat].filter(x=>!ex.find(e=>e.id===x.id)),...ex];}}}
   if(S.tgId)localStorage.setItem('b_tgid',S.tgId);
   localStorage.setItem('b_name',S.displayName);
-  document.getElementById('user-tag').innerText=(S.prefix?S.prefix+" ":"")+S.displayName;
-  document.getElementById('my-id-display').innerText=S.userId;
-  document.getElementById('tg-info-display').innerText=S.tgId?"ID: "+S.tgId:"Гость";
-
-  const shopSnap=await get(ref(db,'shop_items'));
-  if(shopSnap.exists()){
-    const si=shopSnap.val();
-    for(let cat of['cars','houses','upgrades']){
-      if(si[cat]){
-        const extra=Object.values(si[cat]);
-        SHOP_ITEMS[cat]=[...SHOP_ITEMS[cat].filter(x=>!extra.find(e=>e.id===x.id)),...extra];
-      }
-    }
-  }
-
+  document.getElementById('my-id').innerText=S.userId;
+  // Реф код
+  loadRefCode();
+  // Запустить циклы
   setInterval(energyTick,4000);
   setInterval(()=>{S.coins+=S.income;S.totalEarned+=S.income;updateUI();},1000);
   setInterval(syncStats,20000);
-  listenChat();listenLeaderboard();listenAdminPromos();
-  updateUI();renderInventory();syncStats();
+  setInterval(checkEvent,30000);
+  // Слушать Firebase
+  listenLeaderboard();listenAdminPromos();listenChat();listenCrashState();
+  updateUI();renderInventory();renderQuests();syncStats();
+  // Уровень админа из кеша
+  const cl=localStorage.getItem('b_cl');
+  if(cl==='owner'){S.isOwner=true;S.isModer=true;}
+  else if(cl==='moder'){S.isModer=true;}
 }
 
-function energyTick(){
-  if(S.energy<1000){S.energy=Math.min(1000,S.energy+1);updateUI();}
+// ─── STREAK ──────────────────────────────────
+function checkDailyStreak(){
+  const today=Math.floor(Date.now()/86400000);
+  if(S.lastDay===0){S.streak=1;S.lastDay=today;}
+  else if(today===S.lastDay+1){S.streak++;S.lastDay=today;}
+  else if(today>S.lastDay+1){S.streak=1;S.lastDay=today;}
+  // Бонус за стрик
+  if(today!==S.lastDay||S.streak===1){
+    const bonus=S.streak*500;
+    S.coins+=bonus;S.totalEarned+=bonus;
+    setTimeout(()=>{
+      const el=document.getElementById('streak-display');
+      if(el)el.innerText=`📅 Стрик ${S.streak} дней! +${fmt(bonus)} 🪙`;
+      setTimeout(()=>{if(el)el.innerText='';},4000);
+    },1500);
+  }
 }
 
-// ────────────────────────────────────────
-// UI
-// ────────────────────────────────────────
-function fmt(n){return Number(n).toLocaleString('ru');}
-function esc(s){return String(s||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// ─── ENERGY ──────────────────────────────────
+function energyTick(){if(S.energy<1000){S.energy=Math.min(1000,S.energy+1);updateUI();}}
 
+// ─── UI ──────────────────────────────────────
 function updateUI(){
   document.getElementById('coins').innerText=fmt(Math.floor(S.coins));
-  document.getElementById('inc-val').innerText=S.income;
-  document.getElementById('clk-val').innerText=S.clickPower;
+  document.getElementById('inc-val').innerText=fmt(S.income);
+  document.getElementById('clk-val').innerText=fmt(S.clickPower);
   document.getElementById('energy-val').innerText=S.energy;
-  document.getElementById('energy-bar').style.width=(S.energy/10)+'%';
-  let lvl=Math.floor(Math.sqrt(S.totalEarned)/10)+1;
-  document.getElementById('user-lvl').innerText=lvl;
+  document.getElementById('ebar').style.width=(S.energy/10)+'%';
+  document.getElementById('user-lvl').innerText=Math.floor(Math.sqrt(S.totalEarned/100))+1;
   document.getElementById('user-exp').innerText=fmt(Math.floor(S.totalEarned));
-  const clickBtn=document.getElementById('click-btn-el');
-  if(clickBtn)clickBtn.disabled=(S.energy<=0);
-  document.getElementById('user-tag').innerText=(S.prefix?S.prefix+" ":"")+S.displayName;
+  document.getElementById('user-tag').innerText=(S.prefix?'['+S.prefix+'] ':'')+S.displayName;
+  document.getElementById('click-btn-el').disabled=S.energy<=0;
+  document.getElementById('combo-val').innerText=comboCount||1;
+  renderEventBanner();
 }
 
 function syncStats(){
@@ -533,1327 +595,782 @@ function syncStats(){
   set(ref(db,'users/'+S.userId),{
     displayName:S.displayName,userId:S.userId,
     balance:Math.floor(S.coins),totalEarned:Math.floor(S.totalEarned),
-    income:S.income,clickPower:S.clickPower,isAdmin:S.isAdmin,
-    energy:S.energy,prefix:S.prefix,inventory:S.inventory,
-    usedPromos:usedPromos,clanId:S.clanId||null,lastActive:serverTimestamp()
+    income:S.income,clickPower:S.clickPower,
+    energy:S.energy,prefix:S.prefix||"",prefixColor:S.prefixColor||"",
+    inventory:S.inventory,clanId:S.clanId||null,
+    refBy:S.refBy||null,refCode:S.refCode||null,
+    totalClicks:S.totalClicks,totalBought:S.totalBought,
+    totalSpins:S.totalSpins,maxCombo:S.maxCombo,
+    streak:S.streak,lastDay:S.lastDay,
+    completedQuests:S.completedQuests||{},
+    lastActive:serverTimestamp()
   });
+  checkQuestCompletion();
 }
 
-window.openTab=(name)=>{
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active-tab'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+window.openTab=name=>{
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   const tab=document.getElementById('tab-'+name);
-  const nav=document.getElementById('n-'+name);
-  if(tab)tab.classList.add('active-tab');
-  if(nav)nav.classList.add('active');
+  const nav=document.getElementById('nb-'+name);
+  if(tab)tab.classList.add('on');
+  if(nav)nav.classList.add('on');
   if(name==='inventory')renderInventory();
+  if(name==='clans')renderClansUI();
 };
+window.closeModal=()=>document.getElementById('main-modal').classList.remove('on');
+function openModal(html){document.getElementById('modal-body').innerHTML=html;document.getElementById('main-modal').classList.add('on');}
 
-window.closeModal=(id)=>{document.getElementById(id).classList.remove('open');};
+// ─── EVENTS ──────────────────────────────────
+let activeEvent=null;
+async function checkEvent(){
+  const ev=await snap2('global_event');
+  if(ev&&ev.endsAt>Date.now())activeEvent=ev;
+  else activeEvent=null;
+  renderEventBanner();
+}
+function renderEventBanner(){
+  const el=document.getElementById('event-banner-area');if(!el)return;
+  if(!activeEvent){el.innerHTML='';return;}
+  const left=Math.max(0,Math.round((activeEvent.endsAt-Date.now())/60000));
+  const t=activeEvent.type;
+  const icons={multiplier:'⚡',casino:'🎰',rain:'🌧️'};
+  el.innerHTML=`<div class="event-banner">${icons[t]||'🎉'} ИВЕНТ: ${t==='multiplier'?'Множитель дохода ×'+activeEvent.mult:t==='casino'?'Двойной выигрыш в казино!':'Дождь монет!'} · ${left} мин</div>`;
+}
+function getEventMult(){
+  if(!activeEvent||activeEvent.endsAt<=Date.now())return 1;
+  if(activeEvent.type==='multiplier')return activeEvent.mult||1;
+  return 1;
+}
+function getCasinoMult(){
+  if(!activeEvent||activeEvent.endsAt<=Date.now())return 1;
+  if(activeEvent.type==='casino')return activeEvent.mult||1;
+  return 1;
+}
 
-// ────────────────────────────────────────
-// CLICK
-// ────────────────────────────────────────
+// ─── CLICK ───────────────────────────────────
 window.makeClick=()=>{
   if(S.energy<=0)return;
-  S.energy--;S.coins+=S.clickPower;S.totalEarned+=S.clickPower;
+  S.energy--;
+  S.totalClicks++;
+  // Комбо
+  comboCount=Math.min(comboCount+1,50);
+  if(comboTimer)clearTimeout(comboTimer);
+  comboTimer=setTimeout(()=>{comboCount=0;updateUI();},2000);
+  if(comboCount>S.maxCombo){S.maxCombo=comboCount;}
+  const earned=Math.floor(S.clickPower*(1+comboCount*0.05)*getEventMult());
+  S.coins+=earned;S.totalEarned+=earned;
+  document.getElementById('combo-fill').style.width=(comboCount/50*100)+'%';
+  // Анимация
   const btn=document.getElementById('click-btn-el');
-  btn.classList.add('coin-toss');
-  setTimeout(()=>btn.classList.remove('coin-toss'),150);
+  btn.classList.add('popping');setTimeout(()=>btn.classList.remove('popping'),150);
+  // Float +N
+  showFloatText('+'+fmt(earned));
   updateUI();
-  // Взнос в клан за клики
-  if(S.clanId){
-    runTransaction(ref(db,'clans/'+S.clanId+'/members/'+S.userId+'/contribution'),v=>(v||0)+S.clickPower);
-    runTransaction(ref(db,'clans/'+S.clanId+'/totalPower'),v=>(v||0)+S.clickPower);
-  }
+  if(S.clanId)runTransaction(ref(db,'clans/'+S.clanId+'/members/'+S.userId+'/contribution'),v=>(v||0)+earned);
 };
 
-// ────────────────────────────────────────
-// SHOP
-// ────────────────────────────────────────
-window.travelTo=(loc)=>{
-  document.getElementById('city-title').innerText=loc==='Shop'?"🏗️ МУРИНО":"🎰 ОТСО-СИТИ";
-  if(loc==='Shop') renderShop();
-  else renderCasinoMenu();
-  window.openTab('city');
+function showFloatText(text){
+  const el=document.createElement('div');
+  el.innerText=text;
+  el.style.cssText=`position:fixed;top:${200+Math.random()*60}px;left:${Math.random()*60+20}%;color:var(--gold);font-weight:700;font-size:14px;pointer-events:none;z-index:999;animation:fadeUp .8s ease forwards`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),800);
+}
+
+// ─── QUESTS ──────────────────────────────────
+function renderQuests(){
+  const el=document.getElementById('quests-area');if(!el)return;
+  const active=QUESTS.filter(q=>!S.completedQuests[q.id]).slice(0,3);
+  if(!active.length){el.innerHTML='<div style="color:#555;font-size:12px;text-align:center;padding:8px">Все квесты выполнены! 🎉</div>';return;}
+  el.innerHTML='<div class="section-label" style="margin-top:8px">📋 КВЕСТЫ</div>'+active.map(q=>{
+    const cur=Math.min(S[q.field]||0,q.goal);
+    const pct=Math.round(cur/q.goal*100);
+    return`<div class="quest-row"><div style="display:flex;justify-content:space-between;font-size:12px"><span>${q.icon} ${q.label}</span><span style="color:var(--gold)">+${fmt(q.reward)}🪙</span></div><div class="quest-bar"><div class="quest-fill" style="width:${pct}%"></div></div><div style="font-size:10px;color:#555;margin-top:3px">${fmt(cur)} / ${fmt(q.goal)}</div></div>`;
+  }).join('');
+}
+function checkQuestCompletion(){
+  for(const q of QUESTS){
+    if(S.completedQuests[q.id])continue;
+    const cur=S[q.field]||0;
+    if(cur>=q.goal){
+      S.completedQuests[q.id]=true;
+      S.coins+=q.reward;S.totalEarned+=q.reward;
+      updateUI();renderQuests();
+      showModal(`<div style="text-align:center;padding:10px"><div style="font-size:40px">🎉</div><div style="font-size:18px;font-weight:700;color:var(--gold);margin:8px 0">КВЕСТ ВЫПОЛНЕН!</div><div style="color:#ccc">${q.icon} ${q.label}</div><div style="font-size:22px;color:var(--green);margin-top:8px">+${fmt(q.reward)} 🪙</div></div>`);
+    }
+  }
+}
+function showModal(html){openModal(html);}
+
+// ─── SHOP ────────────────────────────────────
+window.travelTo=loc=>{
+  document.getElementById('city-title').innerText=loc==='Shop'?"🏗️ МУРИНО — Магазин":"🎰 ОТСО-СИТИ — Казино";
+  if(loc==='Shop')renderShop();else renderCasinoMenu();
+  openTab('city');
 };
 
 function renderShop(){
-  const ui=document.getElementById('city-ui');
-  let h='<div class="tab-btns" id="shop-tabs"><button class="tab-btn active" onclick="shopCat(\'cars\',this)">🚗 Тачки</button><button class="tab-btn" onclick="shopCat(\'houses\',this)">🏠 Дома</button><button class="tab-btn" onclick="shopCat(\'upgrades\',this)">⚡ Апгрейды</button></div><div id="shop-items"></div>';
-  ui.innerHTML=h;
-  shopCat('cars',document.querySelector('#shop-tabs .tab-btn'));
+  document.getElementById('city-ui').innerHTML=`<div class="tab-strip" id="shop-strip"><span class="tab-chip on" onclick="shopCat('cars',this)">🚗 Тачки</span><span class="tab-chip" onclick="shopCat('houses',this)">🏠 Дома</span><span class="tab-chip" onclick="shopCat('upgrades',this)">⚡ Апгрейды</span></div><div id="shop-items"></div>`;
+  shopCat('cars',document.querySelector('#shop-strip .tab-chip'));
 }
-
 window.shopCat=(cat,el)=>{
-  document.querySelectorAll('#shop-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  const items=SHOP_ITEMS[cat]||[];
-  document.getElementById('shop-items').innerHTML=items.map((item,i)=>{
-    const owned=S.inventory[item.id]||0;
-    const dynP=getDynPrice(item);
-    const stat=(item.i?`+${item.i}/с`:'')+((item.c&&item.i)?' · ':'')+((item.c)?`+${item.c} кл`:'');
-    const priceLabel=owned>0?`${fmt(dynP)}🪙 <small style="color:#666">(×${owned+1})</small>`:fmt(dynP)+'🪙';
-    return`<div class="list-item fade-in" style="border-left-color:${cat==='cars'?'var(--blue)':cat==='houses'?'var(--green)':'var(--purple)'}">
-      <span style="text-align:left"><b>${item.icon} ${esc(item.n)}</b><br><small style="color:#777">${esc(item.desc||'')} ${stat}</small>${owned?`<br><small style="color:var(--gold)">Есть: ${owned} · След. цена: ${fmt(getDynPrice({...item,id:item.id}))}🪙</small>`:''}</span>
-      <button class="buy-btn" onclick="buyItem('${cat}',${i})" ${S.coins<dynP?'disabled':''} style="${S.coins>=dynP?'':'opacity:0.5'}">${priceLabel}</button>
+  document.querySelectorAll('#shop-strip .tab-chip').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('shop-items').innerHTML=SHOP[cat].map((item,i)=>{
+    const own=S.inventory[item.id]||0;
+    const price=getDynPrice(item);
+    const stat=[(item.i?`+${fmt(item.i)}/с`:''),((item.c)?`+${item.c} кл`:'')].filter(Boolean).join(' · ');
+    return`<div class="list-row" style="border-left-color:${cat==='cars'?'var(--blue)':cat==='houses'?'var(--green)':'var(--purple)'}">
+      <span style="text-align:left"><b>${item.icon} ${esc(item.n)}</b><br><small style="color:#666">${esc(item.desc||'')}${stat?' · '+stat:''}</small>${own?`<br><small style="color:var(--gold)">Есть: ${own}</small>`:''}</span>
+      <button class="btn btn-green btn-sm" onclick="buyItem('${cat}',${i})" ${S.coins<price?'disabled':''}>${fmt(price)}🪙${own?` <small style="opacity:.7">×${own+1}</small>`:''}</button>
     </div>`;
   }).join('');
 };
-
-window.buyItem=(cat,idx)=>{
-  const item=SHOP_ITEMS[cat][idx];
-  const price=getDynPrice(item);
+window.buyItem=(cat,i)=>{
+  const item=SHOP[cat][i];const price=getDynPrice(item);
   if(S.coins<price)return alert("Не хватает монет!");
-  S.coins-=price;
-  if(item.i)S.income+=item.i;
-  if(item.c)S.clickPower+=item.c;
+  S.coins-=price;if(item.i)S.income+=item.i;if(item.c)S.clickPower+=item.c;
   S.inventory[item.id]=(S.inventory[item.id]||0)+1;
-  updateUI();syncStats();renderInventory();
-  shopCat(cat,document.querySelector('#shop-tabs .tab-btn.active'));
+  S.totalBought++;
+  updateUI();syncStats();renderInventory();renderQuests();
+  shopCat(cat,document.querySelector('#shop-strip .tab-chip.on'));
 };
 
-// ────────────────────────────────────────
-// INVENTORY
-// ────────────────────────────────────────
-let invCat='cars';
+// ─── INVENTORY ───────────────────────────────
 function renderInventory(){
-  const catMap={cars:'🚗 Тачки',houses:'🏠 Дома',upgrades:'⚡ Апгрейды'};
-  document.getElementById('inv-cat-btns').innerHTML=Object.entries(catMap).map(([k,v])=>
-    `<button class="tab-btn${invCat===k?' active':''}" onclick="invSetCat('${k}')">${v}</button>`).join('');
-  const items=SHOP_ITEMS[invCat].filter(item=>(S.inventory[item.id]||0)>0);
-  if(!items.length){
-    document.getElementById('inv-grid').innerHTML=`<div style="grid-column:1/-1;color:#555;font-size:13px;margin-top:20px">Здесь пусто 😔<br><small>Купи что-нибудь в магазине!</small></div>`;
-    return;
-  }
-  document.getElementById('inv-grid').innerHTML=items.map(item=>`
-    <div class="inv-item" onclick="showItemInfo('${item.id}')">
-      <div class="inv-icon">${item.icon}</div>
-      <div class="inv-name">${esc(item.n)}</div>
-      <div class="inv-qty">x${S.inventory[item.id]}</div>
-    </div>`).join('');
+  const cats={cars:'🚗 Тачки',houses:'🏠 Дома',upgrades:'⚡ Апгрейды'};
+  document.getElementById('inv-tabs').innerHTML=Object.entries(cats).map(([k,v])=>`<span class="tab-chip${invCat===k?' on':''}" onclick="invCat='${k}';renderInventory()">${v}</span>`).join('');
+  const items=SHOP[invCat].filter(it=>(S.inventory[it.id]||0)>0);
+  document.getElementById('inv-grid').innerHTML=items.length?items.map(it=>`<div class="inv-cell" onclick="showItemModal('${it.id}')"><div style="font-size:26px">${it.icon}</div><div style="font-size:9px;color:#999;text-align:center">${esc(it.n)}</div><div style="font-size:11px;color:var(--gold);font-weight:700">×${S.inventory[it.id]}</div></div>`).join(''):`<div style="grid-column:1/-1;color:#444;font-size:13px;margin-top:20px;text-align:center">Пусто 😔</div>`;
 }
-window.invSetCat=(c)=>{invCat=c;renderInventory();};
-
-window.showItemInfo=(id)=>{
-  const item=[...SHOP_ITEMS.cars,...SHOP_ITEMS.houses,...SHOP_ITEMS.upgrades].find(x=>x.id===id);
-  if(!item)return;
-  const qty=S.inventory[id]||0;
-  document.getElementById('item-modal-content').innerHTML=`
-    <div style="font-size:50px">${item.icon}</div>
-    <h3 style="margin:8px 0">${esc(item.n)}</h3>
-    <p style="color:#888">${esc(item.desc||'')}</p>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0">
-      ${item.i?`<span class="score-badge">+${item.i}/с</span>`:''}
-      ${item.c?`<span class="score-badge">+${item.c} клик</span>`:''}
-      <span class="score-badge" style="color:var(--gold)">У тебя: x${qty}</span>
-    </div>`;
-  document.getElementById('item-modal').classList.add('open');
+window.showItemModal=id=>{
+  const it=[...SHOP.cars,...SHOP.houses,...SHOP.upgrades].find(x=>x.id===id);if(!it)return;
+  openModal(`<div style="text-align:center"><div style="font-size:50px">${it.icon}</div><div style="font-size:18px;font-weight:700;margin:8px 0">${esc(it.n)}</div><div style="color:#666;font-size:13px">${esc(it.desc||'')}</div><div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${it.i?`<span class="badge" style="background:#1a2a1a;color:var(--green)">+${it.i}/с</span>`:''}${it.c?`<span class="badge" style="background:#1a1a2a;color:var(--blue)">+${it.c} клик</span>`:''}<span class="badge" style="background:#2a2a00;color:var(--gold)">×${S.inventory[id]||0}</span></div></div>`);
 };
 
-// ────────────────────────────────────────
-// CASINO MENU
-// ────────────────────────────────────────
+// ─── CASINO ──────────────────────────────────
 function renderCasinoMenu(){
   document.getElementById('city-ui').innerHTML=`
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-    <button onclick="showGame('crash')" style="padding:14px 8px;background:#1a1a3a;border:2px solid var(--blue);color:white;border-radius:12px;cursor:pointer;font-weight:bold">🚀<br>CRASH</button>
-    <button onclick="showGame('slots')" style="padding:14px 8px;background:#1a001a;border:2px solid var(--purple);color:white;border-radius:12px;cursor:pointer;font-weight:bold">🎰<br>СЛОТЫ</button>
-    <button onclick="showGame('blackjack')" style="padding:14px 8px;background:#001a00;border:2px solid var(--green);color:white;border-radius:12px;cursor:pointer;font-weight:bold;grid-column:1/-1">🃏<br>БЛЕКДЖЕК</button>
+    <button onclick="showGame('crash')" style="padding:20px 8px;background:#1a1a3a;border:2px solid var(--blue);color:#fff;border-radius:12px;cursor:pointer;font-weight:700;font-size:15px">🚀<br>CRASH</button>
+    <button onclick="showGame('slots')" style="padding:20px 8px;background:#1a001a;border:2px solid var(--purple);color:#fff;border-radius:12px;cursor:pointer;font-weight:700;font-size:15px">🎰<br>СЛОТЫ</button>
+    <button onclick="showGame('blackjack')" style="padding:20px 8px;background:#001a00;border:2px solid var(--green);color:#fff;border-radius:12px;cursor:pointer;font-weight:700;font-size:15px;grid-column:1/-1">🃏<br>БЛЕКДЖЕК</button>
   </div>
   <div id="game-area"></div>`;
 }
-window.showGame=(g)=>{
-  if(g==='crash')renderCrash();
-  else if(g==='slots')renderSlots();
-  else renderBlackjack();
-};
+window.showGame=g=>{if(g==='crash')renderCrash();else if(g==='slots')renderSlots();else renderBJMenu();};
 
-// ════════════════════════════════════════
-// CRASH — исправленный (полностью локальный)
-// ════════════════════════════════════════
-let crashTimer=null;
-let crashState={active:false,mult:1.0,boom:1.0,bet:0};
-
+// ─── CRASH ───────────────────────────────────
 function renderCrash(){
-  stopCrash();
   document.getElementById('game-area').innerHTML=`
-  <div style="background:#111;padding:14px;border-radius:14px">
+  <div style="background:#111;padding:14px;border-radius:14px;text-align:center">
     <h4 style="margin:0 0 6px">🚀 CRASH</h4>
-    <div class="crash-val" id="crash-mult">1.00x</div>
-
-    <div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:10px">
+    <div class="crash-mult" id="crash-mult">⏳ Ожидание...</div>
+    <div class="crash-bar-wrap"><div class="crash-bar" id="crash-bar"></div></div>
+    <div class="flex-row" style="justify-content:center;margin-bottom:10px">
       <span style="font-size:12px;color:#888">Ставка:</span>
-      <input type="number" id="crash-bet" value="100" min="1" style="width:90px;font-size:14px;text-align:center">
+      <input type="number" id="crash-bet" value="100" min="1" style="width:90px;text-align:center">
     </div>
-    <div id="crash-ctrl">
-      <button class="buy-btn" onclick="startCrash()" style="font-size:15px;padding:10px 22px;background:var(--blue)">🚀 ПОСТАВИТЬ</button>
-    </div>
+    <div id="crash-ctrl"><button class="btn btn-blue" onclick="placeCrashBet()">🚀 ПОСТАВИТЬ</button></div>
     <p id="crash-msg" style="font-size:13px;color:#888;min-height:20px;margin:8px 0"></p>
-    <p style="font-size:11px;color:#555;text-align:left;margin:4px 0">Ставки других игроков:</p>
-    <div class="crash-players" id="crash-players-list"></div>
+    <div style="font-size:11px;color:#555;text-align:left;margin-top:4px">Ставки игроков:</div>
+    <div style="background:#0d0d0d;border-radius:8px;padding:7px;max-height:100px;overflow-y:auto" id="crash-players"></div>
   </div>`;
-  listenCrashBets();
 }
 
-function stopCrash(){
-  if(crashTimer){clearInterval(crashTimer);crashTimer=null;}
-  crashState={active:false,mult:1.0,boom:1.0,bet:0};
-}
-
-function listenCrashBets(){
-  onValue(ref(db,'crash_round/bets'),snap=>{
-    const el=document.getElementById('crash-players-list');
-    if(!el)return;
-    if(!snap.exists()){el.innerHTML='';return;}
-    let h='';
-    snap.forEach(c=>{
-      const b=c.val();
-      const cls=b.cashedOut?'won':(b.crashed?'lost':'');
-      const status=b.cashedOut?`✅ ${b.mult}x`:b.crashed?'💥':'...';
-      h+=`<div class="cp-row ${cls}"><span>${esc(b.name)}</span><span>${fmt(b.bet)} → ${status}</span></div>`;
-    });
-    el.innerHTML=h;
-  });
-}
-
-window.startCrash=()=>{
-  if(crashState.active)return;
-  const bet=Number(document.getElementById('crash-bet').value);
-  if(!bet||bet<=0)return alert("Укажи ставку!");
-  if(bet>S.coins)return alert("Недостаточно монет!");
-
-  S.coins-=bet;
-  crashState={active:true,mult:1.0,bet,boom:generateCrashPoint()};
-  updateUI();
-
-  // Записать ставку в Firebase для отображения другим
-  set(ref(db,'crash_round/bets/'+S.userId),{
-    name:S.displayName,bet,cashedOut:false,crashed:false,mult:1
-  });
-
-  document.getElementById('crash-ctrl').innerHTML=
-    `<button onclick="cashoutCrash()" style="background:var(--gold);border:none;color:black;font-size:16px;font-weight:bold;padding:12px 28px;border-radius:8px;cursor:pointer">💰 ЗАБРАТЬ</button>`;
-  document.getElementById('crash-msg').innerText='';
-
-  crashTimer=setInterval(()=>{
-    if(!crashState.active)return;
-
-    // Рост множителя
-    crashState.mult=+(crashState.mult*(1+0.0075)+0.003).toFixed(3);
-
-    const multEl=document.getElementById('crash-mult');
-    if(multEl)multEl.innerText=crashState.mult.toFixed(2)+'x';
-
-    // Обновить свою ставку в Firebase
-    update(ref(db,'crash_round/bets/'+S.userId),{mult:crashState.mult});
-
-    // Краш?
-    if(crashState.mult>=crashState.boom){
-      clearInterval(crashTimer);crashTimer=null;
-      crashState.active=false;
-
-      if(multEl){multEl.innerText='💥 '+crashState.mult.toFixed(2)+'x';multEl.className='crash-val crashed';}
-      update(ref(db,'crash_round/bets/'+S.userId),{crashed:true,mult:crashState.mult});
-
-      document.getElementById('crash-ctrl').innerHTML=
-        `<button class="buy-btn" onclick="startCrash()" style="background:var(--blue);font-size:15px;padding:10px 22px">🚀 ПОСТАВИТЬ</button>`;
-      const msg=document.getElementById('crash-msg');
-      if(msg){msg.style.color='var(--red)';msg.innerText=`💥 Краш на ${crashState.mult.toFixed(2)}x! Проиграл ${fmt(crashState.bet)} 🪙`;}
-      syncStats();
+function listenCrashState(){
+  onValue(ref(db,'crash'),snap=>{
+    if(!snap.exists())return;
+    crashStateCache=snap.val();
+    const st=crashStateCache;
+    const ctrl=document.getElementById('crash-ctrl');
+    const msg=document.getElementById('crash-msg');
+    if(st.phase==='waiting'){
+      if(crashAnimFrame){cancelAnimationFrame(crashAnimFrame);crashAnimFrame=null;}
+      const me=document.getElementById('crash-mult');if(me){me.innerText='⏳ Ожидание...';me.className='crash-mult';}
+      const bar=document.getElementById('crash-bar');if(bar){bar.style.width='0%';bar.style.background='var(--green)';}
+      if(ctrl&&!myBetActive)ctrl.innerHTML=`<button class="btn btn-blue" onclick="placeCrashBet()">🚀 ПОСТАВИТЬ</button>`;
+    } else if(st.phase==='running'){
+      if(!crashAnimFrame)animateCrash();
+    } else if(st.phase==='crashed'){
+      if(crashAnimFrame){cancelAnimationFrame(crashAnimFrame);crashAnimFrame=null;}
+      const me=document.getElementById('crash-mult');if(me){me.innerText='💥 '+(st.crashAt||'?')+'×';me.className='crash-mult busted';}
+      myBetActive=false;
+      if(ctrl)ctrl.innerHTML=`<button class="btn btn-blue" onclick="placeCrashBet()">🚀 ПОСТАВИТЬ</button>`;
+      if(msg)msg.innerText='Краш на '+(st.crashAt||'?')+'×';
     }
-  },80);
-};
-
-function generateCrashPoint(){
-  // Экспоненциальное распределение: чаще краш на 1-3x, редко высоко
-  const r=Math.random();
-  if(r<0.50) return 1.0+Math.random()*0.8;        // 50% — краш 1.0–1.8x (чаще ранний)
-  if(r<0.72) return 1.8+Math.random()*1.7;        // 22% — краш 1.8–3.5x
-  if(r<0.86) return 3.5+Math.random()*6.5;        // 14% — краш 3.5–10x
-  if(r<0.95) return 10.0+Math.random()*15.0;      // 9%  — краш 10–25x
-  return 25.0+Math.random()*75.0;                 // 5%  — краш 25–100x
+    const pb=document.getElementById('crash-players');
+    if(pb&&st.bets){pb.innerHTML=Object.values(st.bets).map(b=>{const cls=b.cashedOut?'cp-won':b.crashed?'cp-lost':'';const status=b.cashedOut?`✅ ${b.cashMult}×`:b.crashed?'💥':'...';return`<div class="cp-row ${cls}"><span>${esc(b.name)}</span><span>${fmt(b.bet)} → ${status}</span></div>`;}).join('');}
+  });
 }
-
-window.cashoutCrash=()=>{
-  if(!crashState.active)return;
-  clearInterval(crashTimer);crashTimer=null;
-  crashState.active=false;
-
-  const mult=crashState.mult;
-  const win=Math.floor(crashState.bet*mult);
-  const profit=win-crashState.bet;
-  S.coins+=win;
-  S.totalEarned+=Math.max(0,profit);
-
-  update(ref(db,'crash_round/bets/'+S.userId),{cashedOut:true,mult:+mult.toFixed(2)});
-
-  const multEl=document.getElementById('crash-mult');
-  if(multEl)multEl.className='crash-val';
-
-  document.getElementById('crash-ctrl').innerHTML=
-    `<button class="buy-btn" onclick="startCrash()" style="background:var(--blue);font-size:15px;padding:10px 22px">🚀 ПОСТАВИТЬ</button>`;
-  const msg=document.getElementById('crash-msg');
-  if(msg){
-    msg.style.color=profit>=0?'var(--green)':'var(--red)';
-    msg.innerText=profit>=0
-      ?`✅ Забрал на ${mult.toFixed(2)}x! +${fmt(profit)} 🪙`
-      :`Забрал на ${mult.toFixed(2)}x. -${fmt(Math.abs(profit))} 🪙`;
-  }
+function calcMult(st){if(!st?.startedAt)return 1;const t=(Date.now()-st.startedAt)/1000;return parseFloat(Math.pow(Math.E,0.09*t).toFixed(2));}
+function animateCrash(){
+  const st=crashStateCache;
+  if(!st||st.phase!=='running'){crashAnimFrame=null;return;}
+  const m=calcMult(st);
+  const me=document.getElementById('crash-mult');
+  const bar=document.getElementById('crash-bar');
+  const ctrl=document.getElementById('crash-ctrl');
+  if(me){me.innerText=m.toFixed(2)+'×';me.className='crash-mult';}
+  if(bar){const p=Math.min(((m-1)/4)*100,100);bar.style.width=p+'%';bar.style.background=p>70?'var(--red)':p>40?'#f39c12':'var(--green)';}
+  if(myBetActive&&ctrl)ctrl.innerHTML=`<button class="btn btn-gold" style="font-size:16px;padding:12px 28px" onclick="doCashout()">💰 ЗАБРАТЬ (${m.toFixed(2)}×)</button>`;
+  crashAnimFrame=requestAnimationFrame(animateCrash);
+}
+window.placeCrashBet=async()=>{
+  const bet=Number(document.getElementById('crash-bet')?.value);
+  if(!bet||bet<=0||bet>S.coins)return alert("Нет монет!");
+  const st=crashStateCache;
+  if(!st||st.phase!=='waiting')return alert("Дождись начала раунда!");
+  S.coins-=bet;updateUI();myBetActive=true;
+  await update(ref(db,'crash/bets/'+S.userId),{name:S.displayName,bet,cashedOut:false,crashed:false});
+  const ctrl=document.getElementById('crash-ctrl');
+  if(ctrl)ctrl.innerHTML=`<button class="btn btn-gold" style="font-size:16px;padding:12px 28px" onclick="doCashout()">💰 ЗАБРАТЬ</button>`;
+};
+window.doCashout=async()=>{
+  if(!myBetActive)return;
+  const st=crashStateCache;if(!st||st.phase!=='running')return;
+  const mult=calcMult(st);
+  const bs=await get(ref(db,'crash/bets/'+S.userId));if(!bs.exists())return;
+  const bet=bs.val().bet||0;
+  const win=Math.floor(bet*mult*getCasinoMult());
+  S.coins+=win;S.totalEarned+=Math.max(0,win-bet);
+  myBetActive=false;
+  await update(ref(db,'crash/bets/'+S.userId),{cashedOut:true,cashMult:parseFloat(mult.toFixed(2))});
+  const msg=document.getElementById('crash-msg');if(msg)msg.innerText=`✅ ${mult.toFixed(2)}× · +${fmt(win-bet)}`;
+  const ctrl=document.getElementById('crash-ctrl');if(ctrl)ctrl.innerHTML=`<button class="btn btn-blue" onclick="placeCrashBet()">🚀 ПОСТАВИТЬ</button>`;
   updateUI();syncStats();
 };
-
-// ════════════════════════════════════════
-// SLOTS
-// ════════════════════════════════════════
-const SYMBOLS=['🍒','🍋','🍊','⭐','💎','🔔','7️⃣','🍀'];
-const SYM_WEIGHT=[28,24,20,16,12,8,5,3]; // немного увеличены шансы на редкие символы
-const SYM_MULT={'🍒':2,'🍋':2.5,'🍊':3,'⭐':4,'💎':6,'🔔':8,'7️⃣':15,'🍀':25};
-let slotReelCount=3;
-let slotSpinning=false;
-
-function weightedSym(){
-  const total=SYM_WEIGHT.reduce((a,b)=>a+b,0);
-  let r=Math.random()*total;
-  for(let i=0;i<SYMBOLS.length;i++){r-=SYM_WEIGHT[i];if(r<=0)return SYMBOLS[i];}
-  return SYMBOLS[0];
+// Краш движок — владелец запускает
+window.maybeDriveCrash=async()=>{
+  const phase=await snap2('crash/phase');
+  if(phase==='running'||phase==='waiting')return;
+  runCrashRound();
+};
+async function runCrashRound(){
+  const crashAt=parseFloat((1+Math.expm1(Math.random()*2.3)).toFixed(2));
+  await set(ref(db,'crash'),{phase:'waiting',mult:1,crashAt,bets:{},startedAt:null});
+  await delay(5000);
+  const startedAt=Date.now();
+  await update(ref(db,'crash'),{phase:'running',startedAt});
+  let m=1.0;
+  while(m<crashAt){
+    await delay(500);
+    const elapsed=(Date.now()-startedAt)/1000;
+    m=parseFloat(Math.pow(Math.E,0.09*elapsed).toFixed(2));
+    if(m>=crashAt)break;
+    await update(ref(db,'crash'),{mult:m});
+  }
+  const bets=await snap2('crash/bets');
+  if(bets){const upd={};for(const[uid,b]of Object.entries(bets)){if(!b.cashedOut)upd['crash/bets/'+uid+'/crashed']=true;}if(Object.keys(upd).length)await update(ref(db),upd);}
+  await update(ref(db,'crash'),{phase:'crashed',mult:crashAt});
+  await delay(4000);
+  runCrashRound();
 }
 
+// ─── SLOTS ───────────────────────────────────
 function renderSlots(){
   document.getElementById('game-area').innerHTML=`
   <div class="slot-machine">
-    <h4 style="margin:0 0 4px;color:var(--purple)">🎰 СЛОТЫ</h4>
+    <h4 style="margin:0 0 8px;color:var(--purple)">🎰 СЛОТЫ</h4>
     <div style="margin-bottom:8px">
-      <span style="font-size:11px;color:#888">Барабанов: </span>
-      ${[3,4,5].map(n=>`<button class="reel-count-btn${n===slotReelCount?' active':''}" onclick="setSlotReels(${n})">${n}</button>`).join(' ')}
+      ${[3,4,5].map(n=>`<button class="tab-chip${n===slotN?' on':''}" onclick="setSlotN(${n})">${n} б.</button>`).join('')}
     </div>
     <div class="slot-reels" id="slot-reels"></div>
-    <div class="slot-win" id="slot-win"></div>
-    <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:6px">
+    <div class="slot-result" id="slot-result"></div>
+    <div class="flex-row" style="justify-content:center;margin-bottom:8px">
       <span style="font-size:12px;color:#888">Ставка:</span>
-      <input type="number" id="slot-bet" value="50" min="1" style="width:80px;font-size:13px">
+      <input type="number" id="slot-bet" value="50" min="1" style="width:80px;text-align:center">
     </div>
-    <div class="slot-btns">
-      <button class="slot-btn" style="background:var(--purple);color:white;font-size:16px;padding:11px 28px" onclick="spinSlots()">🎰 КРУТИТЬ</button>
-    </div>
+    <button class="btn btn-purple btn-full" onclick="spinSlots()">🎰 КРУТИТЬ</button>
     <div style="font-size:10px;color:#555;margin-top:8px">💎×6 · 🔔×8 · 7️⃣×15 · 🍀×25</div>
   </div>`;
   buildReels();
 }
-
-window.setSlotReels=(n)=>{slotReelCount=n;renderSlots();};
-
+window.setSlotN=n=>{slotN=n;renderSlots();};
 function buildReels(){
-  const wrap=document.getElementById('slot-reels');
-  if(!wrap)return;
+  const wrap=document.getElementById('slot-reels');if(!wrap)return;
   wrap.innerHTML='';
-  for(let i=0;i<slotReelCount;i++){
-    const rw=document.createElement('div');rw.className='reel-wrap';rw.id='reel-wrap-'+i;
-    const r=document.createElement('div');r.className='reel';r.id='reel-'+i;
-    for(let j=0;j<8;j++){const s=document.createElement('div');s.className='reel-symbol';s.innerText=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];r.appendChild(s);}
-    rw.appendChild(r);wrap.appendChild(rw);
+  for(let i=0;i<slotN;i++){
+    const ro=document.createElement('div');ro.className='reel-outer';ro.id='ro'+i;
+    const ri=document.createElement('div');ri.className='reel-inner';ri.id='ri'+i;
+    for(let j=0;j<3;j++){const s=document.createElement('div');s.className='reel-sym';s.innerText=SYMS[Math.floor(Math.random()*SYMS.length)];ri.appendChild(s);}
+    ro.appendChild(ri);wrap.appendChild(ro);
   }
 }
-
 window.spinSlots=async()=>{
   if(slotSpinning)return;
   const bet=Number(document.getElementById('slot-bet').value);
-  if(!bet||bet<=0||bet>S.coins)return alert("Недостаточно монет!");
-  S.coins-=bet;updateUI();
-  slotSpinning=true;
-  document.querySelector('[onclick="spinSlots()"]').disabled=true;
-  const results=Array.from({length:slotReelCount},weightedSym);
-  const stopDelays=[600,900,1200,1500,1800];
-  for(let i=0;i<slotReelCount;i++){
-    const rw=document.getElementById('reel-wrap-'+i);
-    if(rw)rw.classList.add('spin');
+  if(!bet||bet<=0||bet>S.coins)return alert("Нет монет!");
+  S.coins-=bet;updateUI();slotSpinning=true;
+  S.totalSpins++;
+  const btn=document.querySelector('[onclick="spinSlots()"]');if(btn)btn.disabled=true;
+  const re=document.getElementById('slot-result');if(re)re.innerText='';
+  const results=Array.from({length:slotN},wsym);
+  for(let i=0;i<slotN;i++){const o=document.getElementById('ro'+i);if(o)o.classList.add('spinning');}
+  for(let i=0;i<slotN;i++){
+    await delay(600+i*350);
+    const o=document.getElementById('ro'+i),r=document.getElementById('ri'+i);if(!o||!r)continue;
+    o.classList.remove('spinning');r.innerHTML='';
+    const s=document.createElement('div');s.className='reel-sym';s.innerText=results[i];r.appendChild(s);
   }
-  for(let i=0;i<slotReelCount;i++){
-    await new Promise(r=>setTimeout(r,stopDelays[i]));
-    const rw=document.getElementById('reel-wrap-'+i);
-    const r=document.getElementById('reel-'+i);
-    if(!rw||!r)continue;
-    rw.classList.remove('spin');
-    r.innerHTML='';
-    const s=document.createElement('div');s.className='reel-symbol';s.innerText=results[i];
-    r.appendChild(s);
-  }
-  await new Promise(r=>setTimeout(r,400));
-  const winEl=document.getElementById('slot-win');
-  const counts={};for(const s of results)counts[s]=(counts[s]||0)+1;
-  const maxCount=Math.max(...Object.values(counts));
-  const maxSym=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+  await delay(400);
+  const cnt={};for(const s of results)cnt[s]=(cnt[s]||0)+1;
+  const maxC=Math.max(...Object.values(cnt));
+  const topS=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];
   let mult=0;
-  if(maxCount===slotReelCount){mult=SYM_MULT[maxSym]||2;}
-  else if(maxCount===slotReelCount-1){mult=(SYM_MULT[maxSym]||2)*0.5;} // частичное — теперь 50% и с 3 барабанов
-  else if(maxCount>=2){mult=(SYM_MULT[maxSym]||2)*0.25;} // пара — увеличен с 0.15 до 0.25
+  if(maxC===slotN)mult=SMULT[topS]||2;
+  else if(maxC===slotN-1&&slotN>=4)mult=(SMULT[topS]||2)*0.4;
+  else if(maxC>=2)mult=(SMULT[topS]||2)*0.15;
+  mult=mult*getCasinoMult();
   if(mult>0){
-    const win=Math.floor(bet*mult);
-    S.coins+=win;S.totalEarned+=win-bet;
-    winEl.className='slot-win won';
-    winEl.innerText=mult>=10?`🎉 ДЖЕКПОТ! +${fmt(win-bet)} 🪙`:`✅ +${fmt(win-bet)} 🪙 (×${mult.toFixed(1)})`;
-  } else {
-    winEl.className='slot-win';
-    winEl.innerText=`❌ -${fmt(bet)} 🪙`;
-  }
-  updateUI();syncStats();
-  slotSpinning=false;
-  const btn=document.querySelector('[onclick="spinSlots()"]');if(btn)btn.disabled=false;
+    const win=Math.floor(bet*mult);S.coins+=win;S.totalEarned+=win-bet;
+    if(re){re.className='slot-result win';re.innerText=mult>=10?`🎉 ДЖЕКПОТ! +${fmt(win-bet)}`:`✅ +${fmt(win-bet)} (×${mult.toFixed(1)})`;}
+  } else {if(re){re.className='slot-result';re.innerText=`❌ -${fmt(bet)}`;}}
+  updateUI();syncStats();renderQuests();slotSpinning=false;if(btn)btn.disabled=false;
 };
 
-// ════════════════════════════════════════
-// BLACKJACK
-// ════════════════════════════════════════
-const SUITS=['♠','♣','♥','♦'];
-const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-let bj={deck:[],player:[],dealer:[],bet:0,over:false,roomId:null,mode:'solo'};
-
-function mkDeck(){
-  let d=[];for(let s of SUITS)for(let r of RANKS)d.push({s,r});
-  for(let i=d.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}
-  return d;
-}
-function cVal(r){if(r==='A')return 11;if(['J','Q','K'].includes(r))return 10;return+r;}
-function hVal(h){let v=0,a=0;for(let c of h){v+=cVal(c.r);if(c.r==='A')a++;}while(v>21&&a>0){v-=10;a--;}return v;}
-function cHTML(c,hidden=false){
-  if(hidden)return`<div class="card hidden">🂠</div>`;
-  const red=['♥','♦'].includes(c.s);
-  return`<div class="card${red?' red':''}">${c.r}<br>${c.s}</div>`;
-}
-
-function renderBlackjack(){
+// ─── BLACKJACK ───────────────────────────────
+function renderBJMenu(){
   document.getElementById('game-area').innerHTML=`
   <div style="background:#111;padding:12px;border-radius:14px">
-    <h4 style="margin:0 0 6px">🃏 БЛЕКДЖЕК</h4>
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
-      <button onclick="bjStartSolo()" style="flex:1;padding:10px;background:#1a3a1a;border:2px solid var(--green);color:white;border-radius:10px;cursor:pointer;font-weight:bold">👤 Соло</button>
-      <button onclick="bjMultiMenu()" style="flex:1;padding:10px;background:#1a1a3a;border:2px solid var(--blue);color:white;border-radius:10px;cursor:pointer;font-weight:bold">👥 Мульти</button>
+    <h4 style="margin:0 0 8px">🃏 БЛЕКДЖЕК</h4>
+    <div class="flex-row" style="justify-content:center;margin-bottom:10px">
+      <span style="font-size:12px;color:#888">Ставка:</span>
+      <input type="number" id="bj-bet" value="200" min="1" style="width:90px;text-align:center">
     </div>
-    <input type="number" id="bj-bet-input" value="200" min="1" style="width:80%;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <button class="btn btn-green" onclick="bjSolo()">👤 Соло</button>
+      <button class="btn btn-blue" onclick="bjMultiMenu()">👥 Мульти</button>
+    </div>
     <div id="bj-area"></div>
   </div>`;
 }
-
-window.bjStartSolo=()=>{
-  bj.mode='solo';
-  const bet=Number(document.getElementById('bj-bet-input').value);
-  if(!bet||bet<=0||bet>S.coins)return alert("Недостаточно монет!");
-  bj.bet=bet;S.coins-=bet;bj.deck=mkDeck();
-  bj.player=[bj.deck.pop(),bj.deck.pop()];
-  bj.dealer=[bj.deck.pop(),bj.deck.pop()];
-  bj.over=false;renderBJ(true);updateUI();
-  if(hVal(bj.player)===21)bjEnd("blackjack");
+window.bjSolo=()=>{
+  const bet=Number(document.getElementById('bj-bet').value);
+  if(!bet||bet<=0||bet>S.coins)return alert("Нет монет!");
+  S.coins-=bet;updateUI();
+  const deck=mkDeck();const player=[deck.pop(),deck.pop()],dealer=[deck.pop(),deck.pop()];
+  bjS={bet,deck,player,dealer,done:false};
+  renderBJSolo(true);if(hVal(player)===21)bjSoloEnd("blackjack");
 };
-
-function renderBJ(dealerHidden){
-  const pv=hVal(bj.player),dv=hVal(bj.dealer);
-  const dCards=dealerHidden?cHTML(bj.dealer[0])+cHTML(null,true):bj.dealer.map(c=>cHTML(c)).join('');
-  const pCards=bj.player.map(c=>cHTML(c)).join('');
-  const dScore=dealerHidden?cVal(bj.dealer[0].r):dv;
-  const btns=bj.over
-    ?`<button class="bj-btn" style="background:var(--blue);color:white" onclick="bjStartSolo()">🃏 Ещё раз</button>`
-    :`<button class="bj-btn" style="background:var(--green);color:white" onclick="bjHit()">➕ ЕЩЁ</button>
-      <button class="bj-btn" style="background:var(--red);color:white" onclick="bjStand()">✋ СТОП</button>
-      ${pv<=11?`<button class="bj-btn" style="background:var(--purple);color:white" onclick="bjDouble()">2️⃣ x2</button>`:''}`;
-  document.getElementById('bj-area').innerHTML=`
-    <div class="bj-table">
-      <div style="background:#1a1000;border:1px solid #3a2a00;border-radius:10px;padding:10px;margin-bottom:8px">
-        <div style="font-size:12px;color:#aaa">Дилер <span class="score-badge">${dScore}</span></div>
-        <div class="cards-row">${dCards}</div>
-      </div>
-      <div style="background:#001a00;border:1px solid #003a00;border-radius:10px;padding:10px">
-        <div style="font-size:12px;color:#aaa">Ты <span class="score-badge">${pv}</span></div>
-        <div class="cards-row">${pCards}</div>
-      </div>
+function renderBJSolo(hidden){
+  const pv=hVal(bjS.player),dv=hVal(bjS.dealer);
+  const el=document.getElementById('bj-area');if(!el)return;
+  const dCards=hidden?cardHTML(bjS.dealer[0])+cardHTML(null,true):bjS.dealer.map(c=>cardHTML(c)).join('');
+  const pCards=bjS.player.map(c=>cardHTML(c)).join('');
+  const ds=hidden?cVal(bjS.dealer[0].r):dv;
+  const btns=bjS.done?`<button class="btn btn-blue" onclick="bjSolo()">🃏 Ещё раз</button>`:
+    `<button class="btn btn-green" onclick="bjHit()">➕ ЕЩЁ</button>
+     <button class="btn btn-red" onclick="bjStand()">✋ СТОП</button>
+     ${pv<=11?`<button class="btn btn-purple" onclick="bjDouble()">2️⃣ ×2</button>`:''}`;
+  el.innerHTML=`<div class="bj-felt">
+    <div style="background:#00000044;border-radius:9px;padding:9px;margin-bottom:7px">
+      <div style="font-size:12px;color:#aaa">Дилер <span class="score-pill">${ds}</span></div>
+      <div class="cards-row">${dCards}</div>
     </div>
-    <div id="bj-msg" style="font-size:16px;font-weight:bold;min-height:22px;color:var(--gold);margin:6px 0"></div>
-    <div>${btns}</div>`;
+    <div style="background:#00000044;border-radius:9px;padding:9px">
+      <div style="font-size:12px;color:#aaa">Ты <span class="score-pill">${pv}</span></div>
+      <div class="cards-row">${pCards}</div>
+    </div>
+    <div id="bj-msg" style="font-size:16px;font-weight:700;min-height:22px;color:var(--gold);margin:8px 0;text-align:center"></div>
+    <div class="flex-row" style="justify-content:center">${btns}</div>
+  </div>`;
 }
-
-window.bjHit=()=>{bj.player.push(bj.deck.pop());hVal(bj.player)>21?bjEnd("bust"):renderBJ(true);};
-window.bjStand=()=>{
-  while(hVal(bj.dealer)<17)bj.dealer.push(bj.deck.pop());
-  const pv=hVal(bj.player),dv=hVal(bj.dealer);
-  if(dv>21||pv>dv)bjEnd("win");else if(pv===dv)bjEnd("push");else bjEnd("lose");
-};
-window.bjDouble=()=>{
-  if(S.coins<bj.bet)return alert("Нет монет для удвоения!");
-  S.coins-=bj.bet;bj.bet*=2;updateUI();
-  bj.player.push(bj.deck.pop());
-  hVal(bj.player)>21?bjEnd("bust"):bjStand();
-};
-function bjEnd(res){
-  bj.over=true;renderBJ(false);
+window.bjHit=()=>{bjS.player.push(bjS.deck.pop());hVal(bjS.player)>21?bjSoloEnd("bust"):renderBJSolo(true);};
+window.bjStand=()=>{while(hVal(bjS.dealer)<17)bjS.dealer.push(bjS.deck.pop());const pv=hVal(bjS.player),dv=hVal(bjS.dealer);if(dv>21||pv>dv)bjSoloEnd("win");else if(pv===dv)bjSoloEnd("push");else bjSoloEnd("lose");};
+window.bjDouble=()=>{if(S.coins<bjS.bet)return alert("Нет монет!");S.coins-=bjS.bet;bjS.bet*=2;updateUI();bjS.player.push(bjS.deck.pop());hVal(bjS.player)>21?bjSoloEnd("bust"):bjStand();};
+function bjSoloEnd(res){
+  bjS.done=true;renderBJSolo(false);
   let msg='',win=0;
-  if(res==="blackjack"){win=Math.floor(bj.bet*2.5);msg="🃏 БЛЕКДЖЕК! +"+fmt(win-bj.bet);}
-  else if(res==="win"){win=bj.bet*2;msg="✅ ПОБЕДА! +"+fmt(win-bj.bet);}
-  else if(res==="push"){win=bj.bet;msg="🤝 НИЧЬЯ";}
-  else if(res==="bust"){msg="💥 ПЕРЕБОР! -"+fmt(bj.bet);}
-  else{msg="❌ ПРОИГРЫШ! -"+fmt(bj.bet);}
-  S.coins+=win;S.totalEarned+=Math.max(0,win-bj.bet);
+  const cm=getCasinoMult();
+  if(res==="blackjack"){win=Math.floor(bjS.bet*2.5*cm);msg="🃏 БЛЕКДЖЕК! +"+fmt(win-bjS.bet);}
+  else if(res==="win"){win=Math.floor(bjS.bet*2*cm);msg="✅ ПОБЕДА! +"+fmt(win-bjS.bet);}
+  else if(res==="push"){win=bjS.bet;msg="🤝 НИЧЬЯ";}
+  else if(res==="bust"){msg="💥 ПЕРЕБОР! -"+fmt(bjS.bet);}
+  else{msg="❌ ПРОИГРЫШ! -"+fmt(bjS.bet);}
+  S.coins+=win;S.totalEarned+=Math.max(0,win-bjS.bet);
   const el=document.getElementById('bj-msg');if(el)el.innerText=msg;
   updateUI();syncStats();
 }
-
 window.bjMultiMenu=()=>{
-  const bet=Number(document.getElementById('bj-bet-input').value);
-  if(!bet||bet<=0||bet>S.coins)return alert("Сначала укажи ставку!");
-  document.getElementById('bj-area').innerHTML=`
-  <div style="text-align:left">
-    <p style="color:#888;font-size:13px">Комнаты:</p>
-    <div id="bj-rooms-list" style="max-height:200px;overflow-y:auto"></div>
-    <div style="display:flex;gap:6px;margin-top:10px">
-      <button class="buy-btn" onclick="bjCreateRoom(${bet})">➕ Создать комнату</button>
-    </div>
-  </div>`;
-  listenBJRooms(bet);
-};
-
-function listenBJRooms(bet){
+  const bet=Number(document.getElementById('bj-bet').value);
+  if(!bet||bet<=0||bet>S.coins)return alert("Нет монет!");
+  const el=document.getElementById('bj-area');
+  el.innerHTML=`<div><div id="bj-rooms" style="max-height:200px;overflow-y:auto"></div><button class="btn btn-green btn-full" style="margin-top:8px" onclick="bjCreateRoom(${bet})">➕ Создать комнату</button></div>`;
   onValue(ref(db,'bj_rooms'),snap=>{
-    const el=document.getElementById('bj-rooms-list');if(!el)return;
-    if(!snap.exists()){el.innerHTML='<p style="color:#555;font-size:12px">Нет открытых комнат</p>';return;}
-    let h='';
-    snap.forEach(r=>{
-      const rm=r.val();
-      if(rm.status!=='waiting')return;
-      const cnt=Object.keys(rm.players||{}).length;
-      h+=`<div class="list-item fade-in" style="cursor:pointer" onclick="bjJoinRoom('${r.key}',${bet})">
-        <span><b>${esc(rm.hostName)}</b>'s room<br><small style="color:#888">Игроков: ${cnt}/4 · Ставка: ${fmt(rm.bet||0)}🪙</small></span>
-        <button class="buy-btn" style="font-size:11px;padding:5px 9px">ВОЙТИ</button>
-      </div>`;
-    });
-    el.innerHTML=h||'<p style="color:#555;font-size:12px">Нет открытых комнат</p>';
+    const re=document.getElementById('bj-rooms');if(!re)return;
+    if(!snap.exists()){re.innerHTML='<div style="color:#555;font-size:12px">Нет комнат</div>';return;}
+    let h='';snap.forEach(r=>{const rm=r.val();if(rm.status!=='waiting')return;const cnt=Object.keys(rm.players||{}).length;h+=`<div class="list-row" style="cursor:pointer" onclick="bjJoinRoom('${r.key}',${bet})"><span><b>${esc(rm.hostName)}'s room</b><br><small style="color:#888">${cnt}/4 · ${fmt(rm.bet)}🪙</small></span><button class="btn btn-blue btn-sm">ВОЙТИ</button></div>`;});
+    re.innerHTML=h||'<div style="color:#555;font-size:12px">Нет комнат</div>';
   });
-}
-
-window.bjCreateRoom=async(bet)=>{
-  if(S.coins<bet)return alert("Нет монет!");
-  const roomKey=push(ref(db,'bj_rooms')).key;
-  await set(ref(db,'bj_rooms/'+roomKey),{
-    hostId:S.userId,hostName:S.displayName,bet,status:'waiting',
-    players:{[S.userId]:{name:S.displayName,bet,cards:[],score:0,done:false}},
-    dealer:[],deck:[],created:serverTimestamp()
-  });
-  bjJoinRoom(roomKey,bet);
 };
-
+window.bjCreateRoom=async bet=>{
+  if(S.coins<bet)return;
+  const roomId=push(ref(db,'bj_rooms')).key;
+  await set(ref(db,'bj_rooms/'+roomId),{hostId:S.userId,hostName:S.displayName,bet,status:'waiting',players:{[S.userId]:{name:S.displayName,bet,cards:[],score:0,done:false}},dealer:[],deck:[],created:serverTimestamp()});
+  bjJoinRoom(roomId,bet);
+};
 window.bjJoinRoom=async(roomId,bet)=>{
-  const snap=await get(ref(db,'bj_rooms/'+roomId));
-  if(!snap.exists())return alert("Комната не найдена");
-  const rm=snap.val();
-  if(rm.status!=='waiting')return alert("Игра уже идёт");
-  if(S.coins<bet)return alert("Нет монет для ставки!");
+  const snap=await get(ref(db,'bj_rooms/'+roomId));if(!snap.exists())return;
+  const rm=snap.val();if(rm.status!=='waiting')return alert("Игра уже идёт");
+  if(S.coins<bet)return alert("Нет монет!");
   S.coins-=bet;updateUI();
   await update(ref(db,'bj_rooms/'+roomId+'/players/'+S.userId),{name:S.displayName,bet,cards:[],score:0,done:false});
-  bj.roomId=roomId;bj.bet=bet;bj.mode='multi';
-  renderBJMultiLobby(roomId);
+  bjS={roomId,bet,mode:'multi'};
+  renderBJLobby(roomId);
 };
-
-function renderBJMultiLobby(roomId){
-  document.getElementById('bj-area').innerHTML=`
-  <div class="bj-table">
-    <p style="color:#aaa;font-size:13px">Ожидание игроков...</p>
-    <div id="bj-multi-players" style="text-align:left"></div>
-    <div id="bj-multi-ctrl" style="margin-top:10px"></div>
-  </div>`;
+function renderBJLobby(roomId){
+  const el=document.getElementById('bj-area');
+  el.innerHTML=`<div class="bj-felt"><div id="bj-lobby-players"></div><div id="bj-lobby-ctrl" style="margin-top:10px"></div></div>`;
   onValue(ref(db,'bj_rooms/'+roomId),snap=>{
     if(!snap.exists())return;
     const rm=snap.val();
-    const players=Object.entries(rm.players||{});
-    const pEl=document.getElementById('bj-multi-players');
-    if(pEl)pEl.innerHTML=players.map(([uid,p])=>`<div class="bj-player-row${uid===S.userId?' active-player':''}"><span>${esc(p.name)}</span><span style="color:var(--gold)">${fmt(p.bet||0)}🪙</span></div>`).join('');
-    const ctrl=document.getElementById('bj-multi-ctrl');
-    if(ctrl){
-      if(rm.hostId===S.userId&&players.length>=2&&rm.status==='waiting'){
-        ctrl.innerHTML=`<button class="buy-btn" style="width:100%;font-size:15px;padding:11px" onclick="bjMultiStart('${roomId}')">▶️ НАЧАТЬ ИГРУ (${players.length} игрока)</button>`;
-      } else if(rm.status==='waiting'){
-        ctrl.innerHTML=`<p style="color:#555;font-size:12px">Ждём хоста...</p>`;
-      } else if(rm.status==='playing'||rm.status==='done'){
-        renderBJMultiGame(rm,roomId);
-      }
+    const pl=Object.entries(rm.players||{});
+    const pe=document.getElementById('bj-lobby-players');
+    if(pe)pe.innerHTML=pl.map(([uid,p])=>`<div class="list-row" style="border-left-color:${uid===S.userId?'var(--gold)':'var(--blue)'}"><span>${esc(p.name)}</span><span style="color:var(--gold)">${fmt(p.bet)}🪙</span></div>`).join('');
+    const ce=document.getElementById('bj-lobby-ctrl');
+    if(ce){
+      if(rm.status==='playing'||rm.status==='done'){renderBJMultiGame(rm,roomId);}
+      else if(rm.hostId===S.userId&&pl.length>=2){ce.innerHTML=`<button class="btn btn-green btn-full" onclick="bjMultiStart('${roomId}')">▶️ НАЧАТЬ (${pl.length} игрока)</button>`;}
+      else{ce.innerHTML=`<div style="color:#555;font-size:12px">Ожидаем хоста...</div>`;}
     }
   });
 }
-
-window.bjMultiStart=async(roomId)=>{
+window.bjMultiStart=async roomId=>{
   const snap=await get(ref(db,'bj_rooms/'+roomId));if(!snap.exists())return;
   const rm=snap.val();const deck=mkDeck();const dealer=[deck.pop(),deck.pop()];
   const players={};
   for(const[uid,p]of Object.entries(rm.players||{})){players[uid]={...p,cards:[deck.pop(),deck.pop()],done:false};players[uid].score=hVal(players[uid].cards);}
   await set(ref(db,'bj_rooms/'+roomId),{...rm,status:'playing',deck,dealer,players,startedAt:serverTimestamp()});
 };
-
 function renderBJMultiGame(rm,roomId){
   const me=rm.players?.[S.userId];if(!me)return;
-  const dealer=rm.dealer||[];
-  const pv=me.cards?hVal(me.cards):0;
   const el=document.getElementById('bj-area');if(!el)return;
   const allDone=Object.values(rm.players||{}).every(p=>p.done);
-  const dCards=allDone?dealer.map(c=>cHTML(c)).join(''):cHTML(dealer[0])+cHTML(null,true);
-  const myCards=me.cards?me.cards.map(c=>cHTML(c)).join(''):'';
-  const otherPlayers=Object.entries(rm.players||{}).filter(([uid])=>uid!==S.userId).map(([uid,p])=>`<div class="bj-player-row${p.done?'':' active-player'}"><span>${esc(p.name)} <span class="score-badge">${p.score||0}</span></span><span style="font-size:11px;color:${p.done?'#555':'var(--green)'}">${p.done?'✓':'играет...'}</span></div>`).join('');
+  const dCards=allDone?rm.dealer.map(c=>cardHTML(c)).join(''):cardHTML(rm.dealer[0])+cardHTML(null,true);
+  const myCards=(me.cards||[]).map(c=>cardHTML(c)).join('');
+  const pv=hVal(me.cards||[]);
+  const others=Object.entries(rm.players||{}).filter(([uid])=>uid!==S.userId).map(([,p])=>`<div class="list-row" style="font-size:11px"><span>${esc(p.name)} <span class="score-pill">${p.score||0}</span></span><span>${p.done?'✓':'...'}</span></div>`).join('');
   const myBtns=me.done?'':
-    `<button class="bj-btn" style="background:var(--green);color:white" onclick="bjMultiHit('${roomId}')">➕ ЕЩЁ</button>
-     <button class="bj-btn" style="background:var(--red);color:white" onclick="bjMultiStand('${roomId}')">✋ СТОП</button>`;
-  el.innerHTML=`<div class="bj-table">
-    <div style="background:#1a1000;border-radius:8px;padding:8px;margin-bottom:6px">
-      <div style="font-size:11px;color:#aaa">Дилер ${!allDone?`<span class="score-badge">${cVal(dealer[0]?.r)}</span>`:`<span class="score-badge">${hVal(dealer)}</span>`}</div>
+    `<button class="btn btn-green" onclick="bjMHit('${roomId}')">➕ ЕЩЁ</button>
+     <button class="btn btn-red" onclick="bjMStand('${roomId}')">✋ СТОП</button>`;
+  el.innerHTML=`<div class="bj-felt">
+    <div style="padding:8px;background:#00000044;border-radius:8px;margin-bottom:6px">
+      <div style="font-size:11px;color:#aaa">Дилер</div>
       <div class="cards-row">${dCards}</div>
     </div>
-    ${otherPlayers?`<div style="margin-bottom:6px">${otherPlayers}</div>`:''}
-    <div style="background:#001a00;border-radius:8px;padding:8px">
-      <div style="font-size:11px;color:#aaa">Ты <span class="score-badge">${pv}</span>${me.done?' ✓':''}</div>
+    ${others?`<div style="margin-bottom:6px">${others}</div>`:''}
+    <div style="padding:8px;background:#00000044;border-radius:8px">
+      <div style="font-size:11px;color:#aaa">Ты <span class="score-pill">${pv}</span></div>
       <div class="cards-row">${myCards}</div>
     </div>
-    <div id="bj-multi-result" style="font-size:13px;color:var(--gold);min-height:20px;margin:6px 0"></div>
-    <div>${myBtns}</div>
+    <div id="bj-result" style="font-size:14px;color:var(--gold);min-height:20px;margin:8px 0;text-align:center"></div>
+    <div class="flex-row" style="justify-content:center">${myBtns}</div>
   </div>`;
-  if(allDone)showMultiResults(rm,hVal(dealer),roomId);
+  if(allDone)bjMPay(rm,roomId);
 }
-
-window.bjMultiHit=async(roomId)=>{
+window.bjMHit=async roomId=>{
   const snap=await get(ref(db,'bj_rooms/'+roomId));const rm=snap.val();
   const deck=[...rm.deck];const card=deck.pop();
   const cards=[...(rm.players[S.userId].cards||[]),card];
   const score=hVal(cards);const done=score>=21;
   await update(ref(db,'bj_rooms/'+roomId+'/players/'+S.userId),{cards,score,done});
-  if(done)await checkAllDone(roomId);
+  if(done)await bjMCheckDone(roomId);
 };
-window.bjMultiStand=async(roomId)=>{
+window.bjMStand=async roomId=>{
   const snap=await get(ref(db,'bj_rooms/'+roomId));const rm=snap.val();
-  const score=hVal(rm.players[S.userId].cards||[]);
-  await update(ref(db,'bj_rooms/'+roomId+'/players/'+S.userId),{done:true,score});
-  await checkAllDone(roomId);
+  await update(ref(db,'bj_rooms/'+roomId+'/players/'+S.userId),{done:true,score:hVal(rm.players[S.userId].cards||[])});
+  await bjMCheckDone(roomId);
 };
-async function checkAllDone(roomId){
+async function bjMCheckDone(roomId){
   const snap=await get(ref(db,'bj_rooms/'+roomId));const rm=snap.val();
   if(Object.values(rm.players||{}).every(p=>p.done)){
-    const deck=[...rm.deck];const dealer=[...rm.dealer];
+    const deck=[...rm.deck],dealer=[...rm.dealer];
     while(hVal(dealer)<17)dealer.push(deck.pop());
     await update(ref(db,'bj_rooms/'+roomId),{dealer,deck,status:'done'});
   }
 }
-function showMultiResults(rm,dv,roomId){
-  const me=rm.players?.[S.userId];if(!me)return;
-  const pv=hVal(me.cards||[]);
-  let msg='',win=0;
+async function bjMPay(rm,roomId){
+  const me=rm.players[S.userId];if(!me||me.paid)return;
+  const dv=hVal(rm.dealer||[]),pv=hVal(me.cards||[]);
+  let win=0,msg='';const cm=getCasinoMult();
   if(pv>21){msg="💥 ПЕРЕБОР!";}
-  else if(dv>21||pv>dv){win=me.bet*2;msg="✅ +"+fmt(win-me.bet);}
-  else if(pv===dv){win=me.bet;msg="🤝 Ничья";}
+  else if(dv>21||pv>dv){win=Math.floor(me.bet*2*cm);msg="✅ +"+fmt(win-me.bet);}
+  else if(pv===dv){win=me.bet;msg="🤝 НИЧЬЯ";}
   else{msg="❌ -"+fmt(me.bet);}
   S.coins+=win;S.totalEarned+=Math.max(0,win-me.bet);
+  await update(ref(db,'bj_rooms/'+roomId+'/players/'+S.userId),{paid:true});
+  const re=document.getElementById('bj-result');if(re)re.innerText=msg;
   updateUI();syncStats();
-  const el=document.getElementById('bj-multi-result');
-  if(el)el.innerText=msg+" (Дилер: "+dv+")";
-  if(rm.hostId===S.userId){setTimeout(()=>remove(ref(db,'bj_rooms/'+roomId)),8000);}
+  if(rm.hostId===S.userId)setTimeout(()=>remove(ref(db,'bj_rooms/'+roomId)),10000);
 }
 
-// ════════════════════════════════════════
-// PROMO
-// ════════════════════════════════════════
+// ─── CHAT ─────────────────────────────────────
+window.sendMessage=()=>{
+  if(!S.userId)return;
+  const inp=document.getElementById('chat-input');const txt=inp.value.trim();if(!txt||txt.length>200)return;
+  push(ref(db,'chat'),{userId:S.userId,user:S.displayName,text:txt,prefix:S.prefix||null,prefixColor:S.prefixColor||null,isOwner:S.isOwner||false,time:serverTimestamp()});
+  inp.value='';
+};
+document.getElementById('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendMessage();});
+function listenChat(){
+  onValue(query(ref(db,'chat'),limitToLast(40)),snap=>{
+    let h='';
+    snap.forEach(c=>{
+      const m=c.val();if(!m?.user)return;
+      const isSys=m.userId==='СИСТЕМА';
+      const safeU=esc(m.user),safeT=esc(m.text||'');
+      let pfx='';
+      if(m.prefix){const col=m.isOwner?'#e74c3c':(m.prefixColor||'#9b59b6');pfx=`<span style="color:${col};font-size:10px;font-weight:700;background:${col}22;padding:1px 5px;border-radius:3px;margin-right:4px">${esc(m.prefix)}</span>`;}
+      const nc=isSys?'var(--gold)':m.isOwner?'#e74c3c':'var(--blue)';
+      const click=isSys?'':`onclick="sendGift('${esc(m.userId)}','${safeU}')"`;
+      h+=`<div class="chat-msg">${pfx}<span class="chat-name" style="color:${nc}" ${click}>${safeU}</span>: ${safeT}</div>`;
+    });
+    const box=document.getElementById('chat-box');if(box){box.innerHTML=h;box.scrollTop=9999;}
+  });
+}
+window.sendGift=(tid,tn)=>{
+  if(!tid||tid===S.userId||tid==='СИСТЕМА')return;
+  if(S.coins<500)return alert("Нужно 500 🪙");
+  if(!confirm("Подарить 500 🪙 → "+tn+"?"))return;
+  runTransaction(ref(db,'users/'+tid+'/balance'),b=>(b||0)+500);
+  S.coins-=500;updateUI();syncStats();
+  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:"🎁 "+S.displayName+" подарил 500 🪙 → "+tn,time:serverTimestamp()});
+};
+
+// ─── LEADERBOARD ─────────────────────────────
+window.lbSort=field=>{
+  lbField=field;
+  document.getElementById('lb-bal').className=field==='balance'?'btn btn-gold btn-sm':'btn btn-ghost btn-sm';
+  document.getElementById('lb-earn').className=field==='totalEarned'?'btn btn-gold btn-sm':'btn btn-ghost btn-sm';
+  renderLB();
+};
+function listenLeaderboard(){
+  onValue(query(ref(db,'users'),orderByChild('totalEarned'),limitToLast(50)),snap=>{
+    allPlayers=[];snap.forEach(s=>{const v=s.val();if(v?.userId)allPlayers.push(v);});renderLB();
+  });
+}
+function renderLB(){
+  const sorted=[...allPlayers].sort((a,b)=>(b[lbField]||0)-(a[lbField]||0));
+  const myRank=sorted.findIndex(p=>p.userId===S.userId)+1;
+  const re=document.getElementById('lb-rank');if(re)re.innerText=myRank>0?"Твоё место: #"+myRank+" из "+sorted.length:'';
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('lb-list').innerHTML=sorted.slice(0,30).map((p,i)=>{
+    const val=p[lbField]||0;
+    const pfx=p.prefix?`<span style="color:${p.prefixColor||'#9b59b6'};font-size:10px;margin-right:3px">[${esc(p.prefix)}]</span>`:'';
+    return`<div class="lb-row${p.userId===S.userId?' me':''}" onclick="sendGift('${esc(p.userId)}','${esc(p.displayName||p.userId)}')"><span>${medals[i]||'#'+(i+1)} ${pfx}${esc(p.displayName||p.userId)}</span><b style="color:var(--gold)">${fmt(val)}🪙</b></div>`;
+  }).join('');
+}
+
+// ─── CLANS ───────────────────────────────────
+window.renderClansUI=async()=>{
+  const ui=document.getElementById('clan-ui');if(!ui)return;
+  ui.innerHTML='<div style="color:#555;font-size:12px;margin:20px 0;text-align:center">Загрузка...</div>';
+  if(S.clanId){const snap=await get(ref(db,'clans/'+S.clanId));if(snap.exists()){renderMyClan(snap.val(),S.clanId);return;}S.clanId=null;}
+  const snap=await get(ref(db,'clans'));
+  let html=`<button class="btn btn-purple btn-full" style="margin-bottom:12px" onclick="showCreateClan()">➕ СОЗДАТЬ КЛАН (5000🪙)</button><div class="section-label">Кланы</div>`;
+  if(snap.exists()){snap.forEach(c=>{const cl=c.val();const mc=Object.keys(cl.members||{}).length;html+=`<div class="clan-banner" style="cursor:pointer" onclick="joinClanConfirm('${c.key}','${esc(cl.name)}')"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:16px;font-weight:700">${esc(cl.icon||'⚔️')} ${esc(cl.name)}</div><div style="font-size:11px;color:#888;margin-top:3px">${mc} участников · Казна: ${fmt(cl.treasury||0)}🪙</div>${cl.description?`<div style="font-size:11px;color:#666;margin-top:2px">${esc(cl.description)}</div>`:''}</div><button class="btn btn-purple btn-sm">ВСТУПИТЬ</button></div></div>`;});}
+  else html+='<div style="color:#555;font-size:12px;padding:10px 0">Нет кланов</div>';
+  ui.innerHTML=html;
+};
+window.showCreateClan=()=>{openModal(`<div style="font-size:15px;font-weight:700;margin-bottom:12px">⚔️ Создать клан</div><input type="text" id="cn-icon" placeholder="Иконка 🔥" style="width:25%;margin-bottom:7px"><input type="text" id="cn-name" placeholder="Название" style="margin-bottom:7px"><input type="text" id="cn-desc" placeholder="Описание" style="margin-bottom:12px"><button class="btn btn-purple btn-full" onclick="createClan()">СОЗДАТЬ ЗА 5000🪙</button>`);};
+window.createClan=async()=>{
+  if(S.coins<5000)return alert("Нужно 5000🪙!");
+  const name=document.getElementById('cn-name')?.value.trim(),icon=document.getElementById('cn-icon')?.value.trim()||'⚔️',desc=document.getElementById('cn-desc')?.value.trim();
+  if(!name||name.length<2)return alert("Введи название!");
+  S.coins-=5000;updateUI();
+  const key=push(ref(db,'clans')).key;
+  await set(ref(db,'clans/'+key),{name,icon,description:desc||'',ownerId:S.userId,ownerName:S.displayName,treasury:0,totalEarned:0,members:{[S.userId]:{name:S.displayName,role:'leader',contributed:0,joinedAt:Date.now()}},createdAt:serverTimestamp()});
+  S.clanId=key;await update(ref(db,'users/'+S.userId),{clanId:key});
+  closeModal();syncStats();renderClansUI();
+};
+window.joinClanConfirm=async(clanId,clanName)=>{
+  if(S.clanId){if(!confirm("Выйти и вступить в "+clanName+"?"))return;await leaveClanInternal();}
+  await update(ref(db,'clans/'+clanId+'/members/'+S.userId),{name:S.displayName,role:'member',contributed:0,joinedAt:Date.now()});
+  S.clanId=clanId;await update(ref(db,'users/'+S.userId),{clanId});syncStats();renderClansUI();
+};
+async function leaveClanInternal(){if(!S.clanId)return;await remove(ref(db,'clans/'+S.clanId+'/members/'+S.userId));S.clanId=null;await update(ref(db,'users/'+S.userId),{clanId:null});}
+function renderMyClan(clan,clanId){
+  const ui=document.getElementById('clan-ui');if(!ui)return;
+  const members=Object.entries(clan.members||{});
+  const isOwn=clan.ownerId===S.userId;
+  const myC=(clan.members?.[S.userId]?.contributed)||0;
+  const mHTML=members.map(([,m])=>`<div class="clan-member-row"><span>${esc(m.name)} ${m.role==='leader'?'👑':''}</span><span style="color:var(--gold);font-size:11px">+${fmt(m.contributed||0)}🪙</span></div>`).join('');
+  let warHTML='';
+  if(clan.activeWar){
+    const w=clan.activeWar,ta=w.scoreA||0,tb=w.scoreB||0,tot=ta+tb||1,pa=Math.round(ta/tot*100),pb=100-pa;
+    warHTML=`<div class="clan-war-card"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">⚔️ ВОЙНА КЛАНОВ</div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--red)">${esc(clan.name)}</span><span style="color:var(--green)">${esc(w.enemyName)}</span></div><div class="war-progress-wrap"><div class="war-bar-a" style="width:${pa}%"></div><div class="war-bar-b" style="width:${pb}%"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:#888"><span>${fmt(ta)}🪙</span><span>${fmt(tb)}🪙</span></div><button class="btn btn-red btn-full" style="margin-top:8px" onclick="contributeWar('${clanId}')">⚔️ ВЛОЖИТЬ В ВОЙНУ</button></div>`;
+  }
+  ui.innerHTML=`<div class="clan-banner"><div style="font-size:22px;margin-bottom:4px">${esc(clan.icon||'⚔️')}</div><div style="font-size:18px;font-weight:700">${esc(clan.name)}</div><div style="font-size:12px;color:#888;margin-top:3px">${esc(clan.description||'')}</div><div style="display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:12px"><div><div style="color:var(--gold);font-weight:700">${fmt(clan.treasury||0)}</div><div style="color:#666">Казна🪙</div></div><div><div style="color:var(--blue);font-weight:700">${members.length}</div><div style="color:#666">Участников</div></div></div></div>${warHTML}<div class="card-block"><div class="section-label">Участники</div>${mHTML}</div><div class="card-block"><div class="section-label">Пополнить казну</div><div class="flex-row"><input type="number" id="contrib-amt" placeholder="Сумма" value="1000"><button class="btn btn-gold btn-sm" onclick="contributeTreasury('${clanId}')">ВНЕСТИ</button></div><div style="font-size:11px;color:#555;margin-top:4px">Внесено тобой: ${fmt(myC)}🪙</div></div>${isOwn?`<div class="card-block"><div class="section-label">Управление</div><div class="flex-wrap"><button class="btn btn-blue btn-sm" onclick="startWar('${clanId}')">⚔️ Война</button><button class="btn btn-ghost btn-sm" onclick="disbandClan('${clanId}')">🗑️ Распустить</button></div></div>`:''}<button class="btn btn-ghost btn-full" style="margin-bottom:10px" onclick="leaveClanBtn()">🚪 Покинуть</button>`;
+}
+window.contributeTreasury=async clanId=>{const amt=Number(document.getElementById('contrib-amt').value);if(!amt||amt<=0||amt>S.coins)return alert("Нет монет!");S.coins-=amt;updateUI();await runTransaction(ref(db,'clans/'+clanId+'/treasury'),t=>(t||0)+amt);await runTransaction(ref(db,'clans/'+clanId+'/totalEarned'),t=>(t||0)+amt);await runTransaction(ref(db,'clans/'+clanId+'/members/'+S.userId+'/contributed'),t=>(t||0)+amt);syncStats();renderClansUI();};
+window.contributeWar=async clanId=>{const amt=Number(prompt("Сколько монет в войну?"));if(!amt||amt<=0||amt>S.coins)return;S.coins-=amt;updateUI();await runTransaction(ref(db,'clans/'+clanId+'/activeWar/scoreA'),t=>(t||0)+amt);await runTransaction(ref(db,'clans/'+clanId+'/treasury'),t=>(t||0)+amt);syncStats();renderClansUI();};
+window.startWar=cid=>{openModal(`<div style="font-size:15px;font-weight:700;margin-bottom:12px">⚔️ Объявить войну</div><input type="text" id="w-eid" placeholder="ID клана врага" style="margin-bottom:7px"><input type="text" id="w-en" placeholder="Название врага" style="margin-bottom:12px"><div style="font-size:11px;color:#666;margin-bottom:8px">Война 7 дней. Клан с большим вкладом побеждает.</div><button class="btn btn-red btn-full" onclick="declareWar('${cid}')">⚔️ ОБЪЯВИТЬ</button>`);};
+window.declareWar=async cid=>{const eid=document.getElementById('w-eid').value.trim(),en=document.getElementById('w-en').value.trim();if(!eid||!en)return alert("Заполни поля!");const ends=Date.now()+7*24*3600*1000;await update(ref(db,'clans/'+cid+'/activeWar'),{enemyId:eid,enemyName:en,scoreA:0,scoreB:0,endsAt:ends,started:serverTimestamp()});await update(ref(db,'clans/'+eid+'/activeWar'),{enemyId:cid,enemyName:en,scoreA:0,scoreB:0,endsAt:ends,started:serverTimestamp()});closeModal();renderClansUI();};
+window.leaveClanBtn=async()=>{if(!confirm("Покинуть клан?"))return;await leaveClanInternal();renderClansUI();syncStats();};
+window.disbandClan=async cid=>{if(!confirm("Распустить клан?"))return;await remove(ref(db,'clans/'+cid));S.clanId=null;await update(ref(db,'users/'+S.userId),{clanId:null});syncStats();renderClansUI();};
+
+// ─── PROMO ───────────────────────────────────
 window.activatePromo=async()=>{
   const code=document.getElementById('promo-input').value.trim().toUpperCase();
-  const msgEl=document.getElementById('promo-msg');
-  if(!code)return;
-  if(usedPromos[code]){msgEl.style.color='var(--red)';msgEl.innerText="❌ Уже использовано";return;}
-  const snap=await get(ref(db,'promos/'+code));
-  if(!snap.exists()||!snap.val().active){msgEl.style.color='var(--red)';msgEl.innerText="❌ Промокод не найден";return;}
-  const promo=snap.val();
-  if(promo.uses<=0){msgEl.style.color='var(--red)';msgEl.innerText="❌ Промокод исчерпан";return;}
-  S.coins+=promo.coins||0;S.totalEarned+=promo.coins||0;
-  usedPromos[code]=true;
+  const msg=document.getElementById('promo-msg');if(!code)return;
+  if((S.completedQuests||{})['promo_'+code]){msg.style.color='var(--red)';msg.innerText='❌ Уже использован';return;}
+  const ps=await get(ref(db,'promos/'+code));
+  if(!ps.exists()||!ps.val().active){msg.style.color='var(--red)';msg.innerText='❌ Не найден';return;}
+  const p=ps.val();if((p.uses||0)<=0){msg.style.color='var(--red)';msg.innerText='❌ Исчерпан';return;}
+  S.coins+=p.coins||0;S.totalEarned+=p.coins||0;
+  S.completedQuests['promo_'+code]=true;
   await runTransaction(ref(db,'promos/'+code+'/uses'),u=>(u||0)-1);
-  if((promo.uses-1)<=0)await update(ref(db,'promos/'+code),{active:false});
-  msgEl.style.color='var(--green)';msgEl.innerText=`✅ +${fmt(promo.coins)} 🪙!`;
+  if((p.uses-1)<=0)await update(ref(db,'promos/'+code),{active:false});
+  msg.style.color='var(--green)';msg.innerText="✅ +"+fmt(p.coins)+" 🪙!";
   document.getElementById('promo-input').value='';
   updateUI();syncStats();
 };
 
-// ════════════════════════════════════════
-// CHAT — исправленный
-// ════════════════════════════════════════
-window.sendMessage=()=>{
-  if(!S.userId)return;
-  const input=document.getElementById('chat-input');
-  const txt=input.value.trim();if(!txt)return;
-  push(ref(db,'chat'),{
-    userId:S.userId,
-    user:S.displayName,
-    text:txt.substring(0,200),
-    prefix:S.prefix||"",
-    isAdmin:S.isAdmin||false,
-    time:serverTimestamp()
-  });
-  input.value="";
-};
-
-// Listener навешивается один раз
-function listenChat(){
-  if(chatListener)off(ref(db,'chat'),chatListener);
-  const chatRef=query(ref(db,'chat'),limitToLast(40));
-  chatListener=onValue(chatRef,snap=>{
-    let h="";
-    snap.forEach(c=>{
-      const m=c.val();
-      if(!m||!m.text)return;
-      const safeName=esc(m.user||m.userId||'?');
-      const safeTxt=esc(m.text);
-      const isSystem=(m.userId==='СИСТЕМА'||m.user==='СИСТЕМА');
-      const pfxColor=m.isAdmin?'#e74c3c':'#9b59b6';
-      const prefix=m.prefix?`<span style="color:${pfxColor};font-size:10px">[${esc(m.prefix)}] </span>`:'';
-      const nameColor=isSystem?'color:var(--gold)':'color:var(--blue)';
-      const clickAct=isSystem?'':`onclick="sendGift('${esc(m.userId)}','${safeName}')"`;
-      const idTag=isSystem?'':` <span style="color:#333;font-size:10px">[${esc(m.userId||'').slice(-6)}]</span>`;
-      h+=`<div class="msg">${prefix}<span style="${nameColor};font-weight:bold;cursor:pointer" ${clickAct}>${safeName}</span>${idTag}: ${safeTxt}</div>`;
-    });
-    const box=document.getElementById('chat-box');
-    if(box){box.innerHTML=h;box.scrollTop=box.scrollHeight;}
-  });
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  const inp=document.getElementById('chat-input');
-  if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')sendMessage();});
-});
-
-window.sendGift=(targetId,targetName)=>{
-  if(!targetId||targetId===S.userId||targetId==='СИСТЕМА')return;
-  if(S.coins<1000)return alert("Нужно минимум 1000 🪙");
-  if(!confirm("Подарить 1000 🪙 → "+targetName+"?"))return;
-  runTransaction(ref(db,'users/'+targetId+'/balance'),bal=>(bal||0)+1000);
-  S.coins-=1000;updateUI();syncStats();
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🎁 ${S.displayName} подарил 1000 🪙 → ${targetName}`,time:serverTimestamp()});
-};
-
-// ════════════════════════════════════════
-// LEADERBOARD
-// ════════════════════════════════════════
-window.lbSort=(field)=>{
-  lbSortField=field;
-  document.getElementById('lb-btn-bal').style.cssText=field==='balance'?'background:var(--gold);border:none;color:black;padding:6px 12px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:12px':'background:#333;border:none;color:white;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px';
-  document.getElementById('lb-btn-earn').style.cssText=field==='totalEarned'?'background:var(--gold);border:none;color:black;padding:6px 12px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:12px':'background:#333;border:none;color:white;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px';
-  renderLeaderboard();
-};
-
-function listenLeaderboard(){
-  onValue(query(ref(db,'users'),orderByChild('totalEarned'),limitToLast(50)),snap=>{
-    allPlayers=[];
-    snap.forEach(s=>{const v=s.val();if(v&&v.userId)allPlayers.push(v);});
-    renderLeaderboard();
-  });
-}
-function renderLeaderboard(){
-  const sorted=[...allPlayers].sort((a,b)=>(b[lbSortField]||0)-(a[lbSortField]||0));
-  const myRank=sorted.findIndex(p=>p.userId===S.userId)+1;
-  const rankEl=document.getElementById('lb-my-rank');
-  if(rankEl)rankEl.innerText=myRank>0?`Твоё место: #${myRank} из ${sorted.length}`:'';
-  const medals=['🥇','🥈','🥉'];
-  document.getElementById('leader-list').innerHTML=sorted.slice(0,30).map((p,i)=>{
-    const val=lbSortField==='balance'?p.balance:p.totalEarned;
-    const isMe=p.userId===S.userId;
-    const medal=medals[i]||`#${i+1}`;
-    const prefix=p.prefix?`<small style="color:var(--purple)">[${esc(p.prefix)}] </small>`:'';
-    return`<div class="leader-item${isMe?' me':''}" onclick="sendGift('${esc(p.userId)}','${esc(p.displayName||p.userId)}')">
-      <span>${medal} ${prefix}${esc(p.displayName||p.userId)}</span>
-      <b style="color:var(--gold)">${fmt(val||0)} 🪙</b>
-    </div>`;
-  }).join('');
-}
-
-// ════════════════════════════════════════
-// КЛАНЫ — полная система
-// ════════════════════════════════════════
-
-window.renderClansUI=async()=>{
-  const ui=document.getElementById('clan-ui');
-  ui.innerHTML='<p style="color:#555">Загрузка...</p>';
-
-  if(S.clanId){
-    // Игрок в клане
-    const cSnap=await get(ref(db,'clans/'+S.clanId));
-    if(cSnap.exists()){
-      renderMyClan(cSnap.val(),S.clanId);
-    } else {
-      S.clanId=null;syncStats();renderClansBrowse();
+// ─── REFERRALS ───────────────────────────────
+async function loadRefCode(){
+  try{
+    let code=await snap2('users/'+S.userId+'/refCode');
+    if(!code){
+      const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      code="BRM";for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+      await update(ref(db,'users/'+S.userId),{refCode:code});
+      await set(ref(db,'ref_codes/'+code),S.userId);
+      S.refCode=code;
     }
-  } else {
-    renderClansBrowse();
-  }
-};
-
-async function renderClansBrowse(){
-  const ui=document.getElementById('clan-ui');
-  const snap=await get(ref(db,'clans'));
-  let clans=[];
-  if(snap.exists())snap.forEach(c=>{clans.push({id:c.key,...c.val()});});
-  clans.sort((a,b)=>(b.totalPower||0)-(a.totalPower||0));
-
-  let h=`
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button class="buy-btn" style="flex:1" onclick="openCreateClan()">➕ Создать клан</button>
-  </div>
-  <div style="font-size:12px;color:#555;margin-bottom:8px;text-align:left">ТОП КЛАНОВ (${clans.length}):</div>`;
-
-  if(!clans.length){h+='<p style="color:#444">Кланов пока нет. Создай первый!</p>';}
-  else {
-    h+=clans.slice(0,20).map((cl,i)=>{
-      const memberCount=Object.keys(cl.members||{}).length;
-      const power=fmt(cl.totalPower||0);
-      return`<div class="clan-card" style="cursor:pointer" onclick="openClanInfo('${cl.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <span style="font-size:18px">${esc(cl.icon||'⚔️')}</span>
-            <b style="font-size:15px;margin-left:6px">${esc(cl.name)}</b>
-            <span style="font-size:10px;color:#666;margin-left:6px">#${i+1}</span>
-          </div>
-          <div style="text-align:right;font-size:11px;color:#888">
-            👥${memberCount}/20<br>⚡${power}
-          </div>
-        </div>
-        ${cl.description?`<div style="font-size:11px;color:#666;margin-top:4px;text-align:left">${esc(cl.description)}</div>`:''}
-      </div>`;
-    }).join('');
-  }
-  ui.innerHTML=h;
+    const box=document.getElementById('ref-code-box');
+    if(box)box.innerHTML=`<div style="color:var(--gold);font-size:15px;font-weight:700;letter-spacing:2px">${code}</div><div style="color:#555;font-size:10px;margin-top:2px">Друг вводит этот код и получает +2000🪙, ты получаешь +1000🪙</div><button class="btn btn-ghost btn-sm" style="margin-top:6px;font-size:11px" onclick="navigator.clipboard.writeText('${code}');this.innerText='Скопировано ✓'">📋 Копировать</button>`;
+    loadRefStats();
+  }catch(e){console.log('ref',e);}
 }
-
-function renderMyClan(cl,clanId){
-  const ui=document.getElementById('clan-ui');
-  const members=Object.entries(cl.members||{});
-  const isOwner=cl.ownerId===S.userId;
-  const power=fmt(cl.totalPower||0);
-  const myContrib=fmt(cl.members?.[S.userId]?.contribution||0);
-
-  const membersHTML=members
-    .sort((a,b)=>(b[1].contribution||0)-(a[1].contribution||0))
-    .map(([uid,m])=>`
-    <div class="clan-member">
-      <span>${esc(m.name||uid)} ${uid===cl.ownerId?'👑':''}</span>
-      <span style="color:var(--gold)">⚡${fmt(m.contribution||0)}</span>
-    </div>`).join('');
-
-  // Война
-  const war=cl.war||null;
-  let warHTML='';
-  if(war&&war.status==='active'){
-    const timeLeft=Math.max(0,Math.floor(((war.endsAt||0)-Date.now())/1000/60));
-    const totalPower=(war.powerA||0)+(war.powerB||0)||1;
-    const pctA=Math.round((war.powerA||0)/totalPower*100);
-    const pctB=100-pctA;
-    warHTML=`
-    <div class="clan-war-box">
-      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:bold;margin-bottom:6px">
-        <span style="color:var(--red)">⚔️ ${esc(war.clanAName||'?')}</span>
-        <span style="color:#888;font-size:11px">⏱ ${timeLeft}мин</span>
-        <span style="color:var(--green)">⚔️ ${esc(war.clanBName||'?')}</span>
-      </div>
-      <div class="war-bar-wrap">
-        <div class="war-bar-a" style="width:${pctA}%"></div>
-        <div class="war-bar-b" style="width:${pctB}%"></div>
-        <div class="war-bar-label" style="color:white;text-shadow:0 1px 3px #000">${fmt(war.powerA||0)} — ${fmt(war.powerB||0)}</div>
-      </div>
-      <div style="font-size:11px;color:#888;margin-top:4px">Кликай — твои очки идут в войну!</div>
-      <button class="buy-btn" style="width:100%;margin-top:8px;background:var(--red)" onclick="attackInWar('${clanId}')">⚔️ АТАКОВАТЬ (+100 урона)</button>
-    </div>`;
-  } else if(isOwner){
-    warHTML=`
-    <div class="clan-war-box">
-      <div style="font-size:13px;font-weight:bold;margin-bottom:8px;color:#f1c40f">⚔️ КЛАНОВЫЕ ВОЙНЫ</div>
-      <p style="color:#888;font-size:12px">Брось вызов другому клану!</p>
-      <button class="buy-btn" style="width:100%;background:var(--red)" onclick="openWarChallenge('${clanId}')">⚔️ ОБЪЯВИТЬ ВОЙНУ</button>
-    </div>`;
-  } else if(war&&war.status==='ended'){
-    const won=war.winner===clanId;
-    warHTML=`<div class="clan-war-box" style="border-color:${won?'var(--gold)':'var(--red)'}">
-      <div style="font-size:15px;font-weight:bold;color:${won?'var(--gold)':'var(--red)'}">${won?'🏆 ПОБЕДА!':'💀 ПОРАЖЕНИЕ'}</div>
-      <p style="font-size:11px;color:#888">${esc(war.clanAName)} ${fmt(war.powerA||0)} vs ${fmt(war.powerB||0)} ${esc(war.clanBName)}</p>
-    </div>`;
-  }
-
-  ui.innerHTML=`
-  <div class="clan-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div>
-        <span style="font-size:24px">${esc(cl.icon||'⚔️')}</span>
-        <b style="font-size:17px;margin-left:6px">${esc(cl.name)}</b>
-      </div>
-      <div style="text-align:right;font-size:11px;color:#888">
-        👥${members.length}/20<br>⚡${power} всего
-      </div>
-    </div>
-    ${cl.description?`<p style="color:#777;font-size:12px;text-align:left;margin:4px 0">${esc(cl.description)}</p>`:''}
-    <div style="font-size:11px;color:var(--gold);margin-top:4px">Мой вклад: ⚡${myContrib}</div>
-  </div>
-
-  ${warHTML}
-
-  <div style="text-align:left;margin-bottom:6px">
-    <div style="font-size:12px;color:#888;margin-bottom:4px">УЧАСТНИКИ (${members.length}):</div>
-    ${membersHTML}
-  </div>
-
-  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-    ${isOwner?`<button class="buy-btn" style="background:var(--purple)" onclick="openEditClan('${clanId}')">✏️ Редакт.</button>`:''}
-    ${isOwner?`<button class="buy-btn" style="background:var(--red)" onclick="disbandClan('${clanId}')">🗑️ Распустить</button>`:''}
-    <button class="buy-btn" style="background:#333;color:#ccc" onclick="leaveClan('${clanId}')">🚪 Выйти</button>
-    ${isOwner?`<button class="buy-btn" onclick="openWarChallenge('${clanId}')">⚔️ Война</button>`:''}
-  </div>`;
-
-  // Слушаем обновления войны в реальном времени
-  onValue(ref(db,'clans/'+clanId+'/war'),snap=>{
-    if(snap.exists()){
-      const war=snap.val();
-      // Перерендериваем только если активна/закончилась
-      if(war.status==='active'||war.status==='ended'){
-        get(ref(db,'clans/'+clanId)).then(cs=>{if(cs.exists())renderMyClan(cs.val(),clanId);});
-      }
-    }
-  });
+async function loadRefStats(){
+  try{
+    const rs=await get(ref(db,'users/'+S.userId+'/refs'));
+    const data=rs.exists()?rs.val():{};
+    const refs=Object.entries(data);
+    const total=refs.reduce((s,[,d])=>s+(d.earned||0),0);
+    const el=document.getElementById('ref-stats');if(!el)return;
+    el.innerHTML=refs.length?`<div style="font-size:11px;color:#888">Рефералов: ${refs.length} · Заработано: ${fmt(total)}🪙</div>`:
+      '<div style="font-size:11px;color:#444">Рефералов пока нет</div>';
+  }catch(e){}
 }
-
-// Открыть инфо о чужом клане
-window.openClanInfo=async(clanId)=>{
-  const snap=await get(ref(db,'clans/'+clanId));
-  if(!snap.exists())return;
-  const cl=snap.val();
-  const members=Object.entries(cl.members||{});
-  const isFull=members.length>=20;
-  document.getElementById('clan-modal-content').innerHTML=`
-    <div style="font-size:40px">${esc(cl.icon||'⚔️')}</div>
-    <h3 style="margin:8px 0">${esc(cl.name)}</h3>
-    ${cl.description?`<p style="color:#888;font-size:13px">${esc(cl.description)}</p>`:''}
-    <p style="font-size:13px">👥 Участников: ${members.length}/20 · ⚡ ${fmt(cl.totalPower||0)}</p>
-    ${!S.clanId&&!isFull?`<button class="buy-btn" style="width:100%;margin-top:10px" onclick="joinClan('${clanId}');closeModal('clan-modal')">➕ ВСТУПИТЬ В КЛАН</button>`:''}
-    ${isFull?`<p style="color:var(--red);font-size:12px">Клан заполнен</p>`:''}
-    ${S.clanId?`<p style="color:#888;font-size:12px">Ты уже в клане</p>`:''}`;
-  document.getElementById('clan-modal').classList.add('open');
+window.applyRef=async()=>{
+  const code=document.getElementById('ref-input').value.trim().toUpperCase();
+  const msg=document.getElementById('ref-msg');
+  if(!code.startsWith('BRM')){msg.style.color='var(--red)';msg.innerText='❌ Неверный формат';return;}
+  const already=await snap2('users/'+S.userId+'/refBy');
+  if(already){msg.style.color='var(--red)';msg.innerText='❌ Реф уже применён';return;}
+  const ownerId=await snap2('ref_codes/'+code);
+  if(!ownerId){msg.style.color='var(--red)';msg.innerText='❌ Код не найден';return;}
+  if(ownerId===S.userId){msg.style.color='var(--red)';msg.innerText='❌ Нельзя свой код';return;}
+  const BONUS=2000,REF_BONUS=1000;
+  S.coins+=BONUS;S.totalEarned+=BONUS;
+  await runTransaction(ref(db,'users/'+ownerId+'/balance'),b=>(b||0)+REF_BONUS);
+  await update(ref(db,'users/'+S.userId),{refBy:ownerId});
+  await set(ref(db,'users/'+ownerId+'/refs/'+S.userId),{joinedAt:Date.now(),earned:0});
+  S.refBy=ownerId;msg.style.color='var(--green)';msg.innerText="✅ +"+fmt(BONUS)+" 🪙!";
+  document.getElementById('ref-input').value='';updateUI();syncStats();
 };
 
-window.joinClan=async(clanId)=>{
-  if(S.clanId)return alert("Сначала выйди из текущего клана!");
-  const snap=await get(ref(db,'clans/'+clanId));
-  if(!snap.exists())return;
-  const cl=snap.val();
-  const cnt=Object.keys(cl.members||{}).length;
-  if(cnt>=20)return alert("Клан заполнен!");
-  S.clanId=clanId;
-  await update(ref(db,'clans/'+clanId+'/members/'+S.userId),{name:S.displayName,contribution:0,joinedAt:Date.now()});
-  await update(ref(db,'users/'+S.userId),{clanId});
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`⚔️ ${S.displayName} вступил в клан ${esc(cl.name)}!`,time:serverTimestamp()});
-  renderClansUI();
-};
-
-window.leaveClan=async(clanId)=>{
-  if(!confirm("Покинуть клан?"))return;
-  const snap=await get(ref(db,'clans/'+clanId));
-  if(snap.exists()&&snap.val().ownerId===S.userId){
-    alert("Владелец не может выйти. Распусти клан.");return;
-  }
-  S.clanId=null;
-  await remove(ref(db,'clans/'+clanId+'/members/'+S.userId));
-  await update(ref(db,'users/'+S.userId),{clanId:null});
-  syncStats();renderClansUI();
-};
-
-window.disbandClan=async(clanId)=>{
-  if(!confirm("Распустить клан? Это необратимо!"))return;
-  const snap=await get(ref(db,'clans/'+clanId));
-  if(!snap.exists())return;
-  if(snap.val().ownerId!==S.userId)return alert("Только владелец может распустить!");
-  // Убрать clanId у всех участников
-  const members=Object.keys(snap.val().members||{});
-  const upd={};
-  members.forEach(uid=>{upd['users/'+uid+'/clanId']=null;});
-  await update(ref(db),upd);
-  await remove(ref(db,'clans/'+clanId));
-  S.clanId=null;syncStats();renderClansUI();
-};
-
-window.openCreateClan=()=>{
-  document.getElementById('clan-modal-content').innerHTML=`
-    <h3 style="margin:0 0 12px">⚔️ СОЗДАТЬ КЛАН</h3>
-    <input type="text" id="new-clan-icon" placeholder="Эмодзи иконка (напр. 🔥)" style="width:100%;margin-bottom:8px">
-    <input type="text" id="new-clan-name" placeholder="Название клана..." style="width:100%;margin-bottom:8px" maxlength="24">
-    <input type="text" id="new-clan-desc" placeholder="Описание (необяз.)" style="width:100%;margin-bottom:12px" maxlength="80">
-    <p style="color:#888;font-size:12px;margin-bottom:10px">Стоимость создания: <b style="color:var(--gold)">5000 🪙</b></p>
-    <button class="buy-btn" style="width:100%" onclick="createClan()">СОЗДАТЬ</button>`;
-  document.getElementById('clan-modal').classList.add('open');
-};
-
-window.createClan=async()=>{
-  const icon=document.getElementById('new-clan-icon').value.trim()||'⚔️';
-  const name=document.getElementById('new-clan-name').value.trim();
-  const desc=document.getElementById('new-clan-desc').value.trim();
-  if(!name||name.length<2)return alert("Название минимум 2 символа");
-  if(S.coins<5000)return alert("Нужно 5000 🪙!");
-  if(S.clanId)return alert("Ты уже в клане!");
-  S.coins-=5000;
-  const clanId=push(ref(db,'clans')).key;
-  S.clanId=clanId;
-  await set(ref(db,'clans/'+clanId),{
-    name,icon,description:desc,ownerId:S.userId,
-    members:{[S.userId]:{name:S.displayName,contribution:0,joinedAt:Date.now()}},
-    totalPower:0,createdAt:serverTimestamp()
-  });
-  await update(ref(db,'users/'+S.userId),{clanId});
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`⚔️ ${S.displayName} основал клан «${name}»!`,time:serverTimestamp()});
-  updateUI();syncStats();
-  closeModal('clan-modal');
-  renderClansUI();
-};
-
-window.openEditClan=async(clanId)=>{
-  const snap=await get(ref(db,'clans/'+clanId));
-  if(!snap.exists())return;
-  const cl=snap.val();
-  document.getElementById('clan-modal-content').innerHTML=`
-    <h3 style="margin:0 0 12px">✏️ РЕДАКТИРОВАТЬ КЛАН</h3>
-    <input type="text" id="edit-clan-icon" value="${esc(cl.icon||'⚔️')}" style="width:100%;margin-bottom:8px">
-    <input type="text" id="edit-clan-name" value="${esc(cl.name)}" style="width:100%;margin-bottom:8px" maxlength="24">
-    <input type="text" id="edit-clan-desc" value="${esc(cl.description||'')}" style="width:100%;margin-bottom:12px" maxlength="80">
-    <button class="buy-btn" style="width:100%" onclick="saveClanEdit('${clanId}')">СОХРАНИТЬ</button>`;
-  document.getElementById('clan-modal').classList.add('open');
-};
-
-window.saveClanEdit=async(clanId)=>{
-  const icon=document.getElementById('edit-clan-icon').value.trim()||'⚔️';
-  const name=document.getElementById('edit-clan-name').value.trim();
-  const desc=document.getElementById('edit-clan-desc').value.trim();
-  if(!name||name.length<2)return alert("Название минимум 2 символа");
-  await update(ref(db,'clans/'+clanId),{name,icon,description:desc});
-  closeModal('clan-modal');
-  renderClansUI();
-};
-
-// ────────────────────────────────────────
-// КЛАНОВЫЕ ВОЙНЫ
-// ────────────────────────────────────────
-window.openWarChallenge=async(clanId)=>{
-  const snap=await get(ref(db,'clans'));
-  if(!snap.exists())return;
-  let others=[];
-  snap.forEach(c=>{if(c.key!==clanId)others.push({id:c.key,...c.val()});});
-  others.sort((a,b)=>(b.totalPower||0)-(a.totalPower||0));
-
-  document.getElementById('clan-modal-content').innerHTML=`
-    <h3 style="margin:0 0 12px">⚔️ ВЫБЕРИ СОПЕРНИКА</h3>
-    <p style="color:#888;font-size:12px;margin-bottom:10px">Война длится 30 минут. Победитель получает 10% монет проигравших!</p>
-    ${others.length?others.slice(0,10).map(cl=>`
-      <div class="list-item" style="cursor:pointer;margin-bottom:6px" onclick="startWar('${clanId}','${cl.id}')">
-        <span>${esc(cl.icon||'⚔️')} <b>${esc(cl.name)}</b> (⚡${fmt(cl.totalPower||0)})</span>
-        <button class="buy-btn" style="font-size:11px;padding:5px 10px;background:var(--red)">⚔️</button>
-      </div>`).join(''):'<p style="color:#555">Нет других кланов</p>'}`;
-  document.getElementById('clan-modal').classList.add('open');
-};
-
-window.startWar=async(clanAId,clanBId)=>{
-  const [snapA,snapB]=await Promise.all([get(ref(db,'clans/'+clanAId)),get(ref(db,'clans/'+clanBId))]);
-  if(!snapA.exists()||!snapB.exists())return alert("Клан не найден");
-  const clA=snapA.val(),clB=snapB.val();
-  if(clA.war?.status==='active')return alert("Уже идёт война!");
-  if(clB.war?.status==='active')return alert("Этот клан уже в войне!");
-
-  const warData={
-    status:'active',
-    clanAId,clanAName:clA.name,
-    clanBId,clanBName:clB.name,
-    powerA:0,powerB:0,
-    endsAt:Date.now()+30*60*1000,
-    startedAt:Date.now()
-  };
-  await update(ref(db,'clans/'+clanAId),{war:warData});
-  await update(ref(db,'clans/'+clanBId),{war:{...warData}});
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`⚔️ КЛАНОВАЯ ВОЙНА: «${clA.name}» vs «${clB.name}»! 30 минут!`,time:serverTimestamp()});
-  closeModal('clan-modal');
-  renderClansUI();
-
-  // Таймер окончания войны (хост)
-  setTimeout(()=>endWar(clanAId,clanBId),30*60*1000);
-};
-
-async function endWar(clanAId,clanBId){
-  const [snapA,snapB]=await Promise.all([get(ref(db,'clans/'+clanAId)),get(ref(db,'clans/'+clanBId))]);
-  if(!snapA.exists()||!snapB.exists())return;
-  const warA=snapA.val().war;if(!warA||warA.status!=='active')return;
-  const powerA=warA.powerA||0,powerB=warA.powerB||0;
-  const winner=powerA>=powerB?clanAId:clanBId;
-  const loser=winner===clanAId?clanBId:clanAId;
-  const winnerName=winner===clanAId?(snapA.val().name):(snapB.val().name);
-  const loserName=loser===clanAId?(snapA.val().name):(snapB.val().name);
-
-  // Приз: 10% монет участников проигравшего клана
-  const loserSnap=await get(ref(db,'clans/'+loser));
-  let prize=0;
-  if(loserSnap.exists()){
-    const loserMembers=Object.keys(loserSnap.val().members||{});
-    for(const uid of loserMembers){
-      const uSnap=await get(ref(db,'users/'+uid+'/balance'));
-      const bal=uSnap.exists()?uSnap.val():0;
-      const take=Math.floor(bal*0.1);
-      prize+=take;
-      await runTransaction(ref(db,'users/'+uid+'/balance'),b=>Math.max(0,(b||0)-take));
-    }
-    // Разделить приз между победителями
-    const winnerMembers=Object.keys((winner===clanAId?snapA:snapB).val().members||{});
-    if(winnerMembers.length>0){
-      const share=Math.floor(prize/winnerMembers.length);
-      for(const uid of winnerMembers){
-        await runTransaction(ref(db,'users/'+uid+'/balance'),b=>(b||0)+share);
-      }
-    }
-  }
-
-  const endedWar={...warA,status:'ended',winner,powerA,powerB};
-  await update(ref(db,'clans/'+clanAId),{war:endedWar,totalPower:0});
-  await update(ref(db,'clans/'+clanBId),{war:{...endedWar},totalPower:0});
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🏆 Война завершена! Победитель: «${winnerName}»! Приз: ${fmt(prize)} 🪙`,time:serverTimestamp()});
-}
-
-window.attackInWar=async(clanId)=>{
-  if(!S.clanId||!clanId)return;
-  const snap=await get(ref(db,'clans/'+clanId));
-  if(!snap.exists())return;
-  const cl=snap.val();
-  const war=cl.war;if(!war||war.status!=='active')return;
-
-  const attackPower=100+Math.floor(S.clickPower*5);
-  const myField=war.clanAId===clanId?'powerA':'powerB';
-  await runTransaction(ref(db,'clans/'+clanId+'/war/'+myField),v=>(v||0)+attackPower);
-  await runTransaction(ref(db,'clans/'+clanId+'/members/'+S.userId+'/contribution'),v=>(v||0)+attackPower);
-
-  // Показать фидбек
-  const btn=document.querySelector('[onclick^="attackInWar"]');
-  if(btn){
-    const old=btn.innerText;
-    btn.innerText=`+${attackPower} урона!`;
-    setTimeout(()=>{btn.innerText=old;},800);
-  }
-};
-
-// ════════════════════════════════════════
-// SETTINGS
-// ════════════════════════════════════════
+// ─── SETTINGS ────────────────────────────────
 window.changeNickname=()=>{
   const n=document.getElementById('name-input').value.trim();
-  if(n&&n.length>=2&&n.length<=20){S.displayName=n;localStorage.setItem('b_name',n);syncStats();updateUI();alert("Ник изменён!");}
-  else alert("Ник: 2–20 символов");
+  if(n?.length>=2&&n.length<=20){S.displayName=n;localStorage.setItem('b_name',n);syncStats();updateUI();alert("Ник изменён!");}
+  else alert("2–20 символов");
 };
-window.resetGame=()=>{if(confirm("Сбросить прогресс?")){{localStorage.clear();location.reload();}}};
+window.resetGame=()=>{if(confirm("Сброс прогресса?")){localStorage.clear();location.reload();}};
 
-// ════════════════════════════════════════
-// ADMIN
-// ════════════════════════════════════════
+// ─── ADMIN ───────────────────────────────────
 window.openAdminEntry=async()=>{
-  if(S.isAdmin){openAdmin();return;}
-  const cached=localStorage.getItem('b_admin_ok');
-  if(cached==='1'){S.isAdmin=true;openAdmin();return;}
-  const code=prompt("🔑 Код доступа:");
-  if(!code)return;
-  const hash=await hashCode(code);
-  if(hash===ADMIN_HASH){
-    S.isAdmin=true;localStorage.setItem('b_admin_ok','1');
-    await update(ref(db,'users/'+S.userId),{isAdmin:true});
-    openAdmin();
-  } else {
-    setTimeout(()=>alert("Ошибка проверки"),300);
-  }
+  const cl=localStorage.getItem('b_cl');
+  if(cl==='owner'){S.isOwner=true;S.isModer=true;openAdmin(2);return;}
+  if(cl==='moder'){S.isModer=true;openAdmin(1);return;}
+  const code=prompt("🔑 Код доступа:");if(!code)return;
+  const h=await sha256(code);
+  if(h===OWNER_HASH){S.isOwner=true;S.isModer=true;localStorage.setItem('b_cl','owner');openAdmin(2);}
+  else if(h===MODER_HASH){S.isModer=true;localStorage.setItem('b_cl','moder');openAdmin(1);}
+  else{await delay(600+Math.random()*500);alert("Ошибка системы. Попробуй позже.");}
 };
-
-function openAdmin(){
-  document.getElementById('admin-overlay').style.display='block';
-  const whoEl=document.getElementById('admin-who');
-  if(whoEl)whoEl.innerText=S.displayName;
-  const hashEl=document.getElementById('admin-hash-display');
-  if(hashEl)hashEl.innerText='ADMIN_HASH = "'+ADMIN_HASH+'"';
-  adminLog("Вход: "+S.displayName);
-  adminLoadPlayers();
+function openAdmin(level){
+  document.getElementById('admin-backdrop').style.display='block';
+  document.getElementById('admin-l2').style.display=level>=2?'block':'none';
+  document.getElementById('admin-lvl-label').innerText=level>=2?'[ВЛАДЕЛЕЦ]':'[МОДЕРАТОР]';
+  adminLog("Вход lvl"+level+": "+S.displayName);
 }
-window.closeAdmin=()=>{document.getElementById('admin-overlay').style.display='none';};
+window.closeAdmin=()=>document.getElementById('admin-backdrop').style.display='none';
+function adminLog(msg){const el=document.getElementById('admin-log');if(!el)return;el.innerHTML="["+new Date().toLocaleTimeString('ru')+"] "+esc(msg)+"<br>"+el.innerHTML;}
 
-function adminLog(msg){
-  const log=document.getElementById('admin-log');if(!log)return;
-  const t=new Date().toLocaleTimeString('ru');
-  log.innerHTML=`[${t}] ${esc(msg)}<br>`+log.innerHTML;
-}
-
-window.adminBan=async()=>{
-  const uid=prompt("ID игрока:");if(!uid)return;
-  await update(ref(db,'users/'+uid),{banned:true});
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🔨 ${uid} заблокирован.`,time:serverTimestamp()});
-  adminLog("Бан: "+uid);
-};
-window.adminUnban=async()=>{
-  const uid=prompt("ID игрока для разбана:");if(!uid)return;
-  await update(ref(db,'users/'+uid),{banned:false});
-  adminLog("Разбан: "+uid);
-};
+window.adminBan=async()=>{const uid=prompt("ID:");if(!uid)return;await update(ref(db,'users/'+uid),{banned:true});push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:"🔨 "+uid+" заблокирован.",time:serverTimestamp()});adminLog("Бан: "+uid);};
+window.adminUnban=async()=>{const uid=prompt("ID:");if(!uid)return;await update(ref(db,'users/'+uid),{banned:false});adminLog("Разбан: "+uid);};
+window.adminSetPrefix=async()=>{const uid=prompt("ID:");if(!uid)return;const pfx=prompt("Префикс:");const col=prompt("Цвет #hex:")||"#9b59b6";await update(ref(db,'users/'+uid),{prefix:pfx||"",prefixColor:col});adminLog("Префикс → "+uid);};
+window.adminSetMyPrefix=async()=>{const pfx=prompt("Твой префикс:");if(pfx===null)return;const col=prompt("Цвет #hex:")||"#e74c3c";S.prefix=pfx;S.prefixColor=col;updateUI();syncStats();adminLog("Мой префикс: "+pfx);};
+window.adminClearChat=async()=>{if(!confirm("Очистить чат?"))return;await remove(ref(db,'chat'));adminLog("Чат очищен");};
+window.adminBroadcast=()=>{const msg=prompt("Текст:");if(!msg)return;push(ref(db,'chat'),{userId:'СИСТЕМА',user:'📢 ОБЪЯВЛЕНИЕ',text:msg,prefix:"ADMIN",prefixColor:"#e74c3c",isOwner:true,time:serverTimestamp()});adminLog("Анонс: "+msg);};
 window.adminGiveCoins=async()=>{
-  const uid=prompt("ID игрока:");if(!uid)return;
-  const amount=Number(prompt("Сколько монет?"));if(!amount||amount<=0)return;
-  await runTransaction(ref(db,'users/'+uid+'/balance'),b=>(b||0)+amount);
-  adminLog(`Выдано ${amount} → ${uid}`);
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`💰 Выдано ${fmt(amount)} 🪙 → ${uid}`,time:serverTimestamp()});
+  if(!S.isOwner)return alert("Только владелец!");
+  const uid=prompt("ID:");if(!uid)return;
+  const amt=Number(prompt("Монет:"));if(!amt||amt<=0)return;
+  await runTransaction(ref(db,'users/'+uid+'/balance'),b=>(b||0)+amt);
+  adminLog("+"+amt+"🪙 → "+uid);
+  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:"💰 Выдано "+fmt(amt)+"🪙 → "+uid,time:serverTimestamp()});
 };
-window.adminSetPrefix=async()=>{
-  const uid=prompt("ID игрока:");if(!uid)return;
-  const pfx=prompt("Новый префикс:");
-  await update(ref(db,'users/'+uid),{prefix:pfx||""});
-  adminLog("Префикс "+pfx+" → "+uid);
+window.adminRainCoins=async()=>{
+  if(!S.isOwner)return alert("Только владелец!");
+  const amt=Number(prompt("Монет ВСЕМ:"));if(!amt||amt<=0)return;
+  const snap=await get(ref(db,'users'));if(!snap.exists())return;
+  const upd={};snap.forEach(s=>{if(s.val()&&!s.val().banned)upd['users/'+s.key+'/balance']=(s.val().balance||0)+amt;});
+  await update(ref(db),upd);
+  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:"🌧️ ДОЖДЬ! Все получили +"+fmt(amt)+"🪙!",time:serverTimestamp()});
+  adminLog("Дождь +"+amt+" всем");
 };
-window.adminSetMyPrefix=async()=>{
-  const pfx=prompt("Твой префикс:");if(pfx===null)return;
-  S.prefix=pfx;syncStats();updateUI();adminLog("Мой префикс: "+pfx);
-};
-window.adminClearChat=async()=>{
-  if(!confirm("Очистить чат?"))return;
-  await remove(ref(db,'chat'));adminLog("Чат очищен");
-};
-window.adminBroadcast=()=>{
-  const msg=prompt("Текст объявления:");if(!msg)return;
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'📢 ОБЪЯВЛЕНИЕ',text:msg,isAdmin:true,prefix:"ADMIN",time:serverTimestamp()});
-  adminLog("Объявление: "+msg);
+window.adminSetEvent=async()=>{
+  if(!S.isOwner)return alert("Только владелец!");
+  const type=prompt("Тип ивента (multiplier/casino):")||"multiplier";
+  const mult=Number(prompt("Множитель:"))||2;
+  const min=Number(prompt("Минут:"))||10;
+  await set(ref(db,'global_event'),{type,mult,endsAt:Date.now()+min*60000});
+  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:"⚡ ИВЕНТ "+type+" ×"+mult+" на "+min+" мин!",time:serverTimestamp()});
+  adminLog("Ивент: "+type+" ×"+mult+" "+min+"мин");
+  checkEvent();
 };
 window.adminCreatePromo=async()=>{
-  const code=document.getElementById('promo-code-input').value.trim().toUpperCase();
-  const coins=Number(document.getElementById('promo-coins-input').value);
-  const uses=Number(document.getElementById('promo-uses-input').value)||1;
+  if(!S.isOwner)return alert("Только владелец!");
+  const code=document.getElementById('p-code').value.trim().toUpperCase(),coins=Number(document.getElementById('p-coins').value),uses=Number(document.getElementById('p-uses').value)||1;
   if(!code||!coins||coins<=0)return alert("Заполни поля");
   await set(ref(db,'promos/'+code),{coins,uses,active:true,createdBy:S.userId,created:serverTimestamp()});
-  adminLog(`Промо ${code}: ${coins}🪙 x${uses}`);
-  document.getElementById('promo-code-input').value='';
-  document.getElementById('promo-coins-input').value='';
+  adminLog("Промо "+code+": "+coins+"🪙 ×"+uses);
+  ['p-code','p-coins'].forEach(x=>{document.getElementById(x).value='';});
 };
 function listenAdminPromos(){
   onValue(ref(db,'promos'),snap=>{
     const el=document.getElementById('promos-list');if(!el)return;
     if(!snap.exists()){el.innerText='Нет промокодов';return;}
-    let h='';
-    snap.forEach(p=>{
-      const v=p.val();
-      h+=`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #222;padding:2px 0">
-        <span style="color:${v.active?'var(--green)':'#555'}">${esc(p.key)}</span>
-        <span>${fmt(v.coins)}🪙 · ${v.uses}ост. <button onclick="adminDeletePromo('${esc(p.key)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px">✕</button></span>
-      </div>`;
-    });
+    let h='';snap.forEach(p=>{const v=p.val();h+=`<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #1a1a1a"><span style="color:${v.active?'var(--green)':'#444'}">${esc(p.key)}</span><span style="font-size:10px">${fmt(v.coins)}🪙 ×${v.uses} <button onclick="adminDelPromo('${esc(p.key)}')" style="background:none;border:none;color:var(--red);cursor:pointer">✕</button></span></div>`;});
     el.innerHTML=h;
   });
 }
-window.adminDeletePromo=async(code)=>{
-  await remove(ref(db,'promos/'+code));adminLog("Удалён промо: "+code);
-};
-// ── СПИСОК ИГРОКОВ ──
-let adminAllPlayers=[];
-function adminLoadPlayers(){
-  onValue(query(ref(db,'users'),orderByChild('totalEarned'),limitToLast(100)),snap=>{
-    adminAllPlayers=[];
-    snap.forEach(s=>{const v=s.val();if(v&&v.userId)adminAllPlayers.push(v);});
-    adminFilterPlayers();
-  });
-}
-window.adminFilterPlayers=()=>{
-  const q=(document.getElementById('admin-search')?.value||'').toLowerCase();
-  const el=document.getElementById('admin-players-list');if(!el)return;
-  const filtered=adminAllPlayers.filter(p=>
-    (p.displayName||'').toLowerCase().includes(q)||(p.userId||'').toLowerCase().includes(q)
-  ).sort((a,b)=>(b.balance||0)-(a.balance||0)).slice(0,30);
-  if(!filtered.length){el.innerHTML='<div style="color:#444;padding:4px">Нет игроков</div>';return;}
-  el.innerHTML=filtered.map(p=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 6px;border-bottom:1px solid #1a0000;gap:4px">
-      <div style="flex:1;min-width:0">
-        <span style="color:${p.isAdmin?'var(--red)':p.banned?'#555':'#ccc'}">${esc(p.displayName||p.userId)}</span>
-        <span style="color:#333;font-size:9px;margin-left:4px">${esc(p.userId||'')}</span>
-        ${p.banned?'<span style="color:var(--red);font-size:9px"> 🔨БАН</span>':''}
-      </div>
-      <span style="color:var(--gold);white-space:nowrap">${fmt(p.balance||0)}🪙</span>
-      <div style="display:flex;gap:2px">
-        <button onclick="adminQuickGive('${esc(p.userId)}')" style="background:#1a3a1a;border:none;color:var(--green);padding:3px 6px;border-radius:4px;cursor:pointer;font-size:10px">+💰</button>
-        <button onclick="adminQuickBan('${esc(p.userId)}',${!!p.banned})" style="background:#3a0000;border:none;color:var(--red);padding:3px 6px;border-radius:4px;cursor:pointer;font-size:10px">${p.banned?'✅':'🔨'}</button>
-      </div>
-    </div>`).join('');
-};
-window.adminQuickGive=async(uid)=>{
-  const amt=Number(prompt(`Монет → ${uid}:`));if(!amt||amt<=0)return;
-  await runTransaction(ref(db,'users/'+uid+'/balance'),b=>(b||0)+amt);
-  adminLog(`+${amt}🪙 → ${uid}`);
-};
-window.adminQuickBan=async(uid,isBanned)=>{
-  await update(ref(db,'users/'+uid),{banned:!isBanned});
-  adminLog(isBanned?`Разбан: ${uid}`:`Бан: ${uid}`);
-};
-
-// ── ПРИКОЛЫ ──
-window.adminRainCoins=async()=>{
-  const amt=Number(prompt("Сколько монет подарить ВСЕМ?"));if(!amt||amt<=0)return;
-  const snap=await get(ref(db,'users'));if(!snap.exists())return;
-  const upd={};snap.forEach(s=>{if(s.val()&&!s.val().banned)upd['users/'+s.key+'/balance']=(s.val().balance||0)+amt;});
-  await update(ref(db),upd);
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🌧️ ДОЖДЬ МОНЕТ! Все получили +${fmt(amt)} 🪙!`,time:serverTimestamp()});
-  adminLog(`Дождь: +${amt} всем`);
-};
-window.adminGlobalMultiplier=async()=>{
-  const mult=Number(prompt("Множитель дохода для всех (напр. 2):"));if(!mult||mult<=0)return;
-  const dur=Number(prompt("На сколько минут?"))||5;
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`⚡ ГЛОБАЛЬНЫЙ МНОЖИТЕЛЬ ×${mult} на ${dur} минут! Качайте!`,time:serverTimestamp()});
-  await set(ref(db,'global_event'),{type:'multiplier',mult,endsAt:Date.now()+dur*60000});
-  adminLog(`Множитель ×${mult} на ${dur}мин`);
-};
-window.adminFreezeAll=async()=>{
-  if(!confirm("Заморозить всех игроков на 30 секунд?"))return;
-  await set(ref(db,'global_event'),{type:'freeze',endsAt:Date.now()+30000});
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🥶 ЗАМОРОЗКА! Все заморожены на 30 секунд!`,time:serverTimestamp()});
-  adminLog("Заморозка активирована");
-};
-window.adminShuffleNicknames=async()=>{
-  if(!confirm("Перемешать ники случайных игроков на 1 минуту? (шутка)"))return;
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🔀 Ники перепутаны на 1 минуту! Кто есть кто? 😂`,time:serverTimestamp()});
-  adminLog("Ники перемешаны (шутка в чате)");
-};
-window.adminGiveAllPromo=async()=>{
-  const code="ADMIN"+Math.floor(Math.random()*9000+1000);
-  const coins=Number(prompt("Монет в промокоде для всех:"));if(!coins||coins<=0)return;
-  await set(ref(db,'promos/'+code),{coins,uses:9999,active:true,createdBy:S.userId,created:serverTimestamp()});
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🎁 ПРОМОКОД ДЛЯ ВСЕХ: ${code} · +${fmt(coins)} 🪙! (ограничено)`,time:serverTimestamp()});
-  adminLog(`Промо для всех: ${code}`);
-};
-window.adminCasinoEvent=async()=>{
-  const dur=Number(prompt("Казино-ивент на сколько минут? (двойные выигрыши)"))||10;
-  await set(ref(db,'global_event'),{type:'casino',mult:2,endsAt:Date.now()+dur*60000});
-  push(ref(db,'chat'),{userId:'СИСТЕМА',user:'СИСТЕМА',text:`🎰 КАЗИНО-ИВЕНТ! Двойные выигрыши в слотах и краше на ${dur} минут!`,time:serverTimestamp()});
-  adminLog(`Казино-ивент ${dur}мин`);
-};
-
+window.adminDelPromo=async code=>{await remove(ref(db,'promos/'+code));adminLog("Удалён: "+code);};
 window.adminAddItem=async()=>{
-  const cat=document.getElementById('item-cat').value;
-  const n=document.getElementById('item-name').value.trim();
-  const icon=document.getElementById('item-icon').value.trim()||'📦';
-  const p=Number(document.getElementById('item-price').value);
-  const i=Number(document.getElementById('item-income').value)||0;
-  const desc=document.getElementById('item-desc').value.trim();
+  const cat=document.getElementById('item-cat').value,n=document.getElementById('item-name').value.trim(),icon=document.getElementById('item-icon').value.trim()||'📦',p=Number(document.getElementById('item-price').value),i=Number(document.getElementById('item-income').value)||0,desc=document.getElementById('item-desc').value.trim();
   if(!n||!p)return alert("Заполни название и цену");
-  const id='custom_'+Date.now();
-  const item={id,n,icon,p,i,c:0,desc};
-  await set(ref(db,'shop_items/'+cat+'/'+id),item);
-  SHOP_ITEMS[cat].push(item);
-  adminLog(`Добавлен предмет: ${icon} ${n} (${cat})`);
+  const id='ci_'+Date.now(),item={id,n,icon,p,i,c:0,desc};
+  await set(ref(db,'shop_items/'+cat+'/'+id),item);SHOP[cat].push(item);
+  adminLog("Добавлен: "+icon+" "+n);
   ['item-name','item-icon','item-price','item-income','item-desc'].forEach(x=>document.getElementById(x).value='');
-  alert("✅ Предмет добавлен в магазин!");
+  alert("✅ Добавлено!");
 };
 
-// ════════════════════════════════════════
-// СТАРТ
-// ════════════════════════════════════════
+// ─── START ────────────────────────────────────
 const tg=window.Telegram?.WebApp;
-if(tg?.initDataUnsafe?.user){authViaTelegram();}
-else if(localStorage.getItem('b_tgid')){authViaTelegram();}
-else if(localStorage.getItem('b_guestid')){authAsGuest();}
+if(tg?.initDataUnsafe?.user)authViaTelegram();
+else if(localStorage.getItem('b_tgid'))authViaTelegram();
+else if(localStorage.getItem('b_guestid'))authAsGuest();
 
-// Навесить listener на чат-инпут после загрузки DOM
-setTimeout(()=>{
-  const inp=document.getElementById('chat-input');
-  if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')sendMessage();});
-},100);
-
+// После входа — если владелец, запускаем краш
+setTimeout(async()=>{if(S.isOwner)maybeDriveCrash();},3000);
 </script>
 </body>
 </html>
+HTMLEOF
+echo "Written: $(wc -l < /home/claude/game_v5.html) lines, $(wc -c < /home/claude/game_v5.html) bytes"
